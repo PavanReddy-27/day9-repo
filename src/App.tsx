@@ -30,7 +30,6 @@ type User = {
 /* =========================================
    CURRENT USER
    Change role to test RBAC
-========================================= */
 
 const currentUser: User = {
   name: "John Smith",
@@ -40,7 +39,6 @@ const currentUser: User = {
 
 /* =========================================
    NAVIGATION ITEMS
-========================================= */
 
 type NavigationItem = {
   label: string;
@@ -102,7 +100,6 @@ const navigationItems: NavigationItem[] = [
 
 /* =========================================
    ROLE CHECK
-========================================= */
 
 function hasAccess(
   allowedRoles: Role[],
@@ -114,7 +111,6 @@ function hasAccess(
 
 /* =========================================
    PROTECTED ROUTE
-========================================= */
 
 type ProtectedRouteProps = {
   allowedRoles: Role[];
@@ -163,7 +159,6 @@ function ProtectedRoute({
 
 /* =========================================
    APP LAYOUT
-========================================= */
 
 function AppLayout() {
   const visibleNavigation =
@@ -259,7 +254,6 @@ function AppLayout() {
 
 /* =========================================
    404 PAGE
-========================================= */
 
 function NotFound() {
   return (
@@ -288,7 +282,6 @@ function NotFound() {
 
 /* =========================================
    APP
-========================================= */
 
 function App() {
   return (
@@ -438,6 +431,17 @@ function App() {
       </Routes>
 
     </BrowserRouter>
+  );
+}
+
+export default App;
+import React from "react";
+
+function App() {
+  return (
+    <div>
+      <h1>Workforce Analytics Dashboard</h1>
+    </div>
   );
 }
 
