@@ -1,0 +1,1 @@
+{"root":["./tailwind.config.ts","./vite.config.ts","./src/app/app.tsx","./src/app/main.tsx","./src/app/providers.tsx","./src/app/queryclient.ts","./src/app/router.tsx","./src/app/store.ts"],"version":"5.6.3"}
