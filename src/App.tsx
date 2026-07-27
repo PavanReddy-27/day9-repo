@@ -1,3 +1,4 @@
+import AppRoutes from "./routes/AppRoutes";
 import EmployeeTable from './components/EmployeeTable';
 
 function App() {
@@ -445,12 +446,9 @@ export default App;
 import React from "react";
 
 function App() {
-  return (
-    <div>
-      <h1>Workforce Analytics Dashboard</h1>
-    </div>
-  );
+  return <AppRoutes />;
 }
 
+export default App;
 export default App;
 export default App;
