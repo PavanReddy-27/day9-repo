@@ -153,19 +153,6 @@ npm test
 
 ---
 
-## 👥 Team Contributions
-
-| Team Member | Responsibilities |
-|--------------|------------------|
-| **Maheswari** *(Team Lead)* | Team coordination, KPI review, feature integration, code review, sprint planning, blocker management |
-| **Sridhika** | Dashboard UI, reusable components, responsive design, dashboard layout |
-| **Pavan Kumar** | Workforce analytics charts, KPI calculations, KPI drill-down panel |
-| **Ravi Prasad** | Dashboard filters, employee table, search, sorting, CSV export |
-| **Rupesh** | Authentication, protected routes, application routing |
-| **Suman** | Role-Based Access Control (RBAC), navigation, loading, empty and error states |
-| **Anvesh** | Application integration, testing, debugging, quality assurance, final code review |
-
----
 
 ## 📌 Project Highlights
 
