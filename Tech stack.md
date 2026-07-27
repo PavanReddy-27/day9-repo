@@ -1,4 +1,4 @@
-# Enterprise Workforce Analytics Dashboard - Tech Stack Setup Guide
+# Workforce Analytics Dashboard - Tech Stack Setup Guide
 
 ## 1. Verify Installation
 
