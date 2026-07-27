@@ -1,146 +1,89 @@
 # Workforce Analytics Dashboard
 
-A modern, responsive **Workforce Analytics Dashboard** built with **React, TypeScript, Vite, Tailwind CSS, Redux Toolkit, and Recharts**. The dashboard provides real-time workforce insights through interactive KPI cards, analytics charts, employee management, filtering, and responsive visualizations for HR teams and business leaders.
+A modern and responsive **Workforce Analytics Dashboard** built using **React, TypeScript, Vite, Tailwind CSS, Redux Toolkit, and Recharts**. The application provides HR teams and business leaders with real-time workforce insights through interactive dashboards, KPI cards, employee analytics, and data visualizations.
 
 ---
 
 ## 📖 Project Overview
 
-This project was developed as part of **Team 2's Recovery Sprint** to complete the pending Workforce Analytics Dashboard tasks. The objective was to integrate the strongest existing implementations into one production-ready application without restarting the project.
+This project was developed collaboratively by **Team 2** to build an enterprise-level Workforce Analytics Dashboard. The application provides comprehensive workforce insights using a **shared typed employee dataset**, ensuring that all KPI cards, charts, filters, and employee records remain synchronized.
 
-The dashboard uses a **shared typed employee dataset**, ensuring that KPIs, charts, filters, and employee records remain synchronized. Applying any filter updates the entire dashboard in real time.
-
----
-
-# 🚀 Features
-
-## Dashboard
-
-- Responsive enterprise dashboard layout
-- Responsive sidebar and header
-- Breadcrumb navigation
-- Modern card-based interface
-- Light & Dark theme support
-- Desktop, Tablet, and Mobile responsive
+The dashboard follows a modular architecture with reusable components, responsive layouts, and modern UI practices.
 
 ---
 
-## KPI Cards
+## ✨ Features
 
-Eight reusable KPI cards displaying:
+### Dashboard
+- Responsive Sidebar
+- Responsive Header
+- Breadcrumb Navigation
+- Enterprise Dashboard Layout
+- Light & Dark Theme Support
+- Desktop, Tablet & Mobile Responsive
 
-- Total Employees
-- Active Employees
-- New Hires
-- Attrition Rate
-- Average Salary
-- Attendance Rate
-- Employee Satisfaction
-- Productivity Score
-
-Each KPI includes:
-
-- Trend indicators
+### KPI Cards
+- Eight reusable KPI cards
+- KPI trend indicators
 - Percentage comparison
-- Reusable card component
-- Responsive layout
+- Interactive KPI drill-down panel
 
----
-
-## Analytics
-
-Interactive workforce analytics including:
-
+### Analytics
 - Workforce Trend Chart
 - Department Distribution Chart
 - Location Distribution Chart
 - Role Distribution Chart
-- Status Analytics
-- Risk Analysis
+- Employee Status Analysis
+- Risk Analysis Dashboard
 
----
+### Employee Management
+- Searchable Employee Table
+- Sortable Employee Records
+- Department, Role, Location, Status, Risk & Date Filters
+- CSV Export
 
-## Filters
-
-Dashboard-wide filters using a shared employee dataset:
-
-- Department
-- Role
-- Location
-- Employment Status
-- Risk Level
-- Date Range
-
-All filters automatically update:
-
-- KPI Cards
-- Charts
-- Employee Table
-- Drill-down Views
-
----
-
-## Employee Management
-
-- Search Employees
-- Sort Employee Records
-- Responsive Employee Table
-- Shared typed dataset
-- Dynamic filtering
-
----
-
-## KPI Drill-Down
-
-- Detailed KPI modal/panel
-- Department-wise insights
-- Employee breakdown
-- Interactive statistics
-
----
-
-## Application States
-
+### Application
+- Authentication
+- Protected Routes
+- Role-Based Access Control (RBAC)
+- Navigation Management
 - Loading State
 - Empty State
 - Error State
-- Responsive layouts
-- Theme switching
 
 ---
 
-# 🛠 Technology Stack
+## 🛠️ Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| Frontend | React 19 |
-| Language | TypeScript |
-| Build Tool | Vite |
-| Styling | Tailwind CSS |
-| State Management | Redux Toolkit |
-| Routing | React Router DOM |
-| Charts | Recharts |
-| Forms | React Hook Form |
-| Validation | Zod |
-| Icons | React Icons |
-| CSV Export | PapaParse |
-| Testing | Vitest & React Testing Library |
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router DOM
+- Redux Toolkit
+- React Hook Form
+- Zod
+- Recharts
+- React Icons
+- PapaParse
+- Vitest
+- React Testing Library
 
 ---
 
-# 📂 Project Structure
+## 📂 Project Structure
 
 ```
 src/
 │
 ├── assets/
 ├── components/
-│   ├── dashboard/
 │   ├── charts/
+│   ├── dashboard/
 │   ├── filters/
-│   ├── table/
-│   ├── sidebar/
 │   ├── header/
+│   ├── sidebar/
+│   ├── table/
 │   └── common/
 │
 ├── layouts/
@@ -149,8 +92,8 @@ src/
 ├── services/
 ├── store/
 ├── hooks/
-├── utils/
 ├── types/
+├── utils/
 ├── data/
 │
 ├── App.tsx
@@ -160,40 +103,34 @@ src/
 
 ---
 
-# ▶️ Getting Started
+## 🚀 Getting Started
 
-## Clone Repository
+### Clone the Repository
 
 ```bash
 git clone https://github.com/<your-username>/WorkForce-Analytics-Dashboard.git
 cd WorkForce-Analytics-Dashboard
 ```
 
-## Install Dependencies
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
-## Start Development Server
+### Start Development Server
 
 ```bash
 npm run dev
 ```
 
-## Build
+### Build Project
 
 ```bash
 npm run build
 ```
 
-## Preview
-
-```bash
-npm run preview
-```
-
-## Run Tests
+### Run Tests
 
 ```bash
 npm test
@@ -201,7 +138,7 @@ npm test
 
 ---
 
-# 📊 Dashboard Modules
+## 📋 Core Modules
 
 - Workforce Overview
 - KPI Dashboard
@@ -210,55 +147,42 @@ npm test
 - Department Analytics
 - Location Analytics
 - Role Analytics
-- Risk Analysis
 - Employee Search & Filters
 - CSV Export
+- Authentication & Routing
 
 ---
 
-# 📌 Recovery Sprint Objectives
+## 👥 Team Contributions
 
-The project focused on completing the pending dashboard requirements by integrating the strongest existing implementations into a unified application.
-
-### Completed Deliverables
-
-- Responsive Sidebar
-- Responsive Header
-- Breadcrumb Navigation
-- Eight Reusable KPI Cards
-- KPI Trend Indicators
-- Workforce Trend Chart
-- Department Distribution Chart
-- Role, Location, Status & Risk Charts
-- Dashboard-wide Filters
-- Searchable Employee Table
-- Sortable Employee Table
-- KPI Drill-Down Panel
-- CSV Export
-- Loading, Empty & Error States
-- Light & Dark Themes
-- Responsive Design
-- Shared Typed Employee Dataset
+| Team Member | Responsibilities |
+|--------------|------------------|
+| **Maheswari** *(Team Lead)* | Team coordination, KPI review, feature integration, code review, sprint planning, blocker management |
+| **Sridhika** | Dashboard UI, reusable components, responsive design, dashboard layout |
+| **Pavan Kumar** | Workforce analytics charts, KPI calculations, KPI drill-down panel |
+| **Ravi Prasad** | Dashboard filters, employee table, search, sorting, CSV export |
+| **Rupesh** | Authentication, protected routes, application routing |
+| **Suman** | Role-Based Access Control (RBAC), navigation, loading, empty and error states |
+| **Anvesh** | Application integration, testing, debugging, quality assurance, final code review |
 
 ---
 
-# 👥 Team Contributions
+## 📌 Project Highlights
 
-The Workforce Analytics Dashboard was developed collaboratively by **Team 2**.
-
-| Team Member | Contribution |
-|------------|--------------|
-| **Maheswari (Team Lead)** | Project coordination, KPI review, feature integration, code review, blocker management, final dashboard integration |
-| **Sridhika** | Dashboard UI, responsive layouts, reusable dashboard components |
-| **Pavan Kumar** | Analytics charts, KPI calculations, KPI drill-down implementation |
-| **Ravi Prasad** | Dashboard filters, employee table, sorting, searching, CSV export |
-| **Anvesh** | Application integration, testing, bug fixes, quality assurance, final validation |
-
-> The application was built by integrating the strongest implementations from different contributors into a single cohesive dashboard, preserving reusable components and avoiding unnecessary redevelopment.
+- Responsive enterprise dashboard
+- Shared typed employee dataset
+- Reusable React components
+- Interactive charts and analytics
+- Dashboard-wide filtering
+- KPI drill-down functionality
+- CSV export support
+- Authentication & RBAC
+- Responsive design for desktop, tablet, and mobile
+- Unit testing and quality assurance
 
 ---
 
-# 🤝 Contributing
+## 🤝 Contributing
 
 1. Fork the repository.
 2. Create a feature branch.
@@ -270,10 +194,10 @@ git checkout -b feature/your-feature-name
 3. Commit your changes.
 
 ```bash
-git commit -m "feat: add new dashboard feature"
+git commit -m "feat: add new feature"
 ```
 
-4. Push your branch.
+4. Push the branch.
 
 ```bash
 git push origin feature/your-feature-name
@@ -283,12 +207,12 @@ git push origin feature/your-feature-name
 
 ---
 
-# 📄 License
+## 📄 License
 
 This project is intended for educational and organizational use.
 
 ---
 
-# ⭐ Acknowledgements
+## 🙏 Acknowledgements
 
-Special thanks to all Team 2 members for their collaborative effort in delivering a responsive, reusable, and scalable Workforce Analytics Dashboard through coordinated development and successful feature integration.
+Developed collaboratively by **Team 2** through coordinated planning, feature development, integration, testing, and quality review to deliver a scalable and production-ready Workforce Analytics Dashboard.
