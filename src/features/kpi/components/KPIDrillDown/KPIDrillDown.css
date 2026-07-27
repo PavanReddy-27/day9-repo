@@ -1,0 +1,353 @@
+/* src/features/kpi/components/KPIDrillDown/KPIDrillDown.css */
+
+.kpi-drilldown {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+
+  background: #f8fafc;
+
+  overflow: hidden;
+
+  animation: drawerFade 0.25s ease;
+}
+
+/* =====================================
+   Header
+===================================== */
+
+.kpi-drilldown__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 20px;
+
+  padding: 24px 28px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.kpi-drilldown__header h5,
+.kpi-drilldown__header h4,
+.kpi-drilldown__header h6 {
+  margin: 0;
+
+  font-weight: 700;
+
+  color: #0f172a;
+}
+
+.kpi-drilldown__header p {
+  margin-top: 6px;
+
+  color: #64748b;
+
+  line-height: 1.6;
+}
+
+/* =====================================
+   Summary
+===================================== */
+
+.kpi-drilldown__summary {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+
+  padding: 28px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.kpi-drilldown__total {
+  font-size: clamp(2.5rem, 4vw, 3.6rem);
+
+  font-weight: 700;
+
+  color: #2563eb;
+
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.kpi-drilldown__summary p {
+  margin: 0;
+
+  color: #64748b;
+
+  line-height: 1.7;
+}
+
+/* =====================================
+   Content
+===================================== */
+
+.kpi-drilldown__content {
+    flex: 1;
+
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 24px;
+
+    scroll-behavior: smooth;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+/* =====================================
+   Sections
+===================================== */
+
+.kpi-drilldown__section {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  padding: 22px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 18px;
+}
+
+.kpi-drilldown__section-title {
+  font-size: 1rem;
+
+  font-weight: 700;
+
+  color: #0f172a;
+}
+
+/* =====================================
+   Statistics
+===================================== */
+
+.kpi-drilldown__statistics {
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+/* =====================================
+   Employee List
+===================================== */
+
+.kpi-drilldown__list {
+  padding: 0 !important;
+
+  background: #ffffff;
+
+  border-radius: 16px;
+
+  border: 1px solid #e5e7eb;
+
+  overflow: hidden;
+}
+
+.kpi-drilldown__list .MuiListItem-root {
+  padding: 14px 22px;
+}
+
+.kpi-drilldown__list .MuiListItem-root:hover {
+  background: #f8fafc;
+}
+
+/* =====================================
+   Loading
+===================================== */
+
+.kpi-drilldown__loading {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 18px;
+
+  color: #64748b;
+}
+
+/* =====================================
+   Empty
+===================================== */
+
+.kpi-drilldown__empty {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 14px;
+
+  color: #94a3b8;
+
+  text-align: center;
+
+  min-height: 280px;
+}
+
+.kpi-drilldown__empty svg {
+  font-size: 70px;
+
+  color: #cbd5e1;
+}
+
+/* =====================================
+   Divider
+===================================== */
+
+.kpi-drilldown .MuiDivider-root {
+  border-color: #e5e7eb;
+}
+
+/* =====================================
+   Buttons
+===================================== */
+
+.kpi-drilldown .MuiIconButton-root {
+  transition: all 0.25s ease;
+}
+
+.kpi-drilldown .MuiIconButton-root:hover {
+  background: rgba(37, 99, 235, 0.08);
+
+  transform: translateY(-2px);
+}
+
+/* =====================================
+   Chips
+===================================== */
+
+.kpi-drilldown .MuiChip-root {
+  width: fit-content;
+
+  font-weight: 600;
+}
+
+/* =====================================
+   Drawer
+===================================== */
+
+.MuiDrawer-paper {
+  background: #f8fafc !important;
+
+  border-left: 1px solid #e5e7eb !important;
+
+  box-shadow: -10px 0 35px rgba(15, 23, 42, 0.12) !important;
+}
+
+/* =====================================
+   Scrollbar
+===================================== */
+
+.kpi-drilldown__content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.kpi-drilldown__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kpi-drilldown__content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+
+  border-radius: 10px;
+}
+
+.kpi-drilldown__content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =====================================
+   Animation
+===================================== */
+
+@keyframes drawerFade {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* =====================================
+   Tablet
+===================================== */
+
+@media (max-width: 900px) {
+  .kpi-drilldown__header {
+    padding: 20px;
+  }
+
+  .kpi-drilldown__summary {
+    padding: 22px;
+  }
+
+  .kpi-drilldown__content {
+    padding: 20px;
+  }
+}
+
+/* =====================================
+   Mobile
+===================================== */
+
+@media (max-width: 600px) {
+  .MuiDrawer-paper {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .kpi-drilldown__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .kpi-drilldown__summary {
+    padding: 18px;
+  }
+
+  .kpi-drilldown__content {
+    padding: 16px;
+
+    gap: 20px;
+  }
+
+  .kpi-drilldown__section {
+    padding: 18px;
+  }
+
+  .kpi-drilldown__total {
+    font-size: 2.4rem;
+  }
+}

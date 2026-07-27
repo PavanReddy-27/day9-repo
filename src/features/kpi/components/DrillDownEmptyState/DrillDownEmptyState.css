@@ -1,0 +1,82 @@
+/* src/features/kpi/components/DrillDownEmptyState/DrillDownEmptyState.css */
+
+.drilldown-empty {
+  width: 100%;
+  min-height: 420px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+
+  gap: 20px;
+
+  padding: 40px;
+
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+
+  background: #ffffff;
+}
+
+.drilldown-empty__icon {
+  font-size: 72px !important;
+
+  color: #94a3b8;
+}
+
+.drilldown-empty__title {
+  font-weight: 700 !important;
+
+  color: #0f172a;
+}
+
+.drilldown-empty__description {
+  max-width: 420px;
+
+  color: #64748b !important;
+
+  line-height: 1.7 !important;
+}
+
+.drilldown-empty .MuiButton-root {
+  margin-top: 12px;
+
+  border-radius: 10px;
+
+  padding: 10px 24px;
+
+  text-transform: none;
+
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .drilldown-empty {
+    min-height: 340px;
+
+    padding: 32px;
+  }
+
+  .drilldown-empty__icon {
+    font-size: 60px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .drilldown-empty {
+    min-height: 280px;
+
+    padding: 24px;
+  }
+
+  .drilldown-empty__icon {
+    font-size: 52px !important;
+  }
+
+  .drilldown-empty__title {
+    font-size: 1.4rem !important;
+  }
+}

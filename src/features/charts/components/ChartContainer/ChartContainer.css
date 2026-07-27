@@ -1,0 +1,120 @@
+/* ChartContainer.css */
+
+.chart-container {
+  height: 100%;
+  border-radius: 20px !important;
+  border: 1px solid #e2e8f0;
+  background: #ffffff !important;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.chart-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+.chart-container__header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.chart-container__title-section {
+  flex: 1;
+}
+
+.chart-container__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.chart-container__title {
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  color: #0f172a;
+}
+
+.chart-container__badge {
+  font-weight: 600;
+}
+
+.chart-container__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+.chart-container__subtitle {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.chart-container__timestamp {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.chart-container__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chart-container__actions .MuiIconButton-root {
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.chart-container__actions .MuiIconButton-root:hover {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.chart-container__content {
+  padding: 16px;
+  position: relative;
+}
+
+.chart-container__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-container__skeleton {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container__error {
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .chart-container__header {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chart-container__content {
+    padding: 16px;
+  }
+
+  .chart-container__actions {
+    justify-content: flex-end;
+  }
+}

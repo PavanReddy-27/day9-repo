@@ -1,0 +1,61 @@
+/* src/features/kpi/components/KPICards/KPICards.css */
+
+.kpi-cards {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.kpi-cards > .MuiGrid-root {
+  animation: kpiCardFade .4s ease;
+}
+
+.kpi-cards .MuiCard-root {
+  min-height: 220px;
+  height: 100%;
+}
+
+.kpi-cards__loading {
+  width: 100%;
+  min-height: 180px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fff;
+
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+
+  color: #64748b;
+}
+
+@keyframes kpiCardFade {
+
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+}
+
+@media (max-width:900px) {
+
+  .kpi-cards {
+    margin-bottom: 24px;
+  }
+
+}
+
+@media (max-width:600px) {
+
+  .kpi-cards {
+    margin-bottom: 18px;
+  }
+
+}

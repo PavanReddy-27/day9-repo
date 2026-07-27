@@ -1,0 +1,150 @@
+/* src/features/kpi/components/DrillDownEmployeeTable/DrillDownEmployeeTable.css */
+
+.drilldown-employee-table {
+  width: 100%;
+
+  border-radius: 18px !important;
+
+  border: 1px solid #e5e7eb !important;
+
+  overflow: hidden;
+
+  background: #ffffff;
+}
+
+/* ===========================
+   Header
+=========================== */
+
+.drilldown-employee-table__header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 20px 24px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  background: #f8fafc;
+}
+
+.drilldown-employee-table__header h6 {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ===========================
+   Table
+=========================== */
+
+.drilldown-employee-table .MuiTable-root {
+  min-width: 900px;
+}
+
+.drilldown-employee-table .MuiTableHead-root {
+  background: #f8fafc;
+}
+
+.drilldown-employee-table .MuiTableHead-root .MuiTableCell-root {
+  font-weight: 700;
+
+  color: #334155;
+
+  background: #f8fafc;
+}
+
+.drilldown-employee-table .MuiTableBody-root .MuiTableRow-root {
+  transition: background 0.2s ease;
+}
+
+.drilldown-employee-table .MuiTableBody-root .MuiTableRow-root:hover {
+  background: #f1f5f9;
+}
+
+.drilldown-employee-table .MuiTableCell-root {
+  white-space: nowrap;
+}
+
+/* ===========================
+   Pagination
+=========================== */
+
+.drilldown-employee-table .MuiTablePagination-root {
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ===========================
+   Search
+=========================== */
+
+.drilldown-employee-table .MuiTextField-root {
+  min-width: 260px;
+}
+
+/* ===========================
+   Chips
+=========================== */
+
+.drilldown-employee-table .MuiChip-root {
+  font-weight: 600;
+}
+
+/* ===========================
+   Scrollbar
+=========================== */
+
+.drilldown-employee-table ::-webkit-scrollbar {
+  height: 8px;
+}
+
+.drilldown-employee-table ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+
+  border-radius: 20px;
+}
+
+.drilldown-employee-table ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===========================
+   Tablet
+=========================== */
+
+@media (max-width: 900px) {
+
+  .drilldown-employee-table__header {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .drilldown-employee-table .MuiTextField-root {
+    width: 100%;
+  }
+
+}
+
+/* ===========================
+   Mobile
+=========================== */
+
+@media (max-width: 600px) {
+
+  .drilldown-employee-table__header {
+    padding: 16px;
+  }
+
+  .drilldown-employee-table .MuiTable-root {
+    min-width: 760px;
+  }
+
+  .drilldown-employee-table .MuiChip-root {
+    font-size: 11px;
+  }
+
+}

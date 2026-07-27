@@ -1,0 +1,178 @@
+.drilldown-statistics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+
+  margin: 24px 0;
+}
+
+.drilldown-statistics__card {
+  height: 100%;
+
+  border-radius: 18px !important;
+
+  background: #ffffff !important;
+
+  border: 1px solid #e5e7eb !important;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.drilldown-statistics__card:hover {
+  transform: translateY(-5px);
+
+  border-color: #cbd5e1 !important;
+
+  box-shadow:
+    0 12px 30px rgba(15, 23, 42, 0.08),
+    0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.drilldown-statistics__card .MuiCardContent-root {
+  padding: 22px !important;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.drilldown-statistics__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 12px;
+}
+
+.drilldown-statistics__title {
+  color: #64748b !important;
+
+  font-weight: 600 !important;
+
+  line-height: 1.5;
+}
+
+.drilldown-statistics__value {
+  font-weight: 700 !important;
+
+  color: #0f172a;
+
+  word-break: break-word;
+}
+
+.drilldown-statistics__trend {
+  font-weight: 700 !important;
+
+  border-radius: 20px !important;
+}
+
+.drilldown-statistics__trend.positive {
+  background: #e8f5e9 !important;
+  color: #2e7d32 !important;
+}
+
+.drilldown-statistics__trend.negative {
+  background: #ffebee !important;
+  color: #d32f2f !important;
+}
+
+.drilldown-statistics__trend.neutral {
+  background: #eceff1 !important;
+  color: #546e7a !important;
+}
+
+.drilldown-statistics__progress {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.drilldown-statistics__progress .MuiLinearProgress-root {
+  background: #e2e8f0;
+
+  overflow: hidden;
+}
+
+.drilldown-statistics__progress .MuiLinearProgress-bar {
+  border-radius: 10px;
+}
+
+.drilldown-statistics__percentage {
+  align-self: flex-end;
+
+  font-weight: 700;
+
+  color: #475569;
+}
+
+/* ==============================
+   Large Desktop
+============================== */
+
+@media (min-width: 1600px) {
+  .drilldown-statistics {
+    gap: 24px;
+  }
+}
+
+/* ==============================
+   Laptop
+============================== */
+
+@media (max-width: 1200px) {
+  .drilldown-statistics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==============================
+   Tablet
+============================== */
+
+@media (max-width: 900px) {
+  .drilldown-statistics {
+    gap: 18px;
+  }
+
+  .drilldown-statistics__card .MuiCardContent-root {
+    padding: 18px !important;
+  }
+
+  .drilldown-statistics__value {
+    font-size: 2rem !important;
+  }
+}
+
+/* ==============================
+   Mobile
+============================== */
+
+@media (max-width: 600px) {
+  .drilldown-statistics {
+    grid-template-columns: 1fr;
+
+    gap: 16px;
+  }
+
+  .drilldown-statistics__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .drilldown-statistics__card .MuiCardContent-root {
+    padding: 16px !important;
+  }
+
+  .drilldown-statistics__value {
+    font-size: 1.75rem !important;
+  }
+
+  .drilldown-statistics__trend {
+    width: fit-content;
+  }
+}

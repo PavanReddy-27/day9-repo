@@ -1,0 +1,106 @@
+/* src/features/charts/components/EmployeeTrendChart/EmployeeTrendChart.css */
+
+.employee-trend-chart__state {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1rem;
+  font-weight: 600;
+
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+/* ===========================
+   Recharts
+=========================== */
+
+.recharts-wrapper {
+  font-family: inherit;
+}
+
+.recharts-cartesian-grid line {
+  stroke: #edf2f7;
+}
+
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick line {
+  stroke: #dbe3ec;
+}
+
+.recharts-text {
+  fill: #64748b;
+  font-size: 12px;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  border: none !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.15) !important;
+  padding: 10px 14px !important;
+}
+
+.recharts-tooltip-label {
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.recharts-legend-wrapper {
+  padding-top: 12px !important;
+}
+
+.recharts-legend-item-text {
+  color: #475569 !important;
+  font-size: 13px;
+}
+
+.recharts-active-dot circle {
+  filter: drop-shadow(0 0 8px rgba(25, 118, 210, 0.4));
+}
+
+/* ===========================
+   Animation
+=========================== */
+
+.employee-trend-chart .recharts-area-area,
+.employee-trend-chart .recharts-line-curve {
+  transition: all 0.3s ease;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media (max-width: 900px) {
+  .employee-trend-chart__state {
+    min-height: 300px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .employee-trend-chart__state {
+    min-height: 240px;
+    font-size: 0.9rem;
+  }
+
+  .recharts-text {
+    font-size: 11px;
+  }
+
+  .recharts-legend-item-text {
+    font-size: 11px;
+  }
+}

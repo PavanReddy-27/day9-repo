@@ -1,0 +1,242 @@
+.drilldown-content {
+  display: flex;
+  flex-direction: column;
+
+  gap: 20px;
+
+  padding: 24px;
+}
+
+/* ========================================
+   Header
+======================================== */
+
+.drilldown-content__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 16px;
+}
+
+.drilldown-content__header h6 {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.drilldown-content__header .MuiChip-root {
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+/* ========================================
+   Toolbar
+======================================== */
+
+.drilldown-content__toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.drilldown-content__toolbar .MuiTextField-root:first-child {
+  flex: 1;
+}
+
+.drilldown-content__toolbar .MuiOutlinedInput-root {
+  border-radius: 12px;
+}
+
+/* ========================================
+   List
+======================================== */
+
+.drilldown-content__list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.drilldown-content__card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 18px 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+
+  border-radius: 16px;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    border-color .25s ease;
+}
+
+.drilldown-content__card:hover {
+  transform: translateY(-3px);
+
+  border-color: #1976d2;
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, .08),
+    0 4px 12px rgba(15, 23, 42, .04);
+}
+
+.drilldown-content__label {
+  font-weight: 600 !important;
+  color: #0f172a;
+}
+
+.drilldown-content__card .MuiChip-root {
+  min-width: 72px;
+
+  font-weight: 700;
+
+  border-radius: 10px;
+}
+
+/* ========================================
+   Empty State
+======================================== */
+
+.drilldown-content__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 260px;
+
+  text-align: center;
+
+  color: #94a3b8;
+}
+
+.drilldown-content__empty svg {
+  font-size: 72px;
+
+  margin-bottom: 16px;
+
+  color: #cbd5e1;
+}
+
+.drilldown-content__empty h6 {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* ========================================
+   Pagination
+======================================== */
+
+.drilldown-content__pagination {
+  display: flex;
+  justify-content: center;
+
+  margin-top: 12px;
+}
+
+/* ========================================
+   Scrollbar
+======================================== */
+
+.drilldown-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.drilldown-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+
+  border-radius: 10px;
+}
+
+.drilldown-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ========================================
+   Animation
+======================================== */
+
+.drilldown-content__card {
+  animation: fadeCard .35s ease;
+}
+
+@keyframes fadeCard {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   Tablet
+======================================== */
+
+@media (max-width: 900px) {
+
+  .drilldown-content {
+    padding: 20px;
+  }
+
+  .drilldown-content__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .drilldown-content__toolbar .MuiTextField-root:last-child {
+    width: 100% !important;
+  }
+
+}
+
+/* ========================================
+   Mobile
+======================================== */
+
+@media (max-width: 600px) {
+
+  .drilldown-content {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .drilldown-content__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .drilldown-content__card {
+    padding: 16px;
+
+    gap: 12px;
+  }
+
+  .drilldown-content__label {
+    font-size: .95rem !important;
+  }
+
+  .drilldown-content__card .MuiChip-root {
+    min-width: 60px;
+  }
+
+  .drilldown-content__empty {
+    min-height: 180px;
+  }
+
+  .drilldown-content__empty svg {
+    font-size: 56px;
+  }
+
+}
