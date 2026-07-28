@@ -1,5 +1,25 @@
 // src/features/kpi/services/drillDownService.ts
-// PART 1 (Day 8 Update)
+// PART 1 (Day 8 Update — FIXED)
+//
+// Changes from the previous version:
+// 1. trainingCompletion()/skillCoverage() static functions (92 / 88) are
+//    removed. Both KPIs now use the real getAverageTraining() /
+//    getAverageSkillCoverage() aggregators — the same ones already used
+//    inside statistics() — so the drill-down total can never disagree
+//    with its own breakdown panel.
+// 2. statistics() no longer returns the same seven hardcoded trend
+//    numbers (5.2, 3.1, 4.6, 2.8, 1.7, 5.8, 3.5) for every KPI. This
+//    function has no access to a prior-period employee snapshot, so
+//    there is no real growth figure it could compute honestly — trend
+//    is now 0 (neutral) instead of an invented value that never
+//    changed no matter what data it was fed.
+// 3. Each getDrillDownData() case no longer returns a hardcoded
+//    "growth" string (e.g. "+6.2%"). Same reasoning as above — this
+//    function only ever sees a single snapshot of employees, so there
+//    is nothing to compare against. growth is now "N/A" everywhere
+//    until a real previous-period data source is wired in. See
+//    KPIDrillDown.tsx for how "N/A" is handled in the UI (hidden
+//    rather than shown as a fake percentage).
 
 import type { Employee } from "../../../types/employee";
 import type { KPIType } from "../../../types/kpi";
@@ -32,12 +52,15 @@ import {
 } from "./kpiAggregation";
 
 /* =====================================================
-   Static KPI Values
+   No-Baseline Placeholder
+   ---------------------------------------------------
+   Used anywhere a "growth vs previous period" figure
+   would be shown but this function has no previous
+   period to compare against. Showing "N/A" is honest;
+   showing a percentage would not be.
 ===================================================== */
 
-const trainingCompletion = () => 92;
-
-const skillCoverage = () => 88;
+const NO_BASELINE_GROWTH = "N/A";
 
 /* =====================================================
    Employee Mapper
@@ -64,6 +87,13 @@ const toChartData = (
 
 /* =====================================================
    Statistics Builder
+   ---------------------------------------------------
+   trend is 0 (neutral) for every entry: this function
+   only receives a single snapshot of employees, so it
+   has no prior-period figure to diff against. A real
+   trend requires a historical data source — wire one
+   in here (and swap the 0s for calculateGrowth(...)
+   calls) once that's available.
 ===================================================== */
 
 const statistics = (
@@ -78,7 +108,7 @@ const statistics = (
       employees
     ).toLocaleString()}`,
 
-    trend: 5.2,
+    trend: 0,
 
     color: "#2563EB",
   },
@@ -92,7 +122,7 @@ const statistics = (
       employees
     )} Years`,
 
-    trend: 3.1,
+    trend: 0,
 
     color: "#16A34A",
   },
@@ -106,7 +136,7 @@ const statistics = (
       employees
     )}%`,
 
-    trend: 4.6,
+    trend: 0,
 
     color: "#7C3AED",
   },
@@ -120,7 +150,7 @@ const statistics = (
       employees
     )}%`,
 
-    trend: 2.8,
+    trend: 0,
 
     color: "#0891B2",
   },
@@ -134,7 +164,7 @@ const statistics = (
       employees
     )}%`,
 
-    trend: 1.7,
+    trend: 0,
 
     color: "#EA580C",
   },
@@ -148,7 +178,7 @@ const statistics = (
       employees
     )}%`,
 
-    trend: 5.8,
+    trend: 0,
 
     color: "#9333EA",
   },
@@ -162,7 +192,7 @@ const statistics = (
       employees
     )}%`,
 
-    trend: 3.5,
+    trend: 0,
 
     color: "#0EA5E9",
   },
@@ -187,7 +217,7 @@ export const getDrillDownData = (
 
         total: employees.length,
 
-        growth: "+6.2%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Overall workforce distribution across departments.",
@@ -224,7 +254,7 @@ export const getDrillDownData = (
 
         total: active.length,
 
-        growth: "+4.1%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Currently active employees across the organization.",
@@ -268,7 +298,7 @@ export const getDrillDownData = (
 
         total: hires.length,
 
-        growth: "+12.5%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Employees hired during the current year.",
@@ -302,7 +332,7 @@ export const getDrillDownData = (
           employees
         )}%`,
 
-        growth: "-1.8%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Employee attrition analysis.",
@@ -332,9 +362,11 @@ export const getDrillDownData = (
         title:
           "Training Completion",
 
-        total: `${trainingCompletion()}%`,
+        total: `${getAverageTraining(
+          employees
+        )}%`,
 
-        growth: "+5.2%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Training completion across workforce.",
@@ -360,9 +392,11 @@ export const getDrillDownData = (
 
         title: "Skill Coverage",
 
-        total: `${skillCoverage()}%`,
+        total: `${getAverageSkillCoverage(
+          employees
+        )}%`,
 
-        growth: "+3.1%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Certified skills available across the organization.",
@@ -401,7 +435,7 @@ export const getDrillDownData = (
             employees
           ),
 
-        growth: "-2.4%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Employees requiring immediate attention.",
@@ -435,7 +469,7 @@ export const getDrillDownData = (
             employees
           ),
 
-        growth: "0%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "Department-wise workforce distribution.",
@@ -464,7 +498,7 @@ export const getDrillDownData = (
               getActiveEmployees(
                 employees
               ),
-            trend: 4.2,
+            trend: 0,
             color: "#16A34A",
           },
           {
@@ -474,7 +508,7 @@ export const getDrillDownData = (
             value: `$${getAverageSalary(
               employees
             ).toLocaleString()}`,
-            trend: 5.1,
+            trend: 0,
             color: "#9333EA",
           },
         ],
@@ -492,7 +526,7 @@ export const getDrillDownData = (
 
         total: 0,
 
-        growth: "0%",
+        growth: NO_BASELINE_GROWTH,
 
         description:
           "No drill-down data available.",

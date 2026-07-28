@@ -1,5 +1,19 @@
 // src/features/dashboard/components/DashboardAnalytics/DashboardAnalytics.tsx
-// PART 1 (Day 8 Update)
+// PART 1 (Day 8 Update — FIXED)
+//
+// Changes from the previous version:
+// 1. KPI card "trend" values are no longer hardcoded literals. Where the
+//    dashboard has real month-over-month data (via trendData), trend is
+//    computed with the existing calculateGrowth() utility. Where no
+//    historical series exists for a metric (training, skill coverage,
+//    high-risk headcount), trend is explicitly 0 (neutral) instead of a
+//    fabricated number, so the UI never implies a change that wasn't
+//    actually measured.
+// 2. Training Completion and Skill Coverage KPI card values now read from
+//    dashboardSummary.averageTraining / dashboardSummary.averageSkillCoverage
+//    (already computed from real employee data) instead of the static
+//    "92%" / "88%" strings, so they can never drift from the numbers shown
+//    in the drill-down panel underneath them.
 
 import { useMemo, useState } from "react";
 
@@ -46,6 +60,10 @@ import {
 import {
   compareDepartments,
 } from "../../../kpi/services/kpiComparison";
+
+import {
+  calculateGrowth,
+} from "../../../kpi/services/kpiAggregation";
 
 import "./DashboardAnalytics.css";
 
@@ -196,6 +214,7 @@ const DashboardAnalytics = ({
     () => {
       clearFilters();
     };
+
     /* ===========================================
    KPI Cards
 =========================================== */
@@ -222,6 +241,71 @@ const riskPercentage =
         ).toFixed(1)
       );
 
+/* ===========================================
+   Real KPI Trends
+   ---------------------------------------------
+   trendData is a month-ordered series
+   (from useChartData -> getMonthlyTrend). We
+   compare the most recent month against the
+   one before it using the existing
+   calculateGrowth() helper, instead of showing
+   fabricated percentages.
+
+   Metrics with no historical series available
+   (training completion, skill coverage, high
+   risk headcount, department count) fall back
+   to a neutral 0 rather than an invented value.
+=========================================== */
+
+const previousMonth =
+  trendData.length > 1
+    ? trendData[trendData.length - 2]
+    : null;
+
+const currentMonth =
+  trendData.length > 0
+    ? trendData[trendData.length - 1]
+    : null;
+
+const totalEmployeesTrend =
+  previousMonth && currentMonth
+    ? calculateGrowth(
+        currentMonth.totalEmployees,
+        previousMonth.totalEmployees
+      )
+    : 0;
+
+const activeEmployeesTrend =
+  previousMonth && currentMonth
+    ? calculateGrowth(
+        currentMonth.activeEmployees,
+        previousMonth.activeEmployees
+      )
+    : 0;
+
+const newHiresTrend =
+  previousMonth && currentMonth
+    ? calculateGrowth(
+        currentMonth.newHires,
+        previousMonth.newHires
+      )
+    : 0;
+
+const attritionRateTrend =
+  previousMonth &&
+  currentMonth &&
+  previousMonth.totalEmployees > 0 &&
+  currentMonth.totalEmployees > 0
+    ? calculateGrowth(
+        (currentMonth.attrition /
+          currentMonth.totalEmployees) *
+          100,
+        (previousMonth.attrition /
+          previousMonth.totalEmployees) *
+          100
+      )
+    : 0;
+
 const kpis = useMemo<KPIItem[]>(
   () => [
     {
@@ -229,7 +313,7 @@ const kpis = useMemo<KPIItem[]>(
       title: "Total Employees",
       value:
         dashboardSummary.totalEmployees,
-      trend: 8.4,
+      trend: totalEmployeesTrend,
       subtitle:
         "Organization Strength",
       progress: 100,
@@ -239,7 +323,7 @@ const kpis = useMemo<KPIItem[]>(
       title: "Active Employees",
       value:
         dashboardSummary.activeEmployees,
-      trend: 5.2,
+      trend: activeEmployeesTrend,
       subtitle:
         "Currently Working",
       progress: activePercentage,
@@ -253,7 +337,7 @@ const kpis = useMemo<KPIItem[]>(
               trendData.length - 1
             ].newHires
           : 0,
-      trend: 12.1,
+      trend: newHiresTrend,
       subtitle:
         "Current Month",
       progress: 72,
@@ -262,7 +346,7 @@ const kpis = useMemo<KPIItem[]>(
       id: "attritionRate",
       title: "Attrition",
       value: `${dashboardSummary.attritionRate}%`,
-      trend: -2.4,
+      trend: attritionRateTrend,
       subtitle:
         "Last 30 Days",
       progress:
@@ -271,27 +355,29 @@ const kpis = useMemo<KPIItem[]>(
     {
       id: "trainingCompletion",
       title: "Training",
-      value: "92%",
-      trend: 4.6,
+      value: `${dashboardSummary.averageTraining}%`,
+      trend: 0,
       subtitle:
         "Completion Rate",
-      progress: 92,
+      progress:
+        dashboardSummary.averageTraining,
     },
     {
       id: "skillCoverage",
       title: "Skill Coverage",
-      value: "88%",
-      trend: 3.4,
+      value: `${dashboardSummary.averageSkillCoverage}%`,
+      trend: 0,
       subtitle:
         "Certified Skills",
-      progress: 88,
+      progress:
+        dashboardSummary.averageSkillCoverage,
     },
     {
       id: "highRiskEmployees",
       title: "High Risk",
       value:
         dashboardSummary.highRiskEmployees,
-      trend: -1.8,
+      trend: 0,
       subtitle:
         "Need Attention",
       progress: riskPercentage,
@@ -312,6 +398,10 @@ const kpis = useMemo<KPIItem[]>(
     trendData,
     activePercentage,
     riskPercentage,
+    totalEmployeesTrend,
+    activeEmployeesTrend,
+    newHiresTrend,
+    attritionRateTrend,
   ]
 );
   return (

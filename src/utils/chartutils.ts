@@ -1,5 +1,17 @@
 // src/utils/chartUtils.ts
-// PART 1 (Day 8 Update)
+// PART 1 (Day 8 Update — FIXED)
+//
+// Change from the previous version:
+// getMonthlyTrend() previously incremented totalEmployees and newHires
+// together for every employee, so within any given month the two were
+// always identical — the "Total Employees" area and "New Hires" line on
+// the Workforce Trend chart rendered as exact duplicates of each other.
+// totalEmployees is now a running cumulative sum of hires across months
+// (in chronological order), so it represents actual headcount growth
+// over time, while newHires stays as the count of hires in that single
+// month. activeEmployees/attrition are unchanged — they still describe
+// the cohort that joined in that month, since there's no termination
+// date on Employee to compute a true point-in-time active headcount.
 
 import type { Employee } from "../types/employee";
 
@@ -334,6 +346,15 @@ export const getRiskChart = (
 
 /* ==========================================================
    Workforce Trend
+   ----------------------------------------------------------
+   Step 1: bucket employees by joining month. Within a bucket,
+   newHires/activeEmployees/attrition describe that month's
+   cohort only.
+
+   Step 2 (the fix): walk the buckets in chronological order
+   and turn totalEmployees into a running cumulative sum of
+   newHires, so it reflects actual headcount growth over time
+   instead of duplicating the newHires figure for that month.
 ========================================================== */
 
 export const getMonthlyTrend = (
@@ -374,8 +395,6 @@ export const getMonthlyTrend = (
       const record =
         monthly.get(month)!;
 
-      record.totalEmployees++;
-
       record.newHires++;
 
       if (
@@ -411,7 +430,9 @@ export const getMonthlyTrend = (
     "Dec",
   ];
 
-  return [...monthly.values()].sort(
+  const chronological = [
+    ...monthly.values(),
+  ].sort(
     (a, b) =>
       monthOrder.indexOf(
         a.month
@@ -419,6 +440,22 @@ export const getMonthlyTrend = (
       monthOrder.indexOf(
         b.month
       )
+  );
+
+  let cumulativeTotal = 0;
+
+  return chronological.map(
+    (record) => {
+      cumulativeTotal +=
+        record.newHires;
+
+      return {
+        ...record,
+
+        totalEmployees:
+          cumulativeTotal,
+      };
+    }
   );
 };
 
