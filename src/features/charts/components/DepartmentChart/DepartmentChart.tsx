@@ -10,57 +10,49 @@ import {
 } from "recharts";
 
 import GroupsIcon from "@mui/icons-material/Groups";
+import { useTheme } from "@mui/material/styles";
 
 import ChartContainer from "../ChartContainer";
 
 import type { DepartmentChartData } from "../../../../types/chart";
+import { chartConfig, getChartPalette } from "../../../../constants/chartConfig";
 
 import "./DepartmentChart.css";
 
 interface DepartmentChartProps {
   data: DepartmentChartData[];
   loading?: boolean;
+  error?: string;
+  empty?: boolean;
+  onRetry?: () => void;
 }
-
-const COLORS = [
-  "#2563EB",
-  "#10B981",
-  "#F59E0B",
-  "#8B5CF6",
-  "#EF4444",
-  "#06B6D4",
-  "#EC4899",
-  "#84CC16",
-];
 
 const DepartmentChart = ({
   data,
   loading = false,
+  error,
+  empty = false,
+  onRetry,
 }: DepartmentChartProps) => {
-  if (loading) {
-    return (
-      <ChartContainer
-        title="Department Distribution"
-        subtitle="Loading..."
-      >
-        <div className="department-chart__state">
-          Loading...
-        </div>
-      </ChartContainer>
-    );
-  }
+  const theme = useTheme();
+  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const config = chartConfig.departmentDistribution;
+  const colors = getChartPalette("departmentDistribution", paletteMode);
 
   return (
     <ChartContainer
-      title="Department Distribution"
-      subtitle="Employee distribution by department"
+      title={config.title}
+      subtitle={config.subtitle}
       action={<GroupsIcon color="primary" />}
-      height={420}
+      height={config.height}
+      loading={loading}
+      error={error}
+      empty={empty || data.length === 0}
+      emptyMessage={config.emptyMessage}
+      onRetry={onRetry}
+      retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-      >
+      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <PieChart>
           <Pie
             data={data}
@@ -80,7 +72,7 @@ const DepartmentChart = ({
               <Cell
                 key={department.id}
                 fill={
-                  COLORS[index % COLORS.length]
+                  colors[index % colors.length]
                 }
               />
             ))}

@@ -13,53 +13,49 @@ import {
 } from "recharts";
 
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { useTheme } from "@mui/material/styles";
 
 import ChartContainer from "../ChartContainer";
 
 import type { RiskChartData } from "../../../../types/chart";
+import { chartConfig, getChartPalette } from "../../../../constants/chartConfig";
 
 import "./RiskChart.css";
 
 interface RiskChartProps {
   data: RiskChartData[];
   loading?: boolean;
+  error?: string;
+  empty?: boolean;
+  onRetry?: () => void;
 }
-
-const COLORS = {
-  Low: "#2E7D32",
-  Medium: "#FB8C00",
-  High: "#D32F2F",
-  Critical: "#8B0000",
-};
 
 const RiskChart = ({
   data,
   loading = false,
+  error,
+  empty = false,
+  onRetry,
 }: RiskChartProps) => {
-  if (loading) {
-    return (
-      <ChartContainer
-        title="Risk Distribution"
-        subtitle="Loading..."
-      >
-        <div className="risk-chart__state">
-          Loading...
-        </div>
-      </ChartContainer>
-    );
-  }
+  const theme = useTheme();
+  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const config = chartConfig.riskDistribution;
+  const colors = getChartPalette("riskDistribution", paletteMode);
 
   return (
     <ChartContainer
-      title="Risk Distribution"
-      subtitle="Employees grouped by risk level"
+      title={config.title}
+      subtitle={config.subtitle}
       action={<WarningAmberIcon color="warning" />}
-      height={420}
+      height={config.height}
+      loading={loading}
+      error={error}
+      empty={empty || data.length === 0}
+      emptyMessage={config.emptyMessage}
+      onRetry={onRetry}
+      retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-      >
+      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <BarChart
           data={data}
           margin={{
@@ -103,9 +99,9 @@ const RiskChart = ({
               <Cell
                 key={item.id}
                 fill={
-                  COLORS[
-                    item.risk as keyof typeof COLORS
-                  ] ?? "#1976D2"
+                  colors[
+                    data.findIndex((entry) => entry.id === item.id) % colors.length
+                  ] ?? colors[0]
                 }
               />
             ))}

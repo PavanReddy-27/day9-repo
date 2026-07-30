@@ -52,12 +52,7 @@ export const useDrillDown = (
     setComparisonMode,
   ] = useState(false);
 
-  const [
-    lastUpdated,
-    setLastUpdated,
-  ] = useState(
-    new Date().toLocaleString()
-  );
+  const [lastUpdated, setLastUpdated] = useState(() => new Date().toLocaleString());
 
   const data = useMemo(() => {
     if (!selectedKPI) {
@@ -71,10 +66,18 @@ export const useDrillDown = (
   }, [selectedKPI, employees]);
 
   useEffect(() => {
-    setLastUpdated(
-      new Date().toLocaleString()
-    );
-  }, [data]);
+    if (selectedKPI && data) {
+      const nextTimestamp = new Date().toLocaleString();
+
+      if (nextTimestamp !== lastUpdated) {
+        const timeoutId = window.setTimeout(() => {
+          setLastUpdated(nextTimestamp);
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
+      }
+    }
+  }, [data, lastUpdated, selectedKPI]);
 
   const openDrillDown = useCallback(
     (kpi: KPIType) => {

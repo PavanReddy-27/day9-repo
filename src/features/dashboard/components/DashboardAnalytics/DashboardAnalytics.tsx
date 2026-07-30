@@ -551,6 +551,8 @@ const kpis = useMemo<KPIItem[]>(
           <EmployeeTrendChart
             data={trendData}
             loading={loading}
+            empty={trendData.length === 0}
+            onRetry={handleRefresh}
           />
         </Grid>
 
@@ -565,6 +567,8 @@ const kpis = useMemo<KPIItem[]>(
           <DepartmentChart
             data={departmentData}
             loading={loading}
+            empty={departmentData.length === 0}
+            onRetry={handleRefresh}
           />
         </Grid>
 
@@ -579,6 +583,8 @@ const kpis = useMemo<KPIItem[]>(
           <RoleChart
             data={roleData}
             loading={loading}
+            empty={roleData.length === 0}
+            onRetry={handleRefresh}
           />
         </Grid>
 
@@ -593,6 +599,8 @@ const kpis = useMemo<KPIItem[]>(
           <LocationChart
             data={locationData}
             loading={loading}
+            empty={locationData.length === 0}
+            onRetry={handleRefresh}
           />
         </Grid>
 
@@ -607,6 +615,8 @@ const kpis = useMemo<KPIItem[]>(
           <StatusChart
             data={statusData}
             loading={loading}
+            empty={statusData.length === 0}
+            onRetry={handleRefresh}
           />
         </Grid>
 
@@ -621,6 +631,8 @@ const kpis = useMemo<KPIItem[]>(
           <RiskChart
             data={riskData}
             loading={loading}
+            empty={riskData.length === 0}
+            onRetry={handleRefresh}
           />
         </Grid>
       </Grid>

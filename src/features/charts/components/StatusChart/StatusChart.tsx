@@ -10,53 +10,49 @@ import {
 } from "recharts";
 
 import BadgeIcon from "@mui/icons-material/Badge";
+import { useTheme } from "@mui/material/styles";
 
 import ChartContainer from "../ChartContainer";
 
 import type { StatusChartData } from "../../../../types/chart";
+import { chartConfig, getChartPalette } from "../../../../constants/chartConfig";
 
 import "./StatusChart.css";
 
 interface StatusChartProps {
   data: StatusChartData[];
   loading?: boolean;
+  error?: string;
+  empty?: boolean;
+  onRetry?: () => void;
 }
-
-const COLORS = {
-  Active: "#2E7D32",
-  "On Leave": "#F9A825",
-  Inactive: "#D32F2F",
-  "Notice Period": "#1976D2",
-};
 
 const StatusChart = ({
   data,
   loading = false,
+  error,
+  empty = false,
+  onRetry,
 }: StatusChartProps) => {
-  if (loading) {
-    return (
-      <ChartContainer
-        title="Employee Status"
-        subtitle="Loading..."
-      >
-        <div className="status-chart__state">
-          Loading...
-        </div>
-      </ChartContainer>
-    );
-  }
+  const theme = useTheme();
+  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const config = chartConfig.statusDistribution;
+  const colors = getChartPalette("statusDistribution", paletteMode);
 
   return (
     <ChartContainer
-      title="Employee Status"
-      subtitle="Current workforce distribution"
+      title={config.title}
+      subtitle={config.subtitle}
       action={<BadgeIcon color="primary" />}
-      height={420}
+      height={config.height}
+      loading={loading}
+      error={error}
+      empty={empty || data.length === 0}
+      emptyMessage={config.emptyMessage}
+      onRetry={onRetry}
+      retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-      >
+      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <PieChart>
           <Pie
             data={data}
@@ -76,9 +72,9 @@ const StatusChart = ({
               <Cell
                 key={item.id}
                 fill={
-                  COLORS[
-                    item.status as keyof typeof COLORS
-                  ] ?? "#1976D2"
+                  colors[
+                    data.findIndex((entry) => entry.id === item.id) % colors.length
+                  ] ?? colors[0]
                 }
               />
             ))}

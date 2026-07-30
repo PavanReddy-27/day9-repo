@@ -13,43 +13,49 @@ import {
 } from "recharts";
 
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import { useTheme } from "@mui/material/styles";
 
 import ChartContainer from "../ChartContainer";
 
 import type { TrendChartData } from "../../../../types/chart";
+import { chartConfig, getChartPalette } from "../../../../constants/chartConfig";
 
 import "./EmployeeTrendChart.css";
 
 interface EmployeeTrendChartProps {
   data: TrendChartData[];
   loading?: boolean;
+  error?: string;
+  empty?: boolean;
+  onRetry?: () => void;
 }
 
 const EmployeeTrendChart = ({
   data,
   loading = false,
+  error,
+  empty = false,
+  onRetry,
 }: EmployeeTrendChartProps) => {
-  if (loading) {
-    return (
-      <ChartContainer
-        title="Workforce Trend"
-        subtitle="Loading workforce analytics..."
-      >
-        <div className="employee-trend-chart__state">
-          Loading...
-        </div>
-      </ChartContainer>
-    );
-  }
+  const theme = useTheme();
+  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const config = chartConfig.workforceTrend;
+  const colors = getChartPalette("workforceTrend", paletteMode);
 
   return (
     <ChartContainer
-      title="Workforce Trend"
-      subtitle="Employee growth, hiring and attrition"
+      title={config.title}
+      subtitle={config.subtitle}
       action={<TrendingUpIcon color="primary" />}
-      height={420}
+      height={config.height}
+      loading={loading}
+      error={error}
+      empty={empty || data.length === 0}
+      emptyMessage={config.emptyMessage}
+      onRetry={onRetry}
+      retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <AreaChart
           data={data}
           margin={{
@@ -69,13 +75,13 @@ const EmployeeTrendChart = ({
             >
               <stop
                 offset="5%"
-                stopColor="#1976d2"
+                stopColor={colors[0]}
                 stopOpacity={0.35}
               />
 
               <stop
                 offset="95%"
-                stopColor="#1976d2"
+                stopColor={colors[0]}
                 stopOpacity={0.02}
               />
             </linearGradient>
@@ -89,13 +95,13 @@ const EmployeeTrendChart = ({
             >
               <stop
                 offset="5%"
-                stopColor="#2e7d32"
+                stopColor={colors[1]}
                 stopOpacity={0.25}
               />
 
               <stop
                 offset="95%"
-                stopColor="#2e7d32"
+                stopColor={colors[1]}
                 stopOpacity={0}
               />
             </linearGradient>
@@ -126,7 +132,7 @@ const EmployeeTrendChart = ({
             dataKey="totalEmployees"
             name="Total Employees"
             fill="url(#employeeGradient)"
-            stroke="#1976d2"
+            stroke={colors[0]}
             strokeWidth={3}
           />
 
@@ -134,7 +140,7 @@ const EmployeeTrendChart = ({
             type="monotone"
             dataKey="activeEmployees"
             name="Active"
-            stroke="#2e7d32"
+            stroke={colors[1]}
             strokeWidth={3}
             dot={{
               r: 4,
@@ -148,7 +154,7 @@ const EmployeeTrendChart = ({
             type="monotone"
             dataKey="newHires"
             name="New Hires"
-            stroke="#fb8c00"
+            stroke={colors[2]}
             strokeWidth={3}
           />
 
@@ -156,7 +162,7 @@ const EmployeeTrendChart = ({
             type="monotone"
             dataKey="attrition"
             name="Attrition"
-            stroke="#d32f2f"
+            stroke={colors[3]}
             strokeWidth={3}
             strokeDasharray="6 6"
           />

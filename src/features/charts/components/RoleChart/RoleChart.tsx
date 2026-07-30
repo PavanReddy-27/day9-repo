@@ -13,56 +13,48 @@ import {
 } from "recharts";
 
 import WorkOutlineOutlinedIcon from "@mui/icons-material/WorkOutlineOutlined";
+import { useTheme } from "@mui/material/styles";
 import ChartContainer from "../ChartContainer";
 
 import type { RoleChartData } from "../../../../types/chart";
+import { chartConfig, getChartPalette } from "../../../../constants/chartConfig";
 
 import "./RoleChart.css";
 
 interface RoleChartProps {
   data: RoleChartData[];
   loading?: boolean;
+  error?: string;
+  empty?: boolean;
+  onRetry?: () => void;
 }
-
-const COLORS = [
-  "#2563EB",
-  "#10B981",
-  "#F59E0B",
-  "#8B5CF6",
-  "#EF4444",
-  "#06B6D4",
-  "#EC4899",
-  "#84CC16",
-];
 
 const RoleChart = ({
   data,
   loading = false,
+  error,
+  empty = false,
+  onRetry,
 }: RoleChartProps) => {
-  if (loading) {
-    return (
-      <ChartContainer
-        title="Role Distribution"
-        subtitle="Loading..."
-      >
-        <div className="role-chart__state">
-          Loading...
-        </div>
-      </ChartContainer>
-    );
-  }
+  const theme = useTheme();
+  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const config = chartConfig.roleDistribution;
+  const colors = getChartPalette("roleDistribution", paletteMode);
 
   return (
     <ChartContainer
-      title="Role Distribution"
-      subtitle="Employees grouped by job role"
+      title={config.title}
+      subtitle={config.subtitle}
       action={<WorkOutlineOutlinedIcon color="primary" />}
-      height={420}
+      height={config.height}
+      loading={loading}
+      error={error}
+      empty={empty || data.length === 0}
+      emptyMessage={config.emptyMessage}
+      onRetry={onRetry}
+      retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-      >
+      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <BarChart
           layout="vertical"
           data={data}
@@ -112,7 +104,7 @@ const RoleChart = ({
               <Cell
                 key={item.role}
                 fill={
-                  COLORS[index % COLORS.length]
+                  colors[index % colors.length]
                 }
               />
             ))}

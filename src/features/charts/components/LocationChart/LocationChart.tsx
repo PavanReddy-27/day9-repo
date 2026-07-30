@@ -13,56 +13,49 @@ import {
 } from "recharts";
 
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import { useTheme } from "@mui/material/styles";
 
 import ChartContainer from "../ChartContainer";
 
 import type { LocationChartData } from "../../../../types/chart";
+import { chartConfig, getChartPalette } from "../../../../constants/chartConfig";
 
 import "./LocationChart.css";
 
 interface LocationChartProps {
   data: LocationChartData[];
   loading?: boolean;
+  error?: string;
+  empty?: boolean;
+  onRetry?: () => void;
 }
-
-const COLORS = [
-  "#2563EB",
-  "#10B981",
-  "#F59E0B",
-  "#8B5CF6",
-  "#EF4444",
-  "#06B6D4",
-  "#EC4899",
-];
 
 const LocationChart = ({
   data,
   loading = false,
+  error,
+  empty = false,
+  onRetry,
 }: LocationChartProps) => {
-  if (loading) {
-    return (
-      <ChartContainer
-        title="Location Distribution"
-        subtitle="Loading..."
-      >
-        <div className="location-chart__state">
-          Loading...
-        </div>
-      </ChartContainer>
-    );
-  }
+  const theme = useTheme();
+  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const config = chartConfig.locationDistribution;
+  const colors = getChartPalette("locationDistribution", paletteMode);
 
   return (
     <ChartContainer
-      title="Location Distribution"
-      subtitle="Employees across office locations"
+      title={config.title}
+      subtitle={config.subtitle}
       action={<LocationOnIcon color="primary" />}
-      height={420}
+      height={config.height}
+      loading={loading}
+      error={error}
+      empty={empty || data.length === 0}
+      emptyMessage={config.emptyMessage}
+      onRetry={onRetry}
+      retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer
-        width="100%"
-        height="100%"
-      >
+      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <BarChart
           data={data}
           margin={{
@@ -106,7 +99,7 @@ const LocationChart = ({
               <Cell
                 key={item.id}
                 fill={
-                  COLORS[index % COLORS.length]
+                  colors[index % colors.length]
                 }
               />
             ))}

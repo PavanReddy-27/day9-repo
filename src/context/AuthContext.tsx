@@ -1,34 +1,30 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+
+import { AuthContext } from "./AuthContextValue";
 
 type User = {
   username: string;
 };
 
-type AuthContextType = {
+export type AuthContextType = {
   user: User | null;
   login: (username: string) => void;
   logout: () => void;
 };
-
-const AuthContext = createContext<AuthContextType | null>(null);
 
 type AuthProviderProps = {
   children: ReactNode;
 };
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  console.log("✅ AuthProvider Rendered");
-
   const [user, setUser] = useState<User | null>(null);
 
   const login = (username: string) => {
-    console.log("Login:", username);
     setUser({ username });
   };
 
   const logout = () => {
-    console.log("Logout");
     setUser(null);
   };
 
@@ -48,14 +44,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
 
-  console.log("Context:", context);
-
-  if (context === null) {
-    throw new Error("useAuth must be inside AuthProvider");
-  }
-
-  return context;
-}
