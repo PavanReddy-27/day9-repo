@@ -63,7 +63,7 @@ const KPICard = ({
       : "neutral";
 
   return (
-    <Card className="kpi-card" elevation={0}>
+    <Card className="kpi-card" elevation={5}>
       <CardActionArea
         onClick={onClick}
         className="kpi-card__action"

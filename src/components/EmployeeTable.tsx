@@ -125,46 +125,45 @@ export const EmployeeTable = () => {
     );
   };
 
-  // Common styling for dark control inputs
   const controlStyle: React.CSSProperties = {
     padding: '12px 16px',
     fontSize: '16px',
     borderRadius: '8px',
-    border: '1px solid #334155',
-    backgroundColor: '#1e293b',
-    color: '#f8fafc',
+    border: '1px solid var(--border)',
+    backgroundColor: 'var(--surface-solid)',
+    color: 'var(--text)',
     outline: 'none',
-    cursor: 'pointer'
+    cursor: 'pointer',
   };
 
   return (
-    <div style={{ 
-      padding: '30px', 
+    <div style={{
+      padding: '30px',
       fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-      backgroundColor: '#0f172a',
+      backgroundColor: 'var(--surface)',
       borderRadius: '16px',
-      color: '#f8fafc',
+      color: 'var(--text)',
       margin: '20px auto',
       maxWidth: '1200px',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+      boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '28px', color: '#f8fafc', margin: 0, fontWeight: '700' }}>
+        <h2 style={{ fontSize: '28px', color: 'var(--text)', margin: 0, fontWeight: '700' }}>
           👥 Workforce Directory
         </h2>
-        <button 
-          onClick={handleExportCSV} 
-          style={{ 
-            padding: '12px 24px', 
-            backgroundColor: '#3b82f6', 
-            color: '#ffffff', 
-            border: 'none', 
-            borderRadius: '8px', 
+        <button
+          onClick={handleExportCSV}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: 'var(--primary)',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '8px',
             fontSize: '16px',
             fontWeight: '600',
             cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
-            transition: 'all 0.2s ease'
+            boxShadow: '0 4px 14px rgba(91, 92, 240, 0.25)',
+            transition: 'all 0.2s ease',
           }}
         >
           📥 Export CSV
@@ -218,10 +217,17 @@ export const EmployeeTable = () => {
       </div>
 
       {/* Employee Data Table */}
-      <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #334155' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', backgroundColor: '#1e293b' }}>
+      <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid var(--border)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', backgroundColor: 'var(--surface-solid)' }}>
           <thead>
-            <tr style={{ backgroundColor: '#0f172a', color: '#94a3b8', fontSize: '15px', borderBottom: '1px solid #334155' }}>
+            <tr
+              style={{
+                backgroundColor: 'var(--surface)',
+                color: 'var(--text-light)',
+                fontSize: '15px',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
               <th onClick={() => handleSort('name')} style={{ padding: '16px 20px', cursor: 'pointer', userSelect: 'none' }}>
                 Name {sortField === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
               </th>
@@ -245,25 +251,28 @@ export const EmployeeTable = () => {
           <tbody>
             {sortedEmployees.length > 0 ? (
               sortedEmployees.map((emp, idx) => (
-                <tr key={emp.id} style={{ 
-                  backgroundColor: idx % 2 === 0 ? '#1e293b' : '#0f172a',
-                  borderBottom: '1px solid #334155',
-                  fontSize: '16px'
-                }}>
+                <tr
+                  key={emp.id}
+                  style={{
+                    backgroundColor: idx % 2 === 0 ? 'var(--surface-solid)' : 'var(--surface)',
+                    borderBottom: '1px solid var(--border)',
+                    fontSize: '16px',
+                  }}
+                >
                   <td style={{ padding: '16px 20px' }}>
-                    <div style={{ fontWeight: '600', color: '#f8fafc', fontSize: '17px' }}>{emp.name}</div>
-                    <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '2px' }}>{emp.email}</div>
+                    <div style={{ fontWeight: '600', color: 'var(--text)', fontSize: '17px' }}>{emp.name}</div>
+                    <div style={{ color: 'var(--text-light)', fontSize: '14px', marginTop: '2px' }}>{emp.email}</div>
                   </td>
-                  <td style={{ padding: '16px 20px', color: '#cbd5e1', fontWeight: '500' }}>{emp.department}</td>
-                  <td style={{ padding: '16px 20px', color: '#cbd5e1' }}>{emp.role}</td>
-                  <td style={{ padding: '16px 20px', color: '#cbd5e1' }}>📍 {emp.location}</td>
+                  <td style={{ padding: '16px 20px', color: 'var(--text)', fontWeight: '500' }}>{emp.department}</td>
+                  <td style={{ padding: '16px 20px', color: 'var(--text)' }}>{emp.role}</td>
+                  <td style={{ padding: '16px 20px', color: 'var(--text)' }}>📍 {emp.location}</td>
                   <td style={{ padding: '16px 20px' }}>{getStatusBadge(emp.status)}</td>
                   <td style={{ padding: '16px 20px' }}>{getRiskBadge(emp.risk)}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8', fontSize: '18px' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-light)', fontSize: '18px' }}>
                   No employees found matching selected filters.
                 </td>
               </tr>

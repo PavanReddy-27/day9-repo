@@ -265,7 +265,7 @@ export const useChartFilters = (
       loadFilters
     );
 
-  const [history, setHistory] =
+  const [, setHistory] =
     useState<ChartFilters[]>([]);
 
   const [

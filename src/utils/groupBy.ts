@@ -194,12 +194,10 @@ export const groupByMultiple = <
 
 export const groupByNested = <
   T extends object,
-  P extends keyof T,
-  C extends keyof T
+  P extends keyof T
 >(
   data: T[],
-  parentKey: P,
-  childKey: C
+  parentKey: P
 ): NestedGroupResult<T>[] => {
   const grouped = new Map<
     string,

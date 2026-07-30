@@ -12,8 +12,8 @@
   font-size: 1rem;
   font-weight: 600;
 
-  color: #64748b;
-  background: #f8fafc;
+  color: var(--text-light);
+  background: var(--surface);
   border-radius: 12px;
 }
 
@@ -26,16 +26,16 @@
 }
 
 .recharts-cartesian-grid line {
-  stroke: #edf2f7;
+  stroke: rgba(255,255,255,0.08);
 }
 
 .recharts-cartesian-axis-line,
 .recharts-cartesian-axis-tick line {
-  stroke: #dbe3ec;
+  stroke: rgba(255,255,255,0.16);
 }
 
 .recharts-text {
-  fill: #64748b;
+  fill: var(--text-light);
   font-size: 12px;
 }
 
@@ -46,14 +46,14 @@
 .recharts-default-tooltip {
   border: none !important;
   border-radius: 12px !important;
-  background: #ffffff !important;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.15) !important;
+  background: var(--surface-solid) !important;
+  box-shadow: var(--shadow) !important;
   padding: 10px 14px !important;
 }
 
 .recharts-tooltip-label {
   font-weight: 700;
-  color: #111827;
+  color: var(--text-h);
   margin-bottom: 6px;
 }
 
@@ -62,7 +62,7 @@
 }
 
 .recharts-legend-item-text {
-  color: #475569 !important;
+  color: var(--text) !important;
   font-size: 13px;
 }
 

@@ -21,18 +21,18 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #64748b;
+    color: var(--text-light);
     text-decoration: none;
     font-weight: 600;
     transition: .3s;
   }
   
   .breadcrumb-link:hover {
-    color: #4f46e5;
+    color: var(--primary);
   }
   
   .home-link {
-    color: #4f46e5;
+    color: var(--primary);
   }
   
   .breadcrumb-current {
@@ -41,7 +41,7 @@
   }
   
   .breadcrumb-arrow {
-    color: #cbd5e1;
+    color: var(--border);
     font-size: 15px;
   }
   

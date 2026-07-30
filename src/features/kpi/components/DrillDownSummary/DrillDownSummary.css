@@ -23,7 +23,7 @@
 }
 
 .drilldown-summary__description {
-  color: #64748b;
+  color: var(--text-light);
   line-height: 1.6;
 }
 
@@ -42,9 +42,9 @@
 
   border-radius: 16px;
 
-  background: #ffffff;
+  background: var(--surface-solid);
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 
   transition: all 0.25s ease;
 }
@@ -57,13 +57,13 @@
 .summary-card__title {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-light);
 }
 
 .summary-card__value {
   font-size: clamp(2rem, 2vw, 2.8rem);
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
 
   white-space: nowrap;
   overflow: hidden;

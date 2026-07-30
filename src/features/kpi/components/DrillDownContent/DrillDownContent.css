@@ -21,7 +21,7 @@
 
 .drilldown-content__header h6 {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .drilldown-content__header .MuiChip-root {
@@ -66,9 +66,9 @@
 
   padding: 18px 20px;
 
-  background: #ffffff;
+  background: var(--surface-solid);
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
 
   border-radius: 16px;
 
@@ -81,7 +81,7 @@
 .drilldown-content__card:hover {
   transform: translateY(-3px);
 
-  border-color: #1976d2;
+  border-color: var(--primary);
 
   box-shadow:
     0 10px 25px rgba(15, 23, 42, .08),
@@ -90,7 +90,7 @@
 
 .drilldown-content__label {
   font-weight: 600 !important;
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .drilldown-content__card .MuiChip-root {
@@ -115,7 +115,7 @@
 
   text-align: center;
 
-  color: #94a3b8;
+  color: var(--text-light);
 }
 
 .drilldown-content__empty svg {
@@ -123,7 +123,7 @@
 
   margin-bottom: 16px;
 
-  color: #cbd5e1;
+  color: var(--border);
 }
 
 .drilldown-content__empty h6 {
@@ -151,13 +151,13 @@
 }
 
 .drilldown-content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border);
 
   border-radius: 10px;
 }
 
 .drilldown-content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-light);
 }
 
 /* ========================================

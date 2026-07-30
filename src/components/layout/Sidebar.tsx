@@ -1,15 +1,20 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
   FiUsers,
   FiBarChart2,
   FiFileText,
   FiSettings,
-  FiLogOut,
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
 import { FaUsersCog } from "react-icons/fa";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useDispatch } from "react-redux";
+
+import { logout } from "../../redux/authSlice";
+import authApi from "../../services/authApi";
+
 import "./Sidebar.css";
 
 interface SidebarProps {
@@ -51,6 +56,19 @@ const Sidebar = ({
   toggleSidebar,
   closeSidebar,
 }: SidebarProps) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    authApi.removeUser();
+
+    dispatch(logout());
+
+    navigate("/login", {
+      replace: true,
+    });
+  };
+
   return (
     <aside className={`sidebar ${sidebarOpen ? "" : "collapsed"}`}>
       <div className="sidebar-top">
@@ -89,9 +107,7 @@ const Sidebar = ({
             <span className="menu-icon">{item.icon}</span>
 
             {sidebarOpen && (
-              <span className="menu-text">
-                {item.name}
-              </span>
+              <span className="menu-text">{item.name}</span>
             )}
           </NavLink>
         ))}
@@ -100,9 +116,10 @@ const Sidebar = ({
       <div className="sidebar-footer">
         <button
           className="logout-btn"
-          onClick={() => alert("Logout functionality will be added later")}
+          onClick={handleLogout}
+          title={!sidebarOpen ? "Logout" : ""}
         >
-          <FiLogOut />
+          <LogoutIcon fontSize="small" />
 
           {sidebarOpen && <span>Logout</span>}
         </button>

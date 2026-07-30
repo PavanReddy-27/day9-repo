@@ -3,15 +3,15 @@
 .chart-container {
   height: 100%;
   border-radius: 20px !important;
-  border: 1px solid #e2e8f0;
-  background: #ffffff !important;
+  border: 1px solid var(--border);
+  background: var(--surface-solid) !important;
   overflow: hidden;
   transition: all 0.25s ease;
 }
 
 .chart-container:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow);
 }
 
 .chart-container__header {
@@ -36,7 +36,7 @@
 .chart-container__title {
   font-weight: 700 !important;
   font-size: 1.1rem !important;
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .chart-container__badge {
@@ -51,12 +51,12 @@
 }
 
 .chart-container__subtitle {
-  color: #64748b;
+  color: var(--text-light);
   font-size: 0.875rem;
 }
 
 .chart-container__timestamp {
-  color: #94a3b8;
+  color: var(--text-light);
   font-size: 0.75rem;
 }
 
@@ -72,8 +72,8 @@
 }
 
 .chart-container__actions .MuiIconButton-root:hover {
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--hover);
+  color: var(--primary);
 }
 
 .chart-container__content {

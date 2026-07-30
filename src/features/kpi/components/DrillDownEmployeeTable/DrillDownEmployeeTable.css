@@ -5,11 +5,11 @@
 
   border-radius: 18px !important;
 
-  border: 1px solid #e5e7eb !important;
+  border: 1px solid var(--border) !important;
 
   overflow: hidden;
 
-  background: #ffffff;
+  background: var(--surface-solid);
 }
 
 /* ===========================
@@ -27,14 +27,14 @@
 
   padding: 20px 24px;
 
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 
-  background: #f8fafc;
+  background: var(--surface);
 }
 
 .drilldown-employee-table__header h6 {
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 /* ===========================
@@ -46,15 +46,15 @@
 }
 
 .drilldown-employee-table .MuiTableHead-root {
-  background: #f8fafc;
+  background: var(--surface);
 }
 
 .drilldown-employee-table .MuiTableHead-root .MuiTableCell-root {
   font-weight: 700;
 
-  color: #334155;
+  color: var(--text);
 
-  background: #f8fafc;
+  background: var(--surface);
 }
 
 .drilldown-employee-table .MuiTableBody-root .MuiTableRow-root {
@@ -62,7 +62,7 @@
 }
 
 .drilldown-employee-table .MuiTableBody-root .MuiTableRow-root:hover {
-  background: #f1f5f9;
+  background: var(--hover);
 }
 
 .drilldown-employee-table .MuiTableCell-root {
@@ -74,7 +74,7 @@
 =========================== */
 
 .drilldown-employee-table .MuiTablePagination-root {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
 }
 
 /* ===========================
@@ -102,13 +102,13 @@
 }
 
 .drilldown-employee-table ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border);
 
   border-radius: 20px;
 }
 
 .drilldown-employee-table ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-light);
 }
 
 /* ===========================

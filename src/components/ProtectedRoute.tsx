@@ -1,40 +1,18 @@
-import {
-  Navigate,
-  Outlet,
-} from "react-router-dom";
+﻿import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "../redux/store";
 
-import type {
-  Permission,
-  User,
-} from "../types/auth";
+type ProtectedRouteProps = {
+  children: ReactNode;
+};
 
-import { hasPermission } from "../utils/permissions";
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-interface ProtectedRouteProps {
-  user: User;
-  permission: Permission;
-}
-
-function ProtectedRoute({
-  user,
-  permission,
-}: ProtectedRouteProps) {
-
-  const allowed = hasPermission(
-    user.role,
-    permission,
-  );
-
-  if (!allowed) {
-    return (
-      <Navigate
-        to="/dashboard"
-        replace
-      />
-    );
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  return children;
 }
-
-export default ProtectedRoute;

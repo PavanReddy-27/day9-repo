@@ -22,12 +22,12 @@
   align-items: center;
   justify-content: center;
 
-  background: #fff;
+  background: var(--surface-solid);
 
   border-radius: 18px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 
-  color: #64748b;
+  color: var(--text-light);
 }
 
 @keyframes kpiCardFade {

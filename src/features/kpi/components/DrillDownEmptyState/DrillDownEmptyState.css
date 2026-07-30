@@ -15,28 +15,28 @@
 
   padding: 40px;
 
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed rgba(255,255,255,0.3);
   border-radius: 18px;
 
-  background: #ffffff;
+  background: var(--surface-solid);
 }
 
 .drilldown-empty__icon {
   font-size: 72px !important;
 
-  color: #94a3b8;
+  color: var(--text-light);
 }
 
 .drilldown-empty__title {
   font-weight: 700 !important;
 
-  color: #0f172a;
+  color: var(--text-h);
 }
 
 .drilldown-empty__description {
   max-width: 420px;
 
-  color: #64748b !important;
+  color: var(--text-light) !important;
 
   line-height: 1.7 !important;
 }

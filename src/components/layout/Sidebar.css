@@ -82,7 +82,7 @@
   }
   
   .collapse-btn:hover {
-    background: #4f46e5;
+    background: var(--primary);
     color: #fff;
   }
   
@@ -118,7 +118,7 @@
   
   .menu-item.active {
     color: #fff;
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     box-shadow: 0 12px 30px rgba(79, 70, 229, .35);
   }
   
@@ -150,8 +150,8 @@
     border: none;
     border-radius: 14px;
   
-    background: #fee2e2;
-    color: #dc2626;
+    background: rgba(254, 226, 226, 0.95);
+    color: #b91c1c;
   
     cursor: pointer;
     transition: .3s;
