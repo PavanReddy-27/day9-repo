@@ -1,12 +1,5 @@
-import EmployeeTable from './components/EmployeeTable';
+﻿import AppRoutes from "./routes/AppRoutes";
 
-function App() {
-  return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>Workforce Analytics Dashboard</h1>
-      <EmployeeTable />
-    </div>
-  );
+export default function App() {
+  return <AppRoutes />;
 }
-
-export default App;

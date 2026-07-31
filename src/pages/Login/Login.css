@@ -1,0 +1,185 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: #f8f9ff;
+}
+
+/* ===========================
+   Login Background
+=========================== */
+
+.login-container {
+  position: relative;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+  padding: 16px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(37, 99, 235, 0.12),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(37, 99, 235, 0.12),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      #f8f9ff 0%,
+      #edf4ff 100%
+    );
+}
+
+/* ===========================
+   Decorative Shapes
+=========================== */
+
+.login-container::before {
+  content: "";
+  position: absolute;
+
+  width: 700px;
+  height: 700px;
+
+  left: -260px;
+  bottom: -320px;
+
+  border-radius: 50%;
+
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.login-container::after {
+  content: "";
+  position: absolute;
+
+  width: 550px;
+  height: 550px;
+
+  right: -180px;
+  top: -180px;
+
+  border-radius: 50%;
+
+  background: rgba(37, 99, 235, 0.06);
+}
+
+/* ===========================
+   Login Card
+=========================== */
+
+.login-card {
+  position: relative;
+  z-index: 10;
+
+  width: 100%;
+  max-width: 480px;
+
+  padding: 32px 28px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  backdrop-filter: blur(18px);
+
+  border: 1px solid #dce9ff;
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(37, 99, 235, 0.08);
+}
+
+/* ===========================
+   Typography
+=========================== */
+
+.login-title {
+  color: #0b1c30;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.login-subtitle {
+  color: #64748b;
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.login-footer {
+  margin-top: 20px;
+
+  text-align: center;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+/* ===========================
+   Chrome / Edge / Brave
+   Autofill Fix
+=========================== */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #0b1c30 !important;
+  caret-color: #0b1c30 !important;
+
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.MuiInputBase-input:-webkit-autofill,
+.MuiOutlinedInput-input:-webkit-autofill {
+  -webkit-text-fill-color: #0b1c30 !important;
+  caret-color: #0b1c30 !important;
+
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+
+  border-radius: inherit;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media (max-width: 600px) {
+  .login-card {
+    max-width: 100%;
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  .login-title {
+    font-size: 26px;
+  }
+}
