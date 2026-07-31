@@ -6,6 +6,7 @@ import {
   useMemo,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 
 import type {
@@ -265,8 +266,7 @@ export const useChartFilters = (
       loadFilters
     );
 
-  const [_history, setHistory] =
-    useState<ChartFilters[]>([]);
+  const historyRef = useRef<ChartFilters[]>([]);
 
   const [
     savedViews,
@@ -294,12 +294,10 @@ export const useChartFilters = (
       (
         updates: Partial<ChartFilters>
       ) => {
-        setHistory(
-          (previous) => [
-            ...previous,
-            filters,
-          ]
-        );
+        historyRef.current = [
+          ...historyRef.current,
+          filters,
+        ];
 
         setFilters(
           (previous) => ({
@@ -674,33 +672,25 @@ export const useChartFilters = (
   ========================================================== */
 
   const clearFilters = useCallback(() => {
-    setHistory((previous) => [
-      ...previous,
+    historyRef.current = [
+      ...historyRef.current,
       filters,
-    ]);
+    ];
 
     setFilters(DEFAULT_FILTERS);
   }, [filters]);
 
   const undoLastFilter =
     useCallback(() => {
-      setHistory((previous) => {
-        if (previous.length === 0) {
-          return previous;
-        }
+      if (historyRef.current.length === 0) {
+        return;
+      }
 
-        const updated = [
-          ...previous,
-        ];
+      const updated = [...historyRef.current];
+      const last = updated.pop() ?? DEFAULT_FILTERS;
 
-        const last =
-          updated.pop() ??
-          DEFAULT_FILTERS;
-
-        setFilters(last);
-
-        return updated;
-      });
+      historyRef.current = updated;
+      setFilters(last);
     }, []);
 
   /* ==========================================================

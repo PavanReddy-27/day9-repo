@@ -199,8 +199,10 @@ export const groupByNested = <
 >(
   data: T[],
   parentKey: P,
-  _childKey: C
+  childKey: C
 ): NestedGroupResult<T>[] => {
+  void childKey;
+
   const grouped = new Map<
     string,
     T[]
