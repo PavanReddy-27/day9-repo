@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { setFilter, resetFilters, DEPARTMENT_DEPENDENCIES, type Employee } from '../redux/dashboardSlice';
+import { setFilter, resetFilters, DEPARTMENT_DEPENDENCIES } from '../redux/dashboardSlice';
 import type { RootState } from '../redux/store';
 
 export const EmployeeTable: React.FC = () => {
