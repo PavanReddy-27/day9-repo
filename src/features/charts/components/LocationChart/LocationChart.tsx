@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import { useTheme } from "@mui/material/styles";
+import { useTheme } from "../../../../context";
 
 import ChartContainer from "../ChartContainer";
 
@@ -37,8 +37,9 @@ const LocationChart = ({
   empty = false,
   onRetry,
 }: LocationChartProps) => {
-  const theme = useTheme();
-  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const paletteMode = isDarkMode ? "dark" : "light";
   const config = chartConfig.locationDistribution;
   const colors = getChartPalette("locationDistribution", paletteMode);
 
@@ -57,6 +58,7 @@ const LocationChart = ({
     >
       <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <BarChart
+          style={{ backgroundColor: "var(--surface-solid)" }}
           data={data}
           margin={{
             top: 10,
@@ -67,6 +69,7 @@ const LocationChart = ({
         >
           <CartesianGrid
             strokeDasharray="4 4"
+            stroke="var(--border)"
             vertical={false}
           />
 
@@ -74,11 +77,15 @@ const LocationChart = ({
             dataKey="location"
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
           <YAxis
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
           <Tooltip
@@ -86,9 +93,15 @@ const LocationChart = ({
               value,
               "Employees",
             ]}
+            contentStyle={{
+              backgroundColor: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+            labelStyle={{ color: "var(--text)" }}
+            itemStyle={{ color: "var(--text)" }}
           />
 
-          <Legend />
+          <Legend wrapperStyle={{ color: "var(--text)" }} formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>} />
 
           <Bar
             dataKey="employees"

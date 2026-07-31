@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import { useTheme } from "@mui/material/styles";
+import { useTheme } from "../../../../context";
 
 import ChartContainer from "../ChartContainer";
 
@@ -37,8 +37,9 @@ const EmployeeTrendChart = ({
   empty = false,
   onRetry,
 }: EmployeeTrendChartProps) => {
-  const theme = useTheme();
-  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const paletteMode = isDarkMode ? "dark" : "light";
   const config = chartConfig.workforceTrend;
   const colors = getChartPalette("workforceTrend", paletteMode);
 
@@ -57,6 +58,7 @@ const EmployeeTrendChart = ({
     >
       <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <AreaChart
+          style={{ backgroundColor: "var(--surface-solid)" }}
           data={data}
           margin={{
             top: 10,
@@ -109,6 +111,7 @@ const EmployeeTrendChart = ({
 
           <CartesianGrid
             strokeDasharray="4 4"
+            stroke="var(--border)"
             vertical={false}
           />
 
@@ -116,14 +119,25 @@ const EmployeeTrendChart = ({
             dataKey="month"
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
           <YAxis
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+            labelStyle={{ color: "var(--text)" }}
+            itemStyle={{ color: "var(--text)" }}
+          />
 
           <Legend />
 

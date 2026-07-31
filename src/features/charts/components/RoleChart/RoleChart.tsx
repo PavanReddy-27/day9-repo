@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import WorkOutlineOutlinedIcon from "@mui/icons-material/WorkOutlineOutlined";
-import { useTheme } from "@mui/material/styles";
+import { useTheme } from "../../../../context";
 import ChartContainer from "../ChartContainer";
 
 import type { RoleChartData } from "../../../../types/chart";
@@ -36,8 +36,9 @@ const RoleChart = ({
   empty = false,
   onRetry,
 }: RoleChartProps) => {
-  const theme = useTheme();
-  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const paletteMode = isDarkMode ? "dark" : "light";
   const config = chartConfig.roleDistribution;
   const colors = getChartPalette("roleDistribution", paletteMode);
 
@@ -56,6 +57,7 @@ const RoleChart = ({
     >
       <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <BarChart
+          style={{ backgroundColor: "var(--surface-solid)" }}
           layout="vertical"
           data={data}
           margin={{
@@ -67,6 +69,7 @@ const RoleChart = ({
         >
           <CartesianGrid
             strokeDasharray="4 4"
+            stroke="var(--border)"
             horizontal
             vertical={false}
           />
@@ -75,6 +78,8 @@ const RoleChart = ({
             type="number"
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
           <YAxis
@@ -83,6 +88,8 @@ const RoleChart = ({
             width={170}
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
           <Tooltip
@@ -90,9 +97,15 @@ const RoleChart = ({
               value,
               "Employees",
             ]}
+            contentStyle={{
+              backgroundColor: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+            labelStyle={{ color: "var(--text)" }}
+            itemStyle={{ color: "var(--text)" }}
           />
 
-          <Legend />
+          <Legend wrapperStyle={{ color: "var(--text)" }} formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>} />
 
           <Bar
             dataKey="employees"

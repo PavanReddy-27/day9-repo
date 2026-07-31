@@ -23,7 +23,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   );
 
   const username = user?.username ?? "Guest";
-  const role = user?.username ?? "Frontend Developer";
+  const role = user?.role ?? "analyst";
 
   return (
     <header className="header">

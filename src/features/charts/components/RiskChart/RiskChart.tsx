@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import { useTheme } from "@mui/material/styles";
+import { useTheme } from "../../../../context";
 
 import ChartContainer from "../ChartContainer";
 
@@ -37,8 +37,9 @@ const RiskChart = ({
   empty = false,
   onRetry,
 }: RiskChartProps) => {
-  const theme = useTheme();
-  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const paletteMode = isDarkMode ? "dark" : "light";
   const config = chartConfig.riskDistribution;
   const colors = getChartPalette("riskDistribution", paletteMode);
 
@@ -57,6 +58,7 @@ const RiskChart = ({
     >
       <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
         <BarChart
+          style={{ backgroundColor: "var(--surface-solid)" }}
           data={data}
           margin={{
             top: 10,
@@ -67,6 +69,7 @@ const RiskChart = ({
         >
           <CartesianGrid
             strokeDasharray="4 4"
+            stroke="var(--border)"
             vertical={false}
           />
 
@@ -74,11 +77,15 @@ const RiskChart = ({
             dataKey="risk"
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
           <YAxis
             tickLine={false}
             axisLine={false}
+            tick={{ fill: "var(--text)" }}
+            stroke="var(--border)"
           />
 
           <Tooltip
@@ -86,9 +93,15 @@ const RiskChart = ({
               value,
               "Employees",
             ]}
+            contentStyle={{
+              backgroundColor: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+            labelStyle={{ color: "var(--text)" }}
+            itemStyle={{ color: "var(--text)" }}
           />
 
-          <Legend />
+          <Legend wrapperStyle={{ color: "var(--text)" }} formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>} />
 
           <Bar
             dataKey="employees"

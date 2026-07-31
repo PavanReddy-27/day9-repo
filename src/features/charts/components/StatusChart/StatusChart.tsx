@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 import BadgeIcon from "@mui/icons-material/Badge";
-import { useTheme } from "@mui/material/styles";
+import { useTheme } from "../../../../context";
 
 import ChartContainer from "../ChartContainer";
 
@@ -34,8 +34,9 @@ const StatusChart = ({
   empty = false,
   onRetry,
 }: StatusChartProps) => {
-  const theme = useTheme();
-  const paletteMode = theme.palette.mode === "dark" ? "dark" : "light";
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const paletteMode = isDarkMode ? "dark" : "light";
   const config = chartConfig.statusDistribution;
   const colors = getChartPalette("statusDistribution", paletteMode);
 
@@ -53,7 +54,7 @@ const StatusChart = ({
       retryLabel={config.retryLabel}
     >
       <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
-        <PieChart>
+        <PieChart style={{ backgroundColor: "var(--surface-solid)" }}>
           <Pie
             data={data}
             dataKey="employees"
@@ -85,6 +86,12 @@ const StatusChart = ({
               value,
               "Employees",
             ]}
+            contentStyle={{
+              backgroundColor: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+            labelStyle={{ color: "var(--text)" }}
+            itemStyle={{ color: "var(--text)" }}
           />
 
           <Legend
@@ -93,7 +100,9 @@ const StatusChart = ({
             iconType="circle"
             wrapperStyle={{
               paddingTop: 16,
+              color: "var(--text)",
             }}
+            formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>

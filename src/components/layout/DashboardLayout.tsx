@@ -1,51 +1,36 @@
 import {
   Outlet,
 } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-import Sidebar
-  from "../Sidebar";
+import Sidebar from "../Sidebar";
+import Topbar from "../Topbar";
+import type { RootState } from "../../redux/store";
 
-import Topbar
-  from "../Topbar";
+function DashboardLayout() {
+  const user = useSelector((state: RootState) => state.auth.user);
 
-import"../PageState"
-import"../ProtectedRoute"
+  if (!user) {
+    return null;
+  }
 
-
-import type {
-  User,
-} from "../../types/auth";
-
-interface DashboardLayoutProps {
-  user: User;
-}
-
-function DashboardLayout({
-  user,
-}: DashboardLayoutProps) {
+  const dashboardUser = {
+    id: String(user.id),
+    name: user.username,
+    role: user.role,
+  };
 
   return (
     <div className="app-shell">
-
-      <Sidebar
-        user={user}
-      />
+      <Sidebar user={dashboardUser} />
 
       <div className="main-area">
+        <Topbar user={dashboardUser} />
 
-        <Topbar
-          user={user}
-        />
-
-        <main
-          className="page-content"
-          id="main-content"
-        >
+        <main className="page-content" id="main-content">
           <Outlet />
         </main>
-
       </div>
-
     </div>
   );
 }

@@ -79,7 +79,9 @@ const ChartContainer = ({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "background.paper",
+        backgroundColor: "var(--surface-solid)",
+        border: "1px solid var(--border)",
+        boxShadow: "var(--shadow)",
       }}
     >
       {showHeader && (
@@ -95,7 +97,7 @@ const ChartContainer = ({
           >
             <Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: "var(--text)" }}>
                   {title}
                 </Typography>
                 {badgeText && (
@@ -110,7 +112,7 @@ const ChartContainer = ({
               {(subtitle || lastUpdated) && (
                 <Box sx={{ mt: 0.25 }}>
                   {subtitle && (
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{ color: "var(--text-light)" }}>
                       {subtitle}
                     </Typography>
                   )}
