@@ -15,9 +15,21 @@ function DashboardLayout() {
   }
 
   const dashboardUser = {
-    id: String(user.id),
-    name: user.username,
+    id: user.id,
+    employeeId: user.employeeId,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    fullName: user.fullName,
+    username: user.username,
+    email: user.email,
     role: user.role,
+    department: user.department,
+    designation: user.designation,
+    location: user.location,
+    avatar: user.avatar,
+    isActive: user.isActive,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 
   return (

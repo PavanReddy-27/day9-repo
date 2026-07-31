@@ -1,18 +1,84 @@
-﻿import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
+﻿// ====================================
+// File: src/routes/ProtectedRoute.tsx
+// ====================================
 
-type ProtectedRouteProps = {
-  children: ReactNode;
-};
+import { Navigate, Outlet } from "react-router-dom";
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+import { useAppSelector } from "../hooks/redux";
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+import authApi from "../services/authApi";
+
+import type { UserRole } from "../types/auth";
+
+interface ProtectedRouteProps {
+  allowedRoles?: UserRole[];
+}
+
+const ProtectedRoute = ({
+  allowedRoles,
+}: ProtectedRouteProps) => {
+  const {
+    isAuthenticated,
+    user,
+  } = useAppSelector(
+    (state) => state.auth
+  );
+
+  /**
+   * User not logged in
+   */
+  if (
+    !isAuthenticated ||
+    !user ||
+    !authApi.isAuthenticated()
+  ) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
-  return children;
-}
+  /**
+   * Session Expired
+   */
+  const accessToken =
+    authApi.getAccessToken();
+
+  if (!accessToken) {
+    authApi.logout();
+
+    return (
+      <Navigate
+        to="/session-expired"
+        replace
+      />
+    );
+  }
+
+  /**
+   * Role Authorization
+   */
+  if (
+    allowedRoles &&
+    allowedRoles.length > 0 &&
+    !allowedRoles.includes(
+      user.role
+    )
+  ) {
+    return (
+      <Navigate
+        to="/unauthorized"
+        replace
+      />
+    );
+  }
+
+  /**
+   * Render Protected Route
+   */
+  return <Outlet />;
+};
+
+export default ProtectedRoute;

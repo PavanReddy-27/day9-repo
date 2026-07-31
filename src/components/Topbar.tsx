@@ -22,7 +22,7 @@ function Topbar({
       <div className="user-info">
 
         <span>
-          {user.name}
+          {user.fullName || user.username}
         </span>
 
         <span className="role-badge">

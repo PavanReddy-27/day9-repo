@@ -1,11 +1,9 @@
 import { NavLink } from "react-router-dom";
 
 import type {
-  Permission,
   User,
+  UserRole,
 } from "../types/auth";
-
-import { hasPermission } from "../utils/permissions";
 
 interface SidebarProps {
   user: User;
@@ -14,37 +12,37 @@ interface SidebarProps {
 const navigation: {
   label: string;
   path: string;
-  permission: Permission;
+  allowedRoles: UserRole[];
   icon: string;
 }[] = [
   {
     label: "Dashboard",
     path: "/dashboard",
-    permission: "dashboard:view",
+    allowedRoles: ["Admin", "HR", "Manager"],
     icon: "📊",
   },
   {
     label: "Workforce",
     path: "/workforce",
-    permission: "workforce:view",
+    allowedRoles: ["Admin", "HR", "Manager"],
     icon: "👥",
   },
   {
     label: "Employees",
     path: "/employees",
-    permission: "employees:view",
+    allowedRoles: ["Admin", "HR"],
     icon: "👤",
   },
   {
     label: "Reports",
     path: "/reports",
-    permission: "reports:view",
+    allowedRoles: ["Admin", "HR", "Manager"],
     icon: "📈",
   },
   {
     label: "Settings",
     path: "/settings",
-    permission: "settings:view",
+    allowedRoles: ["Admin"],
     icon: "⚙️",
   },
 ];
@@ -67,10 +65,7 @@ function Sidebar({
 
         {navigation
           .filter((item) =>
-            hasPermission(
-              user.role,
-              item.permission,
-            ),
+            item.allowedRoles.includes(user.role),
           )
           .map((item) => (
 

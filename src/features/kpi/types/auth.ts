@@ -1,19 +1,35 @@
+// src/types/auth.ts
+
+/**
+ * ==========================================
+ * Authentication & Authorization Types
+ * Workforce Analytics Dashboard
+ * ==========================================
+ */
+
 export type UserRole = "Admin" | "HR" | "Manager";
 
 export interface User {
   id: string;
   employeeId: string;
+
   firstName: string;
   lastName: string;
   fullName: string;
+
   username: string;
   email: string;
+
   role: UserRole;
+
   department: string;
   designation: string;
   location: string;
+
   avatar?: string;
+
   isActive: boolean;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -26,29 +42,45 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   success: boolean;
+
   user: User;
+
   accessToken: string;
+
   refreshToken: string;
+
   expiresAt: number;
 }
 
 export interface AuthSession {
   user: User;
+
   accessToken: string;
+
   refreshToken: string;
+
   expiresAt: number;
+
   rememberMe: boolean;
 }
 
 export interface AuthState {
   user: User | null;
+
   accessToken: string | null;
+
   refreshToken: string | null;
+
   expiresAt: number | null;
+
   rememberMe: boolean;
+
   isAuthenticated: boolean;
+
   isLoading: boolean;
+
   initialized: boolean;
+
   error: string | null;
 }
 
@@ -81,8 +113,12 @@ export interface RoutePermission {
 
 export interface AuthContextType {
   user: User | null;
+
   isAuthenticated: boolean;
+
   isLoading: boolean;
+
   login: (request: LoginRequest) => Promise<void>;
+
   logout: () => void;
 }

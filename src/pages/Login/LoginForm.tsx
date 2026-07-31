@@ -1,9 +1,19 @@
-import { useState, type FormEvent } from "react";
+// ====================================
+// File: src/pages/Login/LoginForm.tsx
+// Phase 1/2
+// ====================================
+
+import {
+  useState,
+  type FormEvent,
+} from "react";
+
 import {
   Alert,
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -12,20 +22,25 @@ import {
   OutlinedInput,
   TextField,
   Typography,
-  CircularProgress,
 } from "@mui/material";
+
 import {
   Visibility,
   VisibilityOff,
 } from "@mui/icons-material";
 
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import type { AppDispatch, RootState } from "../../redux/store";
-import type { LoginPayload } from "../../services/authApi";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../hooks/redux";
 
 import authApi from "../../services/authApi";
+
+import type {
+  LoginRequest,
+} from "../../types/auth";
 
 import {
   loginStart,
@@ -35,30 +50,48 @@ import {
 } from "../../redux/authSlice";
 
 const LoginForm = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
   const navigate = useNavigate();
 
-  const { isLoading, error } = useSelector(
-    (state: RootState) => state.auth
+  const {
+    isLoading,
+    error,
+  } = useAppSelector(
+    (state) => state.auth
   );
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
   const [rememberMe, setRememberMe] =
     useState(false);
+
   const [showPassword, setShowPassword] =
     useState(false);
+
   const [capsLock, setCapsLock] =
     useState(false);
 
-  const validate = () => {
+  const validateForm = (): boolean => {
     if (!username.trim()) {
-      dispatch(loginFailure("Username is required."));
+      dispatch(
+        loginFailure(
+          "Username is required."
+        )
+      );
       return false;
     }
 
     if (!password.trim()) {
-      dispatch(loginFailure("Password is required."));
+      dispatch(
+        loginFailure(
+          "Password is required."
+        )
+      );
       return false;
     }
 
@@ -67,51 +100,113 @@ const LoginForm = () => {
     return true;
   };
 
-  const handleLogin = (
-    e: FormEvent<HTMLFormElement>
+  const navigateByRole = (
+    role: string
   ) => {
-    e.preventDefault();
+    switch (role) {
+      case "Admin":
+        navigate(
+          "/admin/dashboard",
+          {
+            replace: true,
+          }
+        );
+        break;
 
-    if (!validate()) return;
+      case "HR":
+        navigate(
+          "/hr/dashboard",
+          {
+            replace: true,
+          }
+        );
+        break;
+
+      case "Manager":
+        navigate(
+          "/manager/dashboard",
+          {
+            replace: true,
+          }
+        );
+        break;
+
+      default:
+        navigate("/login");
+    }
+  };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
 
     dispatch(loginStart());
 
-    setTimeout(() => {
-      try {
-        const payload: LoginPayload = {
-          username,
-          password,
+    try {
+      const payload: LoginRequest = {
+        username:
+          username.trim(),
+
+        password,
+
+        rememberMe,
+      };
+
+      const response =
+        await authApi.login(
+          payload
+        );
+
+      dispatch(
+        loginSuccess({
+          response,
           rememberMe,
-        };
+        })
+      );
 
-        const user = authApi.login(payload);
-
-        dispatch(
-          loginSuccess({
-            user,
-            rememberMe,
-          })
-        );
-
-        navigate("/dashboard", {
-          replace: true,
-        });
-      } catch (err) {
-        dispatch(
-          loginFailure(
-            err instanceof Error
-              ? err.message
-              : "Login failed."
-          )
-        );
-      }
-    }, 500);
+      navigateByRole(
+        response.user.role
+      );
+    } catch (error) {
+      dispatch(
+        loginFailure(
+          error instanceof Error
+            ? error.message
+            : "Unable to login."
+        )
+      );
+    }
   };
 
-  return (
+  const handleUsernameChange = (
+    value: string
+  ) => {
+    setUsername(value);
+
+    if (error) {
+      dispatch(clearError());
+    }
+  };
+
+  const handlePasswordChange = (
+    value: string
+  ) => {
+    setPassword(value);
+
+    if (error) {
+      dispatch(clearError());
+    }
+  };
+
+    return (
     <Box
       component="form"
-      onSubmit={handleLogin}
+      onSubmit={handleSubmit}
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -126,17 +221,21 @@ const LoginForm = () => {
 
       <TextField
         autoFocus
-        label="Username"
         fullWidth
+        label="Username"
+        placeholder="Enter your username"
         value={username}
-        onChange={(e) => {
-          setUsername(e.target.value);
-          dispatch(clearError());
-        }}
+        onChange={(e) =>
+          handleUsernameChange(
+            e.target.value
+          )
+        }
       />
 
       <FormControl fullWidth>
-        <InputLabel>Password</InputLabel>
+        <InputLabel>
+          Password
+        </InputLabel>
 
         <OutlinedInput
           label="Password"
@@ -146,13 +245,16 @@ const LoginForm = () => {
               : "password"
           }
           value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            dispatch(clearError());
-          }}
+          onChange={(e) =>
+            handlePasswordChange(
+              e.target.value
+            )
+          }
           onKeyUp={(e) =>
             setCapsLock(
-              e.getModifierState("CapsLock")
+              e.getModifierState(
+                "CapsLock"
+              )
             )
           }
           endAdornment={
@@ -181,7 +283,7 @@ const LoginForm = () => {
           color="warning.main"
           variant="body2"
         >
-          Caps Lock is ON.
+          Caps Lock is ON
         </Typography>
       )}
 
@@ -199,12 +301,52 @@ const LoginForm = () => {
         label="Remember Me"
       />
 
+      <Alert severity="info">
+        <Typography
+          variant="subtitle2"
+          sx={{ fontWeight: 600, mb: 1 }}
+        >
+          Demo Credentials
+        </Typography>
+
+        <Typography variant="body2">
+          Admin :
+          <strong>
+            {" "}
+            admin / admin123
+          </strong>
+        </Typography>
+
+        <Typography variant="body2">
+          HR :
+          <strong>
+            {" "}
+            hr / hr123
+          </strong>
+        </Typography>
+
+        <Typography variant="body2">
+          Manager :
+          <strong>
+            {" "}
+            manager / manager123
+          </strong>
+        </Typography>
+      </Alert>
+
       <Button
         type="submit"
         variant="contained"
-        disabled={isLoading}
-        fullWidth
         size="large"
+        fullWidth
+        disabled={isLoading}
+        sx={{
+          py: 1.4,
+          fontWeight: 600,
+          fontSize: 16,
+          textTransform: "none",
+          borderRadius: 2,
+        }}
       >
         {isLoading ? (
           <>

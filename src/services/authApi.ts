@@ -1,69 +1,133 @@
-export type UserRole =
-  | "Admin"
-  | "HR"
-  | "Manager"
-  | "Employee";
+// ====================================
+// File: src/services/authApi.ts
+// ====================================
 
-export interface LoginPayload {
+import type {
+  LoginRequest,
+  LoginResponse,
+  User,
+  UserRole,
+} from "../types/auth";
+
+import {
+  saveSession,
+  clearSession,
+  getSession,
+  updateSession,
+} from "../utils/authStorage";
+
+import { ROLE_DASHBOARD } from "../config/roles";
+
+interface MockUser extends User {
   username: string;
   password: string;
-  rememberMe?: boolean;
 }
 
-export interface AuthUser {
-  id: number;
-  username: string;
-  role: UserRole;
-}
+const ACCESS_TOKEN_EXPIRY = 8 * 60 * 60 * 1000;
 
-interface MockUser extends AuthUser {
-  password: string;
-}
+const generateToken = (length = 64): string => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-interface StoredSession {
-  user: AuthUser;
-  loginTime: number;
-  expiresAt: number;
-  rememberMe: boolean;
-}
+  return Array.from({ length }, () =>
+    chars.charAt(Math.floor(Math.random() * chars.length))
+  ).join("");
+};
 
-const STORAGE_KEY = "auth_user";
-const SESSION_EXPIRY_HOURS = 8;
+const createLoginResponse = (
+  user: User,
+  rememberMe: boolean
+): LoginResponse => {
+  const issuedAt = Date.now();
 
-const mockUsers: MockUser[] = [
+  const response: LoginResponse = {
+    success: true,
+    user,
+    accessToken: generateToken(),
+    refreshToken: generateToken(),
+    expiresAt: issuedAt + ACCESS_TOKEN_EXPIRY,
+  };
+
+  saveSession({
+    ...response,
+    rememberMe,
+  });
+
+  return response;
+};
+
+const users: MockUser[] = [
   {
-    id: 1,
+    id: "1",
+    employeeId: "EMP-001",
     username: "admin",
     password: "admin123",
+    firstName: "System",
+    lastName: "Administrator",
+    fullName: "System Administrator",
+    email: "admin@company.com",
     role: "Admin",
+    department: "IT",
+    designation: "System Administrator",
+    location: "New York",
+    avatar: "",
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
+
   {
-    id: 2,
+    id: "2",
+    employeeId: "EMP-002",
     username: "hr",
     password: "hr123",
+    firstName: "David",
+    lastName: "Miller",
+    fullName: "David Miller",
+    email: "hr@company.com",
     role: "HR",
+    department: "Human Resources",
+    designation: "HR Manager",
+    location: "Chicago",
+    avatar: "",
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
+
   {
-    id: 3,
+    id: "3",
+    employeeId: "EMP-003",
     username: "manager",
     password: "manager123",
+    firstName: "Robert",
+    lastName: "King",
+    fullName: "Robert King",
+    email: "manager@company.com",
     role: "Manager",
-  },
-  {
-    id: 4,
-    username: "employee",
-    password: "employee123",
-    role: "Employee",
+    department: "Operations",
+    designation: "Operations Manager",
+    location: "Austin",
+    avatar: "",
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 
-const authApi = {
-  login(payload: LoginPayload): AuthUser {
-    const user = mockUsers.find(
-      (u) =>
-        u.username.toLowerCase() ===
+class AuthApi {
+  async login(
+    payload: LoginRequest
+  ): Promise<LoginResponse> {
+    await new Promise((resolve) =>
+      setTimeout(resolve, 700)
+    );
+
+    const user = users.find(
+      (item) =>
+        item.username.toLowerCase() ===
           payload.username.trim().toLowerCase() &&
-        u.password === payload.password
+        item.password === payload.password
     );
 
     if (!user) {
@@ -72,99 +136,116 @@ const authApi = {
       );
     }
 
-    const authUser: AuthUser = {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-    };
+    const { ...authUser } = user;
 
-    this.saveUser(
+    return createLoginResponse(
       authUser,
       payload.rememberMe ?? false
     );
+  }
 
-    return authUser;
-  },
+  logout(): void {
+    clearSession();
+  }
 
-  saveUser(
-    user: AuthUser,
-    rememberMe = false
-  ) {
-    const now = Date.now();
+  isAuthenticated(): boolean {
+    return !!getSession();
+  }
 
-    const session: StoredSession = {
-      user,
-      loginTime: now,
-      expiresAt:
-        now +
-        SESSION_EXPIRY_HOURS *
-          60 *
-          60 *
-          1000,
-      rememberMe,
-    };
+  getCurrentUser(): User | null {
+    const session = getSession();
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(session)
-    );
-  },
-
-  getCurrentUser(): AuthUser | null {
-    const sessionString =
-      localStorage.getItem(STORAGE_KEY);
-
-    if (!sessionString) {
+    if (!session) {
       return null;
     }
 
-    try {
-      const session: StoredSession =
-        JSON.parse(sessionString);
+    return session.user;
+  }
 
-      if (
-        Date.now() >
-        session.expiresAt
-      ) {
-        this.removeUser();
-        return null;
-      }
+  getRole(): UserRole | null {
+    return this.getCurrentUser()?.role ?? null;
+  }
 
-      return session.user;
-    } catch {
-      this.removeUser();
+  getAccessToken(): string | null {
+    const session = getSession();
+
+    return session?.accessToken ?? null;
+  }
+
+  getRefreshToken(): string | null {
+    const session = getSession();
+
+    return session?.refreshToken ?? null;
+  }
+
+  refreshAccessToken(): string | null {
+    const session = getSession();
+
+    if (!session) {
       return null;
     }
-  },
 
-  getUserRole(): UserRole | null {
-    return (
-      this.getCurrentUser()?.role ?? null
-    );
-  },
+    const accessToken =
+      generateToken();
 
-  isAuthenticated() {
-    return (
-      this.getCurrentUser() !== null
-    );
-  },
+    updateSession((currentSession) => ({
+      ...currentSession,
+      accessToken,
+      expiresAt: Date.now() + ACCESS_TOKEN_EXPIRY,
+    }));
 
-  removeUser() {
-    localStorage.removeItem(
-      STORAGE_KEY
-    );
-  },
+    return accessToken;
+  }
 
-  refreshSession() {
-    const user =
-      this.getCurrentUser();
+  hasRole(
+    roles: UserRole | UserRole[]
+  ): boolean {
+    const currentRole =
+      this.getRole();
 
-    if (!user) {
-      return;
+    if (!currentRole) {
+      return false;
     }
 
-    this.saveUser(user);
-  },
-};
+    if (Array.isArray(roles)) {
+      return roles.includes(
+        currentRole
+      );
+    }
+
+    return currentRole === roles;
+  }
+
+  getDashboardRoute(): string {
+    const role =
+      this.getRole();
+
+    if (!role) {
+      return "/login";
+    }
+
+    return ROLE_DASHBOARD[role];
+  }
+
+  isAdmin(): boolean {
+    return this.hasRole(
+      "Admin"
+    );
+  }
+
+  isHR(): boolean {
+    return this.hasRole(
+      "HR"
+    );
+  }
+
+  isManager(): boolean {
+    return this.hasRole(
+      "Manager"
+    );
+  }
+}
+
+const authApi = new AuthApi();
 
 export default authApi;

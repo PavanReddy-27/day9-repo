@@ -1,6 +1,8 @@
-﻿// ====================================
-// File: src/pages/NotFound/NotFound.tsx
 // ====================================
+// File: src/pages/SessionExpired/SessionExpired.tsx
+// ====================================
+
+import { useEffect } from "react";
 
 import {
   Box,
@@ -9,12 +11,24 @@ import {
   Typography,
 } from "@mui/material";
 
-import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 
 import { useNavigate } from "react-router-dom";
 
-const NotFound = () => {
+import authApi from "../../services/authApi";
+
+const SessionExpired = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    authApi.logout();
+  }, []);
+
+  const handleLogin = () => {
+    navigate("/login", {
+      replace: true,
+    });
+  };
 
   return (
     <Box
@@ -30,55 +44,52 @@ const NotFound = () => {
       <Paper
         elevation={3}
         sx={{
-          maxWidth: 550,
+          maxWidth: 500,
           width: "100%",
           p: 5,
           borderRadius: 3,
           textAlign: "center",
         }}
       >
-        <ReportProblemIcon
-          color="primary"
+        <AccessTimeFilledIcon
+          color="warning"
           sx={{
-            fontSize: 80,
+            fontSize: 72,
             mb: 2,
           }}
         />
 
         <Typography
-          variant="h2"
-          sx={{ fontWeight: 700, color: "primary.main" }}
+          variant="h4"
+          sx={{ fontWeight: 700, mb: 1 }}
         >
-          404
+          Session Expired
         </Typography>
 
         <Typography
-          variant="h5"
-          sx={{ fontWeight: 600, mb: 1 }}
-        >
-          Page Not Found
-        </Typography>
-
-        <Typography
+          variant="body1"
           color="text.secondary"
           sx={{
             mb: 4,
           }}
         >
-          The page you are looking for doesn't
-          exist or has been moved.
+          Your login session has expired for
+          security reasons.
+          <br />
+          Please sign in again to continue.
         </Typography>
 
         <Button
           variant="contained"
           size="large"
-          onClick={() => navigate("/")}
+          fullWidth
+          onClick={handleLogin}
         >
-          Back to Home
+          Go to Login
         </Button>
       </Paper>
     </Box>
   );
 };
 
-export default NotFound;
+export default SessionExpired;
