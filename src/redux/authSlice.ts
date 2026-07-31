@@ -1,5 +1,7 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { AuthState, User } from '../types/auth';
 
+<<<<<<< HEAD
 import type {
   AuthState,
   AuthSession,
@@ -131,9 +133,26 @@ const initialState: AuthState = restoreSession();
 const authSlice = createSlice({
   name: "auth",
 
+=======
+const initialState: AuthState = {
+  user: {
+    id: 'emp-101',
+    name: 'Sarah Jenkins',
+    email: 'sarah.j@company.com',
+    role: 'HR',
+    department: 'Human Resources',
+  },
+  token: 'mock-jwt-token-12345',
+  isAuthenticated: true,
+};
+
+export const authSlice = createSlice({
+  name: 'auth',
+>>>>>>> origin/feature/ravi
   initialState,
 
   reducers: {
+<<<<<<< HEAD
     /* ===========================
        Loading
     ============================ */
@@ -353,6 +372,17 @@ const authSlice = createSlice({
             "Your session has expired. Please login again.",
         }
       );
+=======
+    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+>>>>>>> origin/feature/ravi
     },
   },
 });
@@ -360,6 +390,7 @@ const authSlice = createSlice({
    Actions
 ============================================================ */
 
+<<<<<<< HEAD
 export const {
   loginStart,
   loginSuccess,
@@ -474,4 +505,7 @@ export const selectIsSessionExpired = (
    Default Export
 ============================================================ */
 
+=======
+export const { loginSuccess, logout } = authSlice.actions;
+>>>>>>> origin/feature/ravi
 export default authSlice.reducer;
