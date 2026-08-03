@@ -15,7 +15,7 @@
   .performer-card {
     padding: 16px;
     border-radius: 14px;
-    background: #f8fafc;
+    background: var(--bg);
     transition: all 0.3s ease;
   }
   
@@ -28,11 +28,11 @@
   .performer-rank {
     width: 28px;
     font-weight: 700 !important;
-    color: #64748b;
+    color: var(--text-light);
   }
   
   .performer-avatar {
-    color: #fff !important;
+    color: var(--text-h) !important;
     font-weight: 700 !important;
   }
   

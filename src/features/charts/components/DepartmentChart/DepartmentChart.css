@@ -47,7 +47,7 @@
 }
 
 .recharts-legend-item-text {
-  color: #475569 !important;
+  color: var(--text-light) !important;
   font-size: 13px;
 }
 

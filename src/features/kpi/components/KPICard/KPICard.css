@@ -48,7 +48,7 @@
   align-items: center;
   justify-content: center;
 
-  color: #ffffff;
+  color: var(--text-h);
 
   box-shadow: 0 8px 18px rgba(25, 118, 210, 0.20);
 }

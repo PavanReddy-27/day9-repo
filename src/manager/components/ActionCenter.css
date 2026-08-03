@@ -25,7 +25,7 @@
 }
 
 .action-item:hover {
-  background: #f8fafc;
+  background: var(--bg);
   transform: translateY(-2px);
 }
 
@@ -53,7 +53,7 @@
 }
 
 .action-item-desc {
-  color: #64748b;
+  color: var(--text-light);
   margin-top: 2px !important;
 }
 

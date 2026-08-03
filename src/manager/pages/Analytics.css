@@ -20,7 +20,7 @@
   }
   
   .analytics-kpi-label {
-    color: #64748b;
+    color: var(--text-light);
   }
   
   .analytics-kpi-value {

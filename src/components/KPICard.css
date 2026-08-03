@@ -1,6 +1,6 @@
 .kpi-card {
   position: relative;
-  background: #ffffff;
+  background: var(--surface);
   padding: 16px 18px;
   border-radius: 20px;
   border: 1px solid rgba(148, 163, 184, 0.12);
@@ -47,7 +47,7 @@
 
 .kpi-card__title {
   margin: 0;
-  color: #6b7280;
+  color: var(--text-light);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -55,7 +55,7 @@
 
 .kpi-card__value {
   margin: 8px 0 0;
-  color: #111827;
+  color: var(--text-h);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.05;
@@ -63,7 +63,7 @@
 
 .kpi-card h2 {
   margin-top: 10px;
-  color: #111827;
+  color: var(--text-h);
   font-size: 30px;
   font-weight: 700;
 }

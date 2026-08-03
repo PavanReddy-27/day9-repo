@@ -24,7 +24,7 @@
   --text-light: #475569;
   --text-h: #020617;
 
-  --border: #e2e8f0;
+  --border: var(--border);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --hover: #f1f5f9;
 
@@ -59,7 +59,7 @@ body[data-theme="dark"] {
   --text-light: #cbd5e1;
   --text-h: #ffffff;
 
-  --border: #334155;
+  --border: var(--border);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --hover: #334155;
 }
@@ -84,4 +84,20 @@ a {
 
 button {
   font-family: inherit;
+}
+
+/* MUI Global Overrides */
+.MuiPaper-root, 
+.MuiCard-root {
+  background-color: var(--surface) !important;
+  color: var(--text-h) !important;
+}
+
+.MuiTypography-root.MuiTypography-colorTextSecondary {
+  color: var(--text-light) !important;
+}
+
+.MuiDrawer-paper {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
 }

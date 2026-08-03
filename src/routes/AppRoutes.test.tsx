@@ -25,11 +25,6 @@ describe("AppRoutes", () => {
           isLoading: false,
           initialized: false,
           error: null,
-          accessToken: null,
-          refreshToken: null,
-          expiresAt: null,
-          rememberMe: false,
-          initialized: false,
         },
       },
     });

@@ -5,6 +5,7 @@ import {
   FiChevronDown,
   FiLogOut,
 } from "react-icons/fi";
+import { FaUsersCog } from "react-icons/fa";
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +16,6 @@ import authApi from "../../services/authApi";
 import type { User } from "../../types/auth";
 
 import ThemeToggle from "./ThemeToggle";
-import companyLogo from "../../assets/company-logo.png";
 
 import "./Header.css";
 
@@ -57,11 +57,14 @@ const Header = ({
           <FiMenu />
         </button>
 
-        <div className="company-logo">
-          <img
-            src={companyLogo}
-            alt="Company Logo"
-          />
+        <div className="company-logo" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+          <div style={{ background: "var(--primary)", width: "36px", height: "36px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "20px" }}>
+            <FaUsersCog />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <h2 style={{ fontSize: "17px", margin: 0, lineHeight: 1.1, color: "var(--text-h)", fontWeight: 800, letterSpacing: "-0.5px" }}>WorkForce</h2>
+            <p style={{ fontSize: "12px", margin: 0, color: "var(--text-light)", fontWeight: 600 }}>Analytics</p>
+          </div>
         </div>
       </div>
 

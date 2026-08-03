@@ -1,5 +1,5 @@
 .activities-card {
-    background: #fff;
+    background: var(--surface);
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
@@ -26,7 +26,7 @@
     height: 40px;
     border-radius: 50%;
     background: #2563eb;
-    color: #fff;
+    color: var(--text-h);
     display: flex;
     justify-content: center;
     align-items: center;

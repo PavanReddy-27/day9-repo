@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 * {
   margin: 0;
@@ -20,123 +20,177 @@ body {
 }
 
 /* ===========================
-   Login Background
+   Login Split Layout
 =========================== */
 
 .login-container {
-  position: relative;
+  display: flex;
   min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface);
+}
 
+.login-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 80px;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #0f172a 100%);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative backdrop in left panel */
+.login-left::before {
+  content: "";
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  bottom: -300px;
+  right: -300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+}
+
+.login-left::after {
+  content: "";
+  position: absolute;
+  width: 1400px;
+  height: 1400px;
+  bottom: -700px;
+  right: -700px;
+  border-radius: 50%;
+  border: 120px solid rgba(255,255,255,0.02);
+  pointer-events: none;
+}
+
+.login-logo {
+  position: absolute;
+  top: 60px;
+  left: 80px;
+}
+
+.login-logo img {
+  height: 38px;
+  width: auto;
+  filter: brightness(0) invert(1); /* makes stackly logo white */
+}
+
+.login-branding {
+  position: relative;
+  z-index: 10;
+  max-width: 620px;
+  margin-top: 40px;
+}
+
+.login-overline {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 28px;
+}
+
+.login-heading {
+  font-size: 68px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -2.5px;
+  margin-bottom: 36px;
+  color: #ffffff;
+}
+
+.login-description {
+  font-size: 20px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+  max-width: 500px;
+}
+
+.login-footer-note {
+  position: absolute;
+  bottom: 60px;
+  left: 80px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ===========================
+   Right Form Panel
+=========================== */
+
+.login-right {
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background: var(--surface);
+  position: relative;
+}
+
+.login-form-wrapper {
+  width: 100%;
+  max-width: 440px;
+}
+
+.form-header {
+  margin-bottom: 40px;
+}
+
+.lock-icon-container {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--hover);
   display: flex;
   justify-content: center;
   align-items: center;
-
-  overflow: hidden;
-  padding: 16px;
-
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(99, 102, 241, 0.12),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at bottom left,
-      rgba(99, 102, 241, 0.12),
-      transparent 35%
-    ),
-    var(--bg);
-}
-
-/* ===========================
-   Decorative Shapes
-=========================== */
-
-.login-container::before {
-  content: "";
-  position: absolute;
-
-  width: 700px;
-  height: 700px;
-
-  left: -260px;
-  bottom: -320px;
-
-  border-radius: 50%;
-
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.login-container::after {
-  content: "";
-  position: absolute;
-
-  width: 550px;
-  height: 550px;
-
-  right: -180px;
-  top: -180px;
-
-  border-radius: 50%;
-
-  background: rgba(37, 99, 235, 0.06);
-}
-
-/* ===========================
-   Login Card
-=========================== */
-
-.login-card {
-  position: relative;
-  z-index: 10;
-
-  width: 100%;
-  max-width: 480px;
-
-  padding: 32px 28px;
-
-  background: var(--surface);
-
-  backdrop-filter: blur(18px);
-
+  margin-bottom: 24px;
+  color: var(--primary);
   border: 1px solid var(--border);
-
-  border-radius: 20px;
-
-  box-shadow: var(--shadow);
 }
 
-/* ===========================
-   Typography
-=========================== */
-
-.login-title {
-  color: var(--text-h);
-  font-size: 30px;
-  font-weight: 700;
-}
-
-.login-subtitle {
+.form-overline {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   color: var(--text-light);
+  margin-bottom: 12px;
+}
+
+.form-heading {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--text-h);
+  letter-spacing: -1.5px;
+  margin-bottom: 10px;
+}
+
+.form-subtitle {
   font-size: 15px;
-  margin-top: 8px;
+  color: var(--text-light);
 }
 
 .login-footer {
-  margin-top: 20px;
-
+  margin-top: 40px;
   text-align: center;
-
   color: var(--text-light);
-
   font-size: 13px;
 }
 
-/* ===========================
-   Chrome / Edge / Brave
-   Autofill Fix
-=========================== */
-
+/* Chrome autofill */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -145,10 +199,8 @@ textarea:-webkit-autofill,
 select:-webkit-autofill {
   -webkit-text-fill-color: var(--text-h) !important;
   caret-color: var(--text-h) !important;
-
   -webkit-box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
   box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
-
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -156,25 +208,14 @@ select:-webkit-autofill {
 .MuiOutlinedInput-input:-webkit-autofill {
   -webkit-text-fill-color: var(--text-h) !important;
   caret-color: var(--text-h) !important;
-
   -webkit-box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
   box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
-
   border-radius: inherit;
 }
 
-/* ===========================
-   Responsive
-=========================== */
-
-@media (max-width: 600px) {
-  .login-card {
-    max-width: 100%;
-    padding: 24px 20px;
-    border-radius: 16px;
-  }
-
-  .login-title {
-    font-size: 26px;
+/* Responsive */
+@media (max-width: 992px) {
+  .login-left {
+    display: none;
   }
 }

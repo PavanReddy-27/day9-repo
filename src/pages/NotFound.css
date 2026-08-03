@@ -5,8 +5,8 @@
   justify-content: center;
   height: 100vh;
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-  background: #f9fafb;
-  color: #111827;
+  background: var(--bg);
+  color: var(--text-h);
 }
 
 .not-found h1 {

@@ -73,7 +73,7 @@ const KPI_CONFIG: Partial<Record<KPIType, KPIConfig>> = {
   },
   departments: {
     icon: <BusinessCenterIcon />,
-    color: "#475569",
+    color: "var(--text-light)",
   },
 };
 

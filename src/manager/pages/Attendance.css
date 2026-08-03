@@ -20,7 +20,7 @@
   }
   
   .attendance-label {
-    color: #64748b;
+    color: var(--text-light);
   }
   
   .attendance-present {
@@ -53,12 +53,12 @@
   }
   
   .attendance-table .MuiDataGrid-columnHeaders {
-    background: #f8fafc;
+    background: var(--bg);
     font-weight: 700;
   }
   
   .attendance-table .MuiDataGrid-row:hover {
-    background: #f1f5f9;
+    background: var(--bg);
   }
   
   .attendance-table .MuiDataGrid-cell {

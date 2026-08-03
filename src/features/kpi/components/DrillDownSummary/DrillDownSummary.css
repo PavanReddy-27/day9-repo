@@ -87,7 +87,7 @@
 }
 
 .summary-card__trend.neutral {
-  color: #64748b;
+  color: var(--text-light);
 }
 
 .summary-card__progress {

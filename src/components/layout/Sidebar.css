@@ -30,7 +30,16 @@
   =========================== */
   
   .sidebar-top {
-    padding: 24px;
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .sidebar.collapsed .sidebar-top {
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
   }
   
   .logo-section {
@@ -48,7 +57,7 @@
     justify-content: center;
     align-items: center;
   
-    color: #fff;
+    color: var(--text-h);
     font-size: 24px;
   
     background: linear-gradient(135deg, #4f46e5, #7c3aed);
@@ -67,11 +76,14 @@
   }
   
   .collapse-btn {
-    margin-top: 24px;
-    width: 42px;
-    height: 42px;
+    margin-top: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   
-    border: none;
+    border: 1px solid var(--border);
     border-radius: 12px;
   
     background: var(--hover);
@@ -83,7 +95,7 @@
   
   .collapse-btn:hover {
     background: var(--primary);
-    color: #fff;
+    color: var(--text-h);
   }
   
   /* ===========================
@@ -132,7 +144,7 @@
   }
   
   .menu-item.active {
-    color: #fff;
+    color: var(--text-h);
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     box-shadow: 0 12px 30px rgba(79, 70, 229, .35);
   }

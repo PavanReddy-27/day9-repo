@@ -66,8 +66,8 @@ export const EmployeeTable: React.FC = () => {
   return (
     <div
       style={{
-        backgroundColor: "#0f172a",
-        color: "#f8fafc",
+        backgroundColor: "var(--bg)",
+        color: "var(--text-h)",
         padding: "24px",
         borderRadius: "12px",
         fontFamily: "sans-serif",
@@ -87,8 +87,8 @@ export const EmployeeTable: React.FC = () => {
             width: "100%",
             padding: "10px",
             borderRadius: "6px",
-            backgroundColor: "#1e293b",
-            color: "#fff",
+            backgroundColor: "var(--surface)",
+            color: "var(--text-h)",
             border: "1px solid #334155",
           }}
         />
@@ -103,14 +103,14 @@ export const EmployeeTable: React.FC = () => {
         }}
       >
         <div>
-          <label style={{ fontSize: "12px", color: "#94a3b8" }}>
+          <label style={{ fontSize: "12px", color: "var(--text-light)" }}>
             Departments
           </label>
           <div
             style={{
               maxHeight: "100px",
               overflowY: "auto",
-              backgroundColor: "#1e293b",
+              backgroundColor: "var(--surface)",
               padding: "8px",
               borderRadius: "6px",
               border: "1px solid #334155",
@@ -139,14 +139,14 @@ export const EmployeeTable: React.FC = () => {
         </div>
 
         <div>
-          <label style={{ fontSize: "12px", color: "#94a3b8" }}>
+          <label style={{ fontSize: "12px", color: "var(--text-light)" }}>
             Roles (Dependent)
           </label>
           <div
             style={{
               maxHeight: "100px",
               overflowY: "auto",
-              backgroundColor: "#1e293b",
+              backgroundColor: "var(--surface)",
               padding: "8px",
               borderRadius: "6px",
               border: "1px solid #334155",
@@ -173,14 +173,14 @@ export const EmployeeTable: React.FC = () => {
         </div>
 
         <div>
-          <label style={{ fontSize: "12px", color: "#94a3b8" }}>
+          <label style={{ fontSize: "12px", color: "var(--text-light)" }}>
             Skills (Dependent)
           </label>
           <div
             style={{
               maxHeight: "100px",
               overflowY: "auto",
-              backgroundColor: "#1e293b",
+              backgroundColor: "var(--surface)",
               padding: "8px",
               borderRadius: "6px",
               border: "1px solid #334155",
@@ -207,7 +207,7 @@ export const EmployeeTable: React.FC = () => {
         </div>
 
         <div>
-          <label style={{ fontSize: "12px", color: "#94a3b8" }}>
+          <label style={{ fontSize: "12px", color: "var(--text-light)" }}>
             Hire Date Range
           </label>
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -219,8 +219,8 @@ export const EmployeeTable: React.FC = () => {
               }
               style={{
                 padding: "6px",
-                backgroundColor: "#1e293b",
-                color: "#fff",
+                backgroundColor: "var(--surface)",
+                color: "var(--text-h)",
                 border: "1px solid #334155",
                 borderRadius: "4px",
               }}
@@ -233,8 +233,8 @@ export const EmployeeTable: React.FC = () => {
               }
               style={{
                 padding: "6px",
-                backgroundColor: "#1e293b",
-                color: "#fff",
+                backgroundColor: "var(--surface)",
+                color: "var(--text-h)",
                 border: "1px solid #334155",
                 borderRadius: "4px",
               }}
@@ -251,7 +251,7 @@ export const EmployeeTable: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <span style={{ fontSize: "14px", color: "#94a3b8" }}>
+        <span style={{ fontSize: "14px", color: "var(--text-light)" }}>
           Showing <strong>{filteredEmployees.length.toLocaleString()}</strong> of
           10,000 records
         </span>
@@ -263,7 +263,7 @@ export const EmployeeTable: React.FC = () => {
           style={{
             padding: "6px 12px",
             backgroundColor: "#ef4444",
-            color: "#fff",
+            color: "var(--text-h)",
             border: "none",
             borderRadius: "4px",
             cursor: "pointer",
@@ -289,7 +289,7 @@ export const EmployeeTable: React.FC = () => {
           }}
         >
           <thead>
-            <tr style={{ backgroundColor: "#1e293b", color: "#94a3b8" }}>
+            <tr style={{ backgroundColor: "var(--surface)", color: "var(--text-light)" }}>
               <th style={{ padding: "12px" }}>Emp ID</th>
               <th style={{ padding: "12px" }}>Name</th>
               <th style={{ padding: "12px" }}>Department</th>
@@ -324,7 +324,7 @@ export const EmployeeTable: React.FC = () => {
             style={{
               padding: "10px",
               textAlign: "center",
-              color: "#64748b",
+              color: "var(--text-light)",
               fontSize: "13px",
             }}
           >

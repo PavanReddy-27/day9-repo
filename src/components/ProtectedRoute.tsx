@@ -8,6 +8,7 @@ import { useAppSelector } from "../hooks/redux";
 import authApi from "../services/authApi";
 
 import type { UserRole } from "../types/auth";
+import { simulateBackendChecks, BackendSimulationError } from "../services/backendSimulation";
 
 interface ProtectedRouteProps {
   allowedRoles?: UserRole[];
@@ -66,6 +67,24 @@ const ProtectedRoute = ({
         replace
       />
     );
+  }
+
+  /**
+   * Simulated Backend Architecture Checks
+   */
+  try {
+    // We pass a dummy resource and department for simulation purposes.
+    // In a real app, this would happen in an axios interceptor on API calls.
+    simulateBackendChecks("route_access", "read");
+  } catch (error) {
+    if (error instanceof BackendSimulationError && error.status === 403) {
+      return (
+        <Navigate
+          to="/unauthorized"
+          replace
+        />
+      );
+    }
   }
 
   /**

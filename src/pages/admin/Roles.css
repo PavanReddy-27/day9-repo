@@ -14,12 +14,12 @@
 .roles-header h1 {
   margin: 0;
   font-size: 36px;
-  color: #111827;
+  color: var(--text-h);
 }
 
 .roles-header p {
   margin: 10px 0 0;
-  color: #475569;
+  color: var(--text-light);
   max-width: 620px;
   line-height: 1.6;
 }
@@ -66,14 +66,14 @@
 }
 
 .roles-table thead {
-  background: #f8fafc;
+  background: var(--bg);
 }
 
 .roles-table th {
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #475569;
+  color: var(--text-light);
 }
 
 .roles-table tbody tr {

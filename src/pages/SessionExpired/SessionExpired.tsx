@@ -37,7 +37,7 @@ const SessionExpired = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#f8f9ff",
+        backgroundColor: "var(--bg)",
         p: 2,
       }}
     >

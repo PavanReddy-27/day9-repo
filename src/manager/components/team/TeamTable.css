@@ -19,12 +19,12 @@
   
   .employee-name {
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-h);
   }
   
   .employee-role {
     font-size: 12px;
-    color: #64748b;
+    color: var(--text-light);
   }
   
   .team-data-grid {
@@ -32,7 +32,7 @@
   }
   
   .team-data-grid .MuiDataGrid-columnHeaders {
-    background: #f8fafc;
+    background: var(--bg);
     font-weight: 700;
   }
   
@@ -42,7 +42,7 @@
   }
   
   .team-data-grid .MuiDataGrid-row:hover {
-    background: #f1f5f9;
+    background: var(--bg);
   }
   
   
@@ -121,6 +121,6 @@
   
   .employee-role {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--text-light);
     margin-top: 2px;
   }

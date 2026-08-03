@@ -312,7 +312,7 @@ a {
 
   padding: 24px 16px;
 
-  color: #ffffff;
+  color: var(--text-h);
 
   background:
     linear-gradient(
@@ -343,7 +343,7 @@ a {
 
   margin: 4px 8px 38px;
 
-  color: #ffffff;
+  color: var(--text-h);
 
   font-size: 21px;
   font-weight: 800;
@@ -361,7 +361,7 @@ a {
   align-items: center;
   justify-content: center;
 
-  color: #ffffff;
+  color: var(--text-h);
 
   background:
     linear-gradient(
@@ -410,7 +410,7 @@ a {
 }
 
 .nav-item:hover {
-  color: #ffffff;
+  color: var(--text-h);
 
   background:
     rgba(255, 255, 255, 0.07);
@@ -420,7 +420,7 @@ a {
 }
 
 .nav-item.active {
-  color: #ffffff;
+  color: var(--text-h);
 
   background:
     linear-gradient(
@@ -722,7 +722,7 @@ a {
   padding: 30px;
 
   background:
-    #ffffff;
+    var(--surface);
 
   border:
     1px solid var(--border);
@@ -769,7 +769,7 @@ a {
     var(--radius-md);
 
   background:
-    #ffffff;
+    var(--surface);
 }
 
 .employee-table {
@@ -794,7 +794,7 @@ a {
   color: var(--text-secondary);
 
   background:
-    #f8fafc;
+    var(--bg);
 
   font-size: 11px;
   font-weight: 800;
@@ -944,7 +944,7 @@ a {
   left: 3px;
 
   background:
-    #ffffff;
+    var(--surface);
 
   border-radius: 50%;
 
@@ -988,7 +988,7 @@ a {
   text-align: center;
 
   background:
-    #ffffff;
+    var(--surface);
 
   border:
     1px solid var(--border);
@@ -1042,7 +1042,7 @@ a {
   padding: 11px 20px;
 
   color:
-    #ffffff;
+    var(--text-h);
 
   background:
     linear-gradient(

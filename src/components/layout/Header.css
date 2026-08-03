@@ -50,7 +50,7 @@
   
   .mobile-menu-btn:hover {
     background: #6366f1;
-    color: #fff;
+    color: var(--text-h);
   }
   
   .header-title h1 {
@@ -184,7 +184,7 @@
   top: 62px;
   right: 0;
   width: 170px;
-  background: #fff;
+  background: var(--surface);
   border-radius: 10px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
   overflow: hidden;

@@ -39,7 +39,7 @@ const Unauthorized = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "#f8f9ff",
+        background: "var(--bg)",
         p: 2,
       }}
     >

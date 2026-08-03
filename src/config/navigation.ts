@@ -23,10 +23,10 @@ export const navigationItems: NavigationItem[] = [
   { name: "Dashboard", icon: FiHome, route: "dashboard", roles: ["Admin", "HR", "Manager"] },
 
   // Shared by HR & Manager
-  { name: "Analytics", icon: FiBarChart2, route: "analytics", roles: ["HR", "Manager"] },
+  { name: "Analytics", icon: FiBarChart2, route: "analytics", roles: ["HR", "Manager", "Admin"] },
 
   // HR Only
-  { name: "Employees", icon: FiUsers, route: "employees", roles: ["HR"] },
+  { name: "Employees", icon: FiUsers, route: "employees", roles: ["HR", "Admin"] },
 
   // Admin Only
   { name: "Users", icon: FiUsers, route: "users", roles: ["Admin"] },
@@ -37,13 +37,13 @@ export const navigationItems: NavigationItem[] = [
   { name: "Settings", icon: FiSettings, route: "settings", roles: ["Admin"] },
 
   // Shared by HR & Manager
-  { name: "Attendance", icon: FiFileText, route: "attendance", roles: ["HR", "Manager"] },
-  { name: "Leave Requests", icon: FiFileText, route: "leave-requests", roles: ["HR", "Manager"] },
-  { name: "Performance", icon: FiBarChart2, route: "performance", roles: ["HR", "Manager"] },
+  { name: "Attendance", icon: FiFileText, route: "attendance", roles: ["HR", "Manager", "Admin"] },
+  { name: "Leave Requests", icon: FiFileText, route: "leave-requests", roles: ["HR", "Manager", "Admin"] },
+  { name: "Performance", icon: FiBarChart2, route: "performance", roles: ["HR", "Manager", "Admin"] },
 
   // HR Only
-  { name: "Recruitment", icon: FiUsers, route: "recruitment", roles: ["HR"] },
+  { name: "Recruitment", icon: FiUsers, route: "recruitment", roles: ["HR", "Admin"] },
 
   // Manager Only
-  { name: "My Team", icon: FiUsers, route: "team", roles: ["Manager"] },
+  { name: "My Team", icon: FiUsers, route: "team", roles: ["Manager", "Admin"] },
 ];

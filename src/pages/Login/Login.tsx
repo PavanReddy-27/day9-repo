@@ -5,14 +5,14 @@
 import { useEffect } from "react";
 import {
   Box,
-  Paper,
   Typography,
-  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 import { useAppSelector } from "../../hooks/redux";
 import LoginForm from "./LoginForm";
+import companyLogo from "../../assets/company-logo.png";
 
 import "./Login.css";
 
@@ -61,57 +61,42 @@ const Login = () => {
 
   return (
     <Box className="login-container">
-      <Paper
-        elevation={0}
-        className="login-card"
-      >
-        <Box
-          sx={{ display: "flex", justifyContent: "center", mb: 3 }}
-        >
-          <img
-            src="https://thestackly.com/assets/imgs/logo-stackly%20(1).png"
-            alt="Stackly"
-            style={{
-              width: 220,
-              height: "auto",
-            }}
-          />
+      {/* Left Panel - Branding */}
+      <Box className="login-left">
+        <Box className="login-logo">
+          <img src={companyLogo} alt="Workforce Analytics" />
         </Box>
 
-        <Typography
-          variant="h4"
-          align="center"
-          className="login-title"
-          gutterBottom
-        >
-          Workforce Analytics
-        </Typography>
+        <Box className="login-branding">
+          <Typography className="login-overline">
+            Workforce Intelligence Platform
+          </Typography>
+          
+          <Typography className="login-heading">
+            Decisions get better when access stays intentional.
+          </Typography>
+          
+          <Typography className="login-description">
+            One secure workspace for workforce visibility, role-based operations, and department-aware insights.
+          </Typography>
+        </Box>
 
-        <Typography
-          align="center"
-          className="login-subtitle"
-          sx={{ mb: 4 }}
-        >
-          Sign in to continue to Workforce Analytics Dashboard
-        </Typography>
+        <Box className="login-footer-note">
+          <VerifiedUserIcon fontSize="small" sx={{ opacity: 0.8 }} />
+          <span>Session persistence • RBAC • Department scope</span>
+        </Box>
+      </Box>
 
-        <LoginForm />
+      {/* Right Panel - Form */}
+      <Box className="login-right">
+        <Box className="login-form-wrapper">
+          <LoginForm />
 
-        <Divider
-          sx={{
-            my: 4,
-          }}
-        />
-
-        <Typography
-          align="center"
-          className="login-footer"
-        >
-          © {new Date().getFullYear()}
-          {" "}
-          Workforce Analytics Dashboard
-        </Typography>
-      </Paper>
+          <Typography className="login-footer">
+            © {new Date().getFullYear()} Workforce Analytics Dashboard
+          </Typography>
+        </Box>
+      </Box>
     </Box>
   );
 };

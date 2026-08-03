@@ -16,14 +16,14 @@ export const HRDashboard: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '32px', backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '32px', backgroundColor: 'var(--bg)', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       {/* Header Banner */}
       <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ color: '#0f172a', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
+          <h1 style={{ color: 'var(--text-h)', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
             HR Management Overview
           </h1>
-          <p style={{ color: '#64748b', margin: '6px 0 0', fontSize: '15px' }}>
+          <p style={{ color: 'var(--text-light)', margin: '6px 0 0', fontSize: '15px' }}>
             Monitor key workforce metrics, active recruitment, and pending employee requests in real time.
           </p>
         </div>
@@ -38,7 +38,7 @@ export const HRDashboard: React.FC = () => {
         {/* Card 1: Total Workforce */}
         <div style={{
           background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-          color: '#ffffff',
+          color: 'var(--text-h)',
           borderRadius: '16px',
           padding: '24px',
           display: 'flex',
@@ -57,7 +57,7 @@ export const HRDashboard: React.FC = () => {
         {/* Card 2: New Onboarded */}
         <div style={{
           background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-          color: '#ffffff',
+          color: 'var(--text-h)',
           borderRadius: '16px',
           padding: '24px',
           display: 'flex',
@@ -76,7 +76,7 @@ export const HRDashboard: React.FC = () => {
         {/* Card 3: Open Positions */}
         <div style={{
           background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-          color: '#ffffff',
+          color: 'var(--text-h)',
           borderRadius: '16px',
           padding: '24px',
           display: 'flex',
@@ -95,7 +95,7 @@ export const HRDashboard: React.FC = () => {
         {/* Card 4: Monthly Attrition Rate */}
         <div style={{
           background: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
-          color: '#ffffff',
+          color: 'var(--text-h)',
           borderRadius: '16px',
           padding: '24px',
           display: 'flex',
@@ -117,9 +117,9 @@ export const HRDashboard: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
         
         {/* Left Panel: Active Job Requisitions */}
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '1px solid #e2e8f0' }}>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '1px solid #e2e8f0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--text-h)', margin: 0 }}>
               Active Requisitions
             </h2>
             <span style={{ fontSize: '13px', color: '#3b82f6', fontWeight: 'bold', cursor: 'pointer' }}>View All</span>
@@ -131,10 +131,10 @@ export const HRDashboard: React.FC = () => {
               const statusStr = String(posRecord.status || 'Open');
 
               return (
-                <div key={pos.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                <div key={pos.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: 'var(--bg)', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                   <div>
-                    <div style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '15px' }}>{pos.title}</div>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>{pos.department} • {applicants} Applicants</div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--text-h)', fontSize: '15px' }}>{pos.title}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-light)', marginTop: '2px' }}>{pos.department} • {applicants} Applicants</div>
                   </div>
                   <span style={{
                     padding: '6px 12px',
@@ -153,9 +153,9 @@ export const HRDashboard: React.FC = () => {
         </div>
 
         {/* Right Panel: Pending Leave Workflow */}
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '1px solid #e2e8f0' }}>
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '1px solid #e2e8f0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--text-h)', margin: 0 }}>
               Pending Leave Requests
             </h2>
             <span style={{ fontSize: '13px', color: '#3b82f6', fontWeight: 'bold', cursor: 'pointer' }}>Manage</span>
@@ -168,10 +168,10 @@ export const HRDashboard: React.FC = () => {
               const statusStr = String(reqRecord.status || 'Pending');
 
               return (
-                <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', backgroundColor: 'var(--bg)', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                   <div>
-                    <div style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '15px' }}>{empName}</div>
-                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>{leaveType}</div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--text-h)', fontSize: '15px' }}>{empName}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-light)', marginTop: '2px' }}>{leaveType}</div>
                   </div>
                   <span style={{
                     padding: '6px 12px',

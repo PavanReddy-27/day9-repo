@@ -3,7 +3,7 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
-import { FaUsersCog } from "react-icons/fa";
+import companyLogo from "../../assets/company-logo.png";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useDispatch } from "react-redux";
 import { navigationItems } from "../../config/navigation";
@@ -30,7 +30,7 @@ const Sidebar = ({
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  
+
 
   const handleLogout = () => {
     authApi.logout();
@@ -44,21 +44,15 @@ const Sidebar = ({
 
   return (
     <aside
-      className={`sidebar ${
-        sidebarOpen ? "" : "collapsed"
-      }`}
+      className={`sidebar ${sidebarOpen ? "" : "collapsed"
+        }`}
     >
       <div className="sidebar-top">
-        <div className="logo-section">
-          <div className="logo-circle">
-            <FaUsersCog />
-          </div>
-
-          {sidebarOpen && (
-            <div className="logo-text">
-              <h2>WorkForce</h2>
-              <p>Analytics</p>
-            </div>
+        <div className="logo-section" style={{ padding: sidebarOpen ? "0 8px" : "0", display: "flex", justifyContent: "center", overflow: "hidden" }}>
+          {sidebarOpen ? (
+            <img src={companyLogo} alt="Stackly Logo" style={{ height: "44px", width: "auto", objectFit: "contain" }} />
+          ) : (
+            <img src={companyLogo} alt="Stackly Logo" style={{ height: "38px", width: "38px", objectFit: "cover", objectPosition: "left" }} />
           )}
         </div>
 
@@ -75,45 +69,38 @@ const Sidebar = ({
         </button>
       </div>
 
-      {sidebarOpen && (
-        <div className="sidebar-user">
-          <h4>{user.fullName || user.username}</h4>
-          <p>{user.role}</p>
-        </div>
-      )}
-
       <nav className="sidebar-menu">
-  {navigationItems
-    .filter((item) =>
-      item.roles.includes(user.role)
-    )
-    .map((item) => {
-      const Icon = item.icon;
+        {navigationItems
+          .filter((item) =>
+            item.roles.includes(user.role)
+          )
+          .map((item) => {
+            const Icon = item.icon;
 
-      return (
-        <NavLink
-          key={item.route}
-          to={`/${user.role.toLowerCase()}/${item.route}`}
-          onClick={closeSidebar}
-          className={({ isActive }) =>
-            isActive
-              ? "menu-item active"
-              : "menu-item"
-          }
-        >
-          <span className="menu-icon">
-            <Icon />
-          </span>
+            return (
+              <NavLink
+                key={item.route}
+                to={`/${user.role.toLowerCase()}/${item.route}`}
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  isActive
+                    ? "menu-item active"
+                    : "menu-item"
+                }
+              >
+                <span className="menu-icon">
+                  <Icon />
+                </span>
 
-          {sidebarOpen && (
-            <span className="menu-text">
-              {item.name}
-            </span>
-          )}
-        </NavLink>
-      );
-    })}
-</nav>
+                {sidebarOpen && (
+                  <span className="menu-text">
+                    {item.name}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
+      </nav>
 
       <div className="sidebar-footer">
         <button

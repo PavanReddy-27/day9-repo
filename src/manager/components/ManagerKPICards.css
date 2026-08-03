@@ -21,7 +21,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #ffffff;
+    color: var(--text-h);
     margin-bottom: 18px;
   }
   

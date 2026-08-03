@@ -1,13 +1,13 @@
 .performance-page {
     padding: 24px;
-    background: #f8fafc;
+    background: var(--bg);
     min-height: 100vh;
   }
   
   .performance-title {
     margin-bottom: 24px !important;
     font-weight: 700 !important;
-    color: #1e293b;
+    color: var(--text-h);
   }
   
   .performance-kpi-grid {

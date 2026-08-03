@@ -22,11 +22,14 @@ import {
   OutlinedInput,
   TextField,
   Typography,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 import {
   Visibility,
   VisibilityOff,
+  LockOutlined as LockOutlinedIcon,
 } from "@mui/icons-material";
 
 import { useNavigate } from "react-router-dom";
@@ -65,6 +68,9 @@ const LoginForm = () => {
     useState("");
 
   const [password, setPassword] =
+    useState("");
+
+  const [role, setRole] =
     useState("");
 
   const [rememberMe, setRememberMe] =
@@ -213,11 +219,55 @@ const LoginForm = () => {
         gap: 3,
       }}
     >
+      <Box className="form-header">
+        <Box className="lock-icon-container">
+          <LockOutlinedIcon fontSize="small" />
+        </Box>
+        <Typography className="form-overline">
+          Secure Sign In
+        </Typography>
+        <Typography className="form-heading">
+          Welcome back
+        </Typography>
+        <Typography className="form-subtitle">
+          Select a role, then sign in to its permitted workspace.
+        </Typography>
+      </Box>
       {error && (
         <Alert severity="error">
           {error}
         </Alert>
       )}
+
+      <FormControl fullWidth>
+        <InputLabel id="role-select-label">Select Role for Demo</InputLabel>
+        <Select
+          labelId="role-select-label"
+          value={role}
+          label="Select Role for Demo"
+          onChange={(e) => {
+            const selectedRole = e.target.value;
+            setRole(selectedRole);
+            if (error) dispatch(clearError());
+            
+            // Auto-fill logic based on selected role
+            if (selectedRole === "Admin") {
+              setUsername("admin");
+              setPassword("admin123");
+            } else if (selectedRole === "HR") {
+              setUsername("hr");
+              setPassword("hr123");
+            } else if (selectedRole === "Manager") {
+              setUsername("manager");
+              setPassword("manager123");
+            }
+          }}
+        >
+          <MenuItem value="Admin">Admin</MenuItem>
+          <MenuItem value="HR">HR</MenuItem>
+          <MenuItem value="Manager">Manager</MenuItem>
+        </Select>
+      </FormControl>
 
       <TextField
         autoFocus
@@ -321,14 +371,14 @@ const LoginForm = () => {
             <CircularProgress
               size={20}
               sx={{
-                color: "#fff",
+                color: "var(--text-h)",
                 mr: 1,
               }}
             />
             Signing In...
           </>
         ) : (
-          "Sign In"
+          "Enter workspace →"
         )}
       </Button>
     </Box>

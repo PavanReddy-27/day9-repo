@@ -5,7 +5,7 @@
 .team-page-title {
   font-weight: 700 !important;
   margin-bottom: 24px !important;
-  color: #1e293b;
+  color: var(--text-h);
 }
 
 /* Tablet */

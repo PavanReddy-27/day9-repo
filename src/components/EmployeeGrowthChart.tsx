@@ -24,7 +24,7 @@ const EmployeeGrowthChart = () => {
         <CartesianGrid strokeDasharray="3 3" opacity={0.28} />
         <XAxis dataKey="month" axisLine={false} tickLine={false} />
         <YAxis axisLine={false} tickLine={false} />
-        <Tooltip cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }} />
+        <Tooltip cursor={{ stroke: "var(--border)", strokeWidth: 1 }} />
         <Line
           type="monotone"
           dataKey="employees"
