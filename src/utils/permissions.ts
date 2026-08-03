@@ -1,46 +1,46 @@
-import type {
-  Permission,
-  Role,
-} from "../types/auth";
+import type { UserRole } from '../types/auth';
 
-const rolePermissions: Record<
-  Role,
-  Permission[]
-> = {
-  admin: [
-    "dashboard:view",
-    "workforce:view",
-    "employees:view",
-    "reports:view",
-    "settings:view",
-  ],
+const defaultPermissions = ['view_dashboard'];
 
-  hr: [
-    "dashboard:view",
-    "workforce:view",
-    "employees:view",
-    "reports:view",
-  ],
+const adminPermissions = [
+  'view_dashboard',
+  'manage_employees',
+  'manage_recruitment',
+  'approve_leaves',
+  'view_analytics',
+  'admin_settings',
+];
 
-  manager: [
-    "dashboard:view",
-    "workforce:view",
-    "employees:view",
-    "reports:view",
-  ],
+const hrPermissions = [
+  'view_dashboard',
+  'manage_employees',
+  'manage_recruitment',
+  'approve_leaves',
+  'view_analytics',
+];
 
-  analyst: [
-    "dashboard:view",
-    "workforce:view",
-    "reports:view",
-  ],
+const managerPermissions = [
+  'view_dashboard',
+  'approve_leaves',
+  'view_analytics',
+];
+
+const analystPermissions = [
+  'view_dashboard',
+  'view_analytics',
+];
+
+export const rolePermissions: Record<UserRole, string[]> = {
+  admin: adminPermissions,
+  Admin: adminPermissions,
+  hr: hrPermissions,
+  HR: hrPermissions,
+  manager: managerPermissions,
+  Manager: managerPermissions,
+  analyst: analystPermissions,
 };
 
-export function hasPermission(
-  role: Role,
-  permission: Permission,
-): boolean {
-  return rolePermissions[role].includes(
-    permission,
-  );
-}
+export const hasPermission = (role: UserRole, permission: string): boolean => {
+  const permissions = rolePermissions[role] || defaultPermissions;
+  return permissions.includes(permission);
+};
