@@ -20,7 +20,7 @@ import {
   isAdmin,
   isHR,
   isManager,
-} from "../utils/Permisssions";
+} from "../utils/permissions";
 
 const usePermissions = () => {
   const { user } = useAppSelector(

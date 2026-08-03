@@ -93,7 +93,7 @@ const initialFilters: FilterState = {
   endDate: '',
 };
 
-interface DashboardState {
+export interface DashboardState {
   employees: Employee[];
   filters: FilterState;
   filteredEmployees: Employee[];
