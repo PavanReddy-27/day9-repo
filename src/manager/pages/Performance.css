@@ -29,7 +29,7 @@
   .performance-value {
     margin-top: 8px !important;
     font-weight: 700 !important;
-    color: #2563eb;
+    color: var(--primary);
   }
   
   .performance-search-card {
@@ -62,7 +62,7 @@
   }
   
   .performance-table-card .MuiDataGrid-row:hover {
-    background-color: #eff6ff;
+    background-color: var(--bg);
   }
   
   .performance-table-card .MuiDataGrid-cell {

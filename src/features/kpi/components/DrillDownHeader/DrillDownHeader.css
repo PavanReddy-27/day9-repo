@@ -101,9 +101,9 @@
 .drilldown-header__actions .MuiIconButton-colorError:hover {
   background: rgba(254, 226, 226, 0.95);
 
-  color: #dc2626;
+  color: var(--error);
 
-  border-color: #dc2626;
+  border-color: var(--error);
 }
 
 @media (max-width: 992px) {

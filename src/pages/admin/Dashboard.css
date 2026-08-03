@@ -1,3 +1,9 @@
+.admin-dashboard-container {
+  flex: 1;
+  padding: 24px 28px 32px;
+  background: var(--bg);
+}
+
 .dashboard-page {
   width: 100%;
   display: flex;
@@ -18,7 +24,7 @@
 .dashboard-title-section h1 {
   margin: 0;
   font-size: 40px;
-  color: var(--text-h);
+  color: var(--text);
 }
 
 .dashboard-title-section p {
@@ -65,7 +71,7 @@
 .chart-header h2 {
   margin: 0;
   font-size: 18px;
-  color: var(--text-h);
+  color: var(--text);
 }
 
 .chart-subtitle {
@@ -87,6 +93,10 @@
 }
 
 @media (max-width: 720px) {
+  .admin-dashboard-container {
+    padding: 20px 18px 24px;
+  }
+
   .dashboard-title-section h1 {
     font-size: 32px;
   }
@@ -95,6 +105,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 520px) {
+  .admin-dashboard-container {
+    padding: 18px 16px 22px;
+  }
 
   .dashboard-header {
     padding: 20px 18px;

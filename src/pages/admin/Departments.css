@@ -1,5 +1,9 @@
 .admin-departments-page {
-  /* Dynamic layout handled by parent */
+  background: var(--bg);
+  padding: 32px 28px 40px;
+  min-height: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
 }
 
 .departments-header {
@@ -14,7 +18,7 @@
 .departments-header h1 {
   margin: 0;
   font-size: 36px;
-  color: var(--text-h);
+  color: var(--text);
 }
 
 .departments-header p {
@@ -48,7 +52,7 @@
 .departments-table td {
   padding: 18px 22px;
   text-align: center;
-  color: #334155;
+  color: var(--text);
 }
 
 .departments-table thead {
@@ -67,7 +71,7 @@
 }
 
 .departments-table tbody tr:hover {
-  background: #f5f7ff;
+  background: var(--bg);
   transform: translateX(2px);
 }
 
@@ -85,7 +89,7 @@
 
 .departments-table td:last-child {
   font-weight: 600;
-  color: var(--text-h);
+  color: var(--text);
 }
 
 @media (max-width: 900px) {

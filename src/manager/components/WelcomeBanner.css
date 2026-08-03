@@ -1,7 +1,7 @@
 .welcome-banner {
     padding: 2rem;
     border-radius: 18px !important;
-    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%) !important;
+    background: linear-gradient(135deg, var(--primary) 0%, #1e3a8a 100%) !important;
     color: var(--text-h);
     overflow: hidden;
   }
@@ -61,7 +61,7 @@
   
   .btn-primary {
     background: var(--surface) !important;
-    color: #2563eb !important;
+    color: var(--primary) !important;
     font-weight: 600 !important;
     text-transform: none !important;
     border-radius: 10px !important;
@@ -74,7 +74,7 @@
   
   .btn-outline {
     color: var(--text-h) !important;
-    border: 1px solid #fff !important;
+    border: 1px solid var(--surface) !important;
     text-transform: none !important;
     border-radius: 10px !important;
     padding: 10px 22px !important;
@@ -97,7 +97,7 @@
     height: 90px !important;
     margin: 0 auto 16px !important;
     background: var(--surface) !important;
-    color: #2563eb !important;
+    color: var(--primary) !important;
     font-size: 34px !important;
     font-weight: 700 !important;
   }

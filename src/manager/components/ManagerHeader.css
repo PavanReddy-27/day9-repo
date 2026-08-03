@@ -1,5 +1,5 @@
 .manager-header-appbar {
-  border-bottom: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid var(--border) !important;
   background: var(--surface) !important;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06) !important;
 }
@@ -40,7 +40,7 @@
 
 .manager-header-search .MuiOutlinedInput-root:hover
   .MuiOutlinedInput-notchedOutline {
-  border-color: #2563eb;
+  border-color: var(--primary);
 }
 
 .manager-header-icon {
@@ -48,7 +48,7 @@
 }
 
 .manager-header-avatar {
-  background: #2563eb !important;
+  background: var(--primary) !important;
   width: 42px !important;
   height: 42px !important;
   font-weight: 700 !important;

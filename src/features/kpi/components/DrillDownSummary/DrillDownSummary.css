@@ -14,7 +14,7 @@
   font-size: clamp(2.8rem, 4vw, 4rem);
   font-weight: 700;
   line-height: 1;
-  color: #2563eb;
+  color: var(--primary);
 }
 
 .drilldown-summary__growth {
@@ -83,7 +83,7 @@
 }
 
 .summary-card__trend.negative {
-  color: #dc2626;
+  color: var(--error);
 }
 
 .summary-card__trend.neutral {

@@ -37,8 +37,8 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 60px 80px;
-  background: linear-gradient(135deg, var(--primary-dark) 0%, #0f172a 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--text) 100%);
+  color: var(--surface);
   position: relative;
   overflow: hidden;
 }
@@ -101,7 +101,7 @@ body {
   font-weight: 800;
   letter-spacing: -2.5px;
   margin-bottom: 36px;
-  color: #ffffff;
+  color: var(--surface);
 }
 
 .login-description {

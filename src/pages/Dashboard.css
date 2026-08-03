@@ -89,7 +89,7 @@
   .placeholder-card {
     height: 140px;
     border-radius: 18px;
-    background: linear-gradient(135deg, #eef2ff, #f8faff);
+    background: linear-gradient(135deg, var(--bg), #f8faff);
     border: 1px solid var(--border);
     display: flex;
     justify-content: center;

@@ -1,5 +1,5 @@
 .manager-dashboard {
-    background-color: var(--text-h);
+    background-color: transparent;
     min-height: 100vh;
     padding: 24px;
     display: flex;

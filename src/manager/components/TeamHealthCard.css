@@ -19,7 +19,7 @@
   
   .health-icon {
     font-size: 60px !important;
-    color: #ef4444;
+    color: var(--error);
     margin-bottom: 8px;
   }
   
@@ -34,7 +34,7 @@
   .health-progress {
     height: 8px !important;
     border-radius: 6px !important;
-    background: #e5e7eb !important;
+    background: var(--border) !important;
   }
   
   .health-progress .MuiLinearProgress-bar {

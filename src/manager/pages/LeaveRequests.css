@@ -54,7 +54,7 @@
   }
   
   .rejected-count {
-    color: #dc2626;
+    color: var(--error);
     font-weight: 700 !important;
   }
   
@@ -78,7 +78,7 @@
   }
   
   .leave-table-card .MuiDataGrid-row:hover {
-    background: #eff6ff;
+    background: var(--bg);
   }
   
   .leave-table-card .MuiDataGrid-cell {

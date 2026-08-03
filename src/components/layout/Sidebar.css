@@ -60,7 +60,7 @@
     color: var(--text-h);
     font-size: 24px;
   
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
   }
   
   .logo-text h2 {
@@ -185,7 +185,7 @@
   }
   
   .logout-btn:hover {
-    background: #dc2626;
+    background: var(--error);
     color: white;
   }
   

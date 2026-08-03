@@ -14,7 +14,7 @@
   .employee-avatar {
     width: 38px !important;
     height: 38px !important;
-    background: #1976d2 !important;
+    background: var(--primary) !important;
   }
   
   .employee-name {

@@ -200,7 +200,7 @@
   --navy-700: #29445c;
 
   --background: #f4f7f9;
-  --surface: #ffffff;
+  --surface: var(--surface);
 
   --text-primary: #102a43;
   --text-secondary: #627d98;

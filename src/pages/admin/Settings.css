@@ -10,7 +10,7 @@
 .page-header h1 {
   font-size: 32px;
   font-weight: 700;
-  color: var(--text-h);
+  color: var(--text);
   margin-bottom: 8px;
 }
 
@@ -32,7 +32,7 @@
 .analytics-card h2 {
   font-size: 22px;
   font-weight: 600;
-  color: var(--text-h);
+  color: #1e293b;
   margin-bottom: 25px;
 }
 
@@ -43,7 +43,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .settings-row:last-child {
@@ -54,7 +54,7 @@
   display: block;
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-h);
+  color: var(--text);
   margin-bottom: 6px;
 }
 
@@ -104,7 +104,7 @@
 }
 
 .switch input:checked + .slider {
-  background: #4f46e5;
+  background: var(--primary);
 }
 
 .switch input:checked + .slider::before {

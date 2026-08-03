@@ -45,31 +45,31 @@ interface KPIConfig {
 const KPI_CONFIG: Partial<Record<KPIType, KPIConfig>> = {
   totalEmployees: {
     icon: <PeopleAltIcon />,
-    color: "#2563EB",
+    color: "var(--primary)",
   },
   activeEmployees: {
     icon: <PersonIcon />,
-    color: "#16A34A",
+    color: "var(--success)",
   },
   newHires: {
     icon: <PersonAddAlt1Icon />,
-    color: "#0284C7",
+    color: "var(--info)",
   },
   attritionRate: {
     icon: <TrendingDownIcon />,
-    color: "#EA580C",
+    color: "var(--warning)",
   },
   trainingCompletion: {
     icon: <SchoolIcon />,
-    color: "#7C3AED",
+    color: "var(--secondary)",
   },
   skillCoverage: {
     icon: <WorkspacePremiumIcon />,
-    color: "#0891B2",
+    color: "var(--primary-light)",
   },
   highRiskEmployees: {
     icon: <WarningAmberIcon />,
-    color: "#DC2626",
+    color: "var(--error)",
   },
   departments: {
     icon: <BusinessCenterIcon />,

@@ -11,7 +11,7 @@
     width: 90px !important;
     height: 90px !important;
     font-size: 30px !important;
-    background: #1976d2 !important;
+    background: var(--primary) !important;
   }
   
   .member-divider {

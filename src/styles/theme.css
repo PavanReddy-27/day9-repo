@@ -1,8 +1,9 @@
 :root {
   --bg: #f8fafc;
+  --manager-bg: #f0f4f8; /* Distinct background for Manager */
   --surface: #ffffff;
   --surface-solid: #ffffff;
-
+  
   --primary: #4f46e5;
   --primary-light: #818cf8;
   --primary-dark: #3730a3;
@@ -24,7 +25,7 @@
   --text-light: #475569;
   --text-h: #020617;
 
-  --border: var(--border);
+  --border: #e2e8f0;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --hover: #f1f5f9;
 
@@ -35,6 +36,7 @@
 
 body[data-theme="dark"] {
   --bg: #0f172a;
+  --manager-bg: #0b1120; /* Distinct dark background for Manager */
   --surface: #1e293b;
   --surface-solid: #1e293b;
 
@@ -59,7 +61,7 @@ body[data-theme="dark"] {
   --text-light: #cbd5e1;
   --text-h: #ffffff;
 
-  --border: var(--border);
+  --border: #334155;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --hover: #334155;
 }

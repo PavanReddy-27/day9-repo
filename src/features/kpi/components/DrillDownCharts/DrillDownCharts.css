@@ -100,7 +100,7 @@
 }
 
 .recharts-cartesian-grid line {
-  stroke: #e5e7eb;
+  stroke: var(--border);
 }
 
 .recharts-legend-wrapper {

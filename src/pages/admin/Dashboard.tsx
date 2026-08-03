@@ -15,6 +15,7 @@ const stats = [
 
 const Dashboard = () => {
   return (
+      <main className="admin-dashboard-container">
         <div className="dashboard-page">
           <div className="dashboard-header">
             <div className="dashboard-title-section">
@@ -79,6 +80,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+      </main>
   );
 };
 

@@ -1,7 +1,7 @@
   .manager-layout {
   display: flex;
   min-height: 100vh;
-  background: #f4f7fb;
+  background: var(--manager-bg);
 }
 
 .manager-layout-main {

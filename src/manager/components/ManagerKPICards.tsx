@@ -24,7 +24,7 @@ const kpiData = [
     value: "48",
     progress: 100,
     trend: "+2",
-    color: "#2563EB",
+    color: "var(--primary)",
     icon: <Groups fontSize="large" />,
   },
   {
@@ -32,7 +32,7 @@ const kpiData = [
     value: "44",
     progress: 92,
     trend: "+4%",
-    color: "#16A34A",
+    color: "var(--success)",
     icon: <EventAvailable fontSize="large" />,
   },
   {
@@ -40,7 +40,7 @@ const kpiData = [
     value: "5",
     progress: 35,
     trend: "-1",
-    color: "#F59E0B",
+    color: "var(--warning)",
     icon: <AssignmentTurnedIn fontSize="large" />,
   },
   {
@@ -48,7 +48,7 @@ const kpiData = [
     value: "92%",
     progress: 92,
     trend: "+8%",
-    color: "#0EA5E9",
+    color: "var(--info)",
     icon: <TrendingUp fontSize="large" />,
   },
   {
@@ -56,7 +56,7 @@ const kpiData = [
     value: "3",
     progress: 18,
     trend: "-2",
-    color: "#DC2626",
+    color: "var(--error)",
     icon: <WarningAmber fontSize="large" />,
   },
   {
@@ -64,7 +64,7 @@ const kpiData = [
     value: "88%",
     progress: 88,
     trend: "+6%",
-    color: "#7C3AED",
+    color: "var(--secondary)",
     icon: <EmojiEvents fontSize="large" />,
   },
 ];

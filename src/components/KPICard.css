@@ -18,7 +18,7 @@
   left: 0;
   width: 100%;
   height: 5px;
-  background: linear-gradient(90deg, var(--kpi-color, #4f46e5), rgba(255, 255, 255, 0));
+  background: linear-gradient(90deg, var(--kpi-color, var(--primary)), rgba(255, 255, 255, 0));
 }
 
 .kpi-card:hover {
@@ -40,7 +40,7 @@
   place-items: center;
   border-radius: 14px;
   background: var(--kpi-color-soft, rgba(79, 70, 229, 0.14));
-  color: var(--kpi-color, #4f46e5);
+  color: var(--kpi-color, var(--primary));
   font-size: 18px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }

@@ -205,7 +205,7 @@ const TeamTable = ({ rows, onView }: Props) => {
             sx={{
               width: 42,
               height: 42,
-              bgcolor: "#1976d2",
+              bgcolor: "var(--primary)",
               fontWeight: 700,
             }}
           >

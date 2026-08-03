@@ -33,7 +33,7 @@
 }
 
 .recharts-pie-label-text {
-  fill: #334155;
+  fill: var(--text);
   font-size: 12px;
   font-weight: 600;
 }

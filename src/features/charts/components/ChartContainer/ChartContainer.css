@@ -99,7 +99,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #dc2626;
+  color: var(--error);
   text-align: center;
 }
 
