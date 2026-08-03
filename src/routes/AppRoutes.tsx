@@ -1,4 +1,4 @@
-﻿// ====================================
+// ====================================
 // File: src/routes/AppRoutes.tsx
 // ====================================
 
@@ -16,13 +16,29 @@ import DashboardLayout from "../layouts/DashboardLayout";
 
 import Login from "../pages/Login/Login";
 
-import Employees from "../pages/Employees";
-import Analytics from "../pages/Analytics";
-import Reports from "../pages/Reports";
-import Settings from "../pages/Settings";
-import AdminDashboard from "../pages/Admin/Dashboard";
-import HRDashboard from "../pages/HR/Dashboard";
-import ManagerDashboard from "../pages/Manager/Dashboard";
+import AdminDashboard from "../pages/admin/Dashboard";
+import AdminUsers from "../pages/admin/Users";
+import AdminRoles from "../pages/admin/Roles";
+import AdminDepartments from "../pages/admin/Departments";
+import AdminReports from "../pages/admin/Reports";
+import AdminAuditLogs from "../pages/admin/AuditLogs";
+import AdminSettings from "../pages/admin/Settings";
+// HR Pages
+import HRDashboard from "../pages/HR/HRDashboard";
+import HREmployees from "../pages/HR/HREmployees";
+import HRRecruitment from "../pages/HR/HRRecruitment";
+import HRAttendance from "../pages/HR/HRAttendance";
+import HRLeave from "../pages/HR/HRLeave";
+import HRPerformance from "../pages/HR/HRPerformance";
+import HRAnalytics from "../pages/HR/HRAnalytics";
+
+// Manager Pages
+import ManagerDashboard from "../manager/pages/ManagerDashboard";
+import ManagerTeam from "../manager/pages/Team";
+import ManagerAttendance from "../manager/pages/Attendance";
+import ManagerLeaveRequests from "../manager/pages/LeaveRequests";
+import ManagerPerformance from "../manager/pages/Performance";
+import ManagerAnalytics from "../manager/pages/Analytics";
 
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import SessionExpired from "../pages/SessionExpired/SessionExpired";
@@ -128,23 +144,33 @@ const AppRoutes = () => {
           />
 
           <Route
-            path="/admin/employees"
-            element={<Employees />}
+            path="/admin/users"
+            element={<AdminUsers />}
           />
 
           <Route
-            path="/admin/analytics"
-            element={<Analytics />}
+            path="/admin/roles"
+            element={<AdminRoles />}
+          />
+
+          <Route
+            path="/admin/departments"
+            element={<AdminDepartments />}
           />
 
           <Route
             path="/admin/reports"
-            element={<Reports />}
+            element={<AdminReports />}
+          />
+
+          <Route
+            path="/admin/audit-logs"
+            element={<AdminAuditLogs />}
           />
 
           <Route
             path="/admin/settings"
-            element={<Settings />}
+            element={<AdminSettings />}
           />
         </Route>
       </Route>
@@ -157,7 +183,6 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute
             allowedRoles={[
-              "Admin",
               "HR",
             ]}
           />
@@ -173,17 +198,32 @@ const AppRoutes = () => {
 
           <Route
             path="/hr/employees"
-            element={<Employees />}
+            element={<HREmployees />}
+          />
+
+          <Route
+            path="/hr/recruitment"
+            element={<HRRecruitment />}
+          />
+
+          <Route
+            path="/hr/attendance"
+            element={<HRAttendance />}
+          />
+
+          <Route
+            path="/hr/leave-requests"
+            element={<HRLeave />}
+          />
+
+          <Route
+            path="/hr/performance"
+            element={<HRPerformance />}
           />
 
           <Route
             path="/hr/analytics"
-            element={<Analytics />}
-          />
-
-          <Route
-            path="/hr/reports"
-            element={<Reports />}
+            element={<HRAnalytics />}
           />
         </Route>
       </Route>
@@ -196,7 +236,6 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute
             allowedRoles={[
-              "Admin",
               "Manager",
             ]}
           />
@@ -211,13 +250,28 @@ const AppRoutes = () => {
           />
 
           <Route
-            path="/manager/employees"
-            element={<Employees />}
+            path="/manager/team"
+            element={<ManagerTeam />}
           />
 
           <Route
-            path="/manager/reports"
-            element={<Reports />}
+            path="/manager/attendance"
+            element={<ManagerAttendance />}
+          />
+
+          <Route
+            path="/manager/leave-requests"
+            element={<ManagerLeaveRequests />}
+          />
+
+          <Route
+            path="/manager/performance"
+            element={<ManagerPerformance />}
+          />
+
+          <Route
+            path="/manager/analytics"
+            element={<ManagerAnalytics />}
           />
         </Route>
       </Route>

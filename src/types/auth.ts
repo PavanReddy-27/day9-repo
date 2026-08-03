@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 export type UserRole = "Admin" | "HR" | "Manager";
 
 export interface User {
@@ -39,24 +38,10 @@ export interface AuthSession {
   refreshToken: string;
   expiresAt: number;
   rememberMe: boolean;
-=======
-export type UserRole = 'Admin' | 'HR' | 'Manager' | 'admin' | 'hr' | 'manager' | 'analyst';
-
-// Alias for modules expecting Role
-export type Role = UserRole;
-
-export interface User {
-  id: string;
-  name: string;
-  email?: string; // Optional so missing email doesn't fail TS2741
-  role: UserRole;
-  department?: string;
->>>>>>> origin/feature/ravi
 }
 
 export interface AuthState {
   user: User | null;
-<<<<<<< HEAD
   accessToken: string | null;
   refreshToken: string | null;
   expiresAt: number | null;
@@ -101,17 +86,3 @@ export interface AuthContextType {
   login: (request: LoginRequest) => Promise<void>;
   logout: () => void;
 }
-=======
-  token: string | null;
-  isAuthenticated: boolean;
-}
-
-export type Permission =
-  | 'view_dashboard'
-  | 'manage_employees'
-  | 'manage_recruitment'
-  | 'approve_leaves'
-  | 'view_analytics'
-  | 'admin_settings'
-  | string;
->>>>>>> origin/feature/ravi

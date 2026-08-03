@@ -1,0 +1,99 @@
+.admin-departments-page {
+  /* Dynamic layout handled by parent */
+}
+
+.departments-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.departments-header h1 {
+  margin: 0;
+  font-size: 36px;
+  color: #111827;
+}
+
+.departments-header p {
+  margin: 10px 0 0;
+  color: #475569;
+  max-width: 640px;
+  line-height: 1.7;
+}
+
+.departments-card {
+  background: #ffffff;
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.departments-table-wrapper {
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.departments-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 700px;
+}
+
+.departments-table th,
+.departments-table td {
+  padding: 18px 22px;
+  text-align: center;
+  color: #334155;
+}
+
+.departments-table thead {
+  background: #f8fafc;
+}
+
+.departments-table th {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.departments-table tbody tr {
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.departments-table tbody tr:hover {
+  background: #f5f7ff;
+  transform: translateX(2px);
+}
+
+.departments-table tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+.departments-table tbody tr:nth-child(even) {
+  background: #fbfbff;
+}
+
+.departments-table tbody tr + tr td {
+  border-top: 1px solid #e2e8f0;
+}
+
+.departments-table td:last-child {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+@media (max-width: 900px) {
+  .admin-departments-page {
+    padding: 24px 20px 26px;
+  }
+
+  .departments-table {
+    min-width: unset;
+  }
+}

@@ -96,6 +96,21 @@
     flex-direction: column;
     gap: 10px;
     padding: 20px;
+    overflow-y: auto;
+  }
+  
+  /* Make the sidebar scrollbar slim and subtle */
+  .sidebar-menu::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sidebar-menu::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 10px;
+  }
+  
+  .sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
   }
   
   .menu-item {

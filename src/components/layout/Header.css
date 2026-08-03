@@ -165,9 +165,19 @@
   ========================================== */
   
   .profile {
-  position: relative;
-  cursor: pointer;
-}
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .profile img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
 
 .profile-menu {
   position: absolute;
@@ -191,6 +201,7 @@
   align-items: center;
   cursor: pointer;
   font-size: 14px;
+  color: #000;
 }
 
 .profile-menu button:hover {
@@ -296,13 +307,13 @@
   }
   
   .company-logo img {
-    height: 58px;
+    height: 42px;
     width: auto;
     object-fit: contain;
   }
   
   @media (max-width: 768px) {
     .company-logo img {
-      height: 42px;
+      height: 32px;
     }
   }

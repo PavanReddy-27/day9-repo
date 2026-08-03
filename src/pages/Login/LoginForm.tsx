@@ -300,39 +300,7 @@ const LoginForm = () => {
         }
         label="Remember Me"
       />
-
-      <Alert severity="info">
-        <Typography
-          variant="subtitle2"
-          sx={{ fontWeight: 600, mb: 1 }}
-        >
-          Demo Credentials
-        </Typography>
-
-        <Typography variant="body2">
-          Admin :
-          <strong>
-            {" "}
-            admin / admin123
-          </strong>
-        </Typography>
-
-        <Typography variant="body2">
-          HR :
-          <strong>
-            {" "}
-            hr / hr123
-          </strong>
-        </Typography>
-
-        <Typography variant="body2">
-          Manager :
-          <strong>
-            {" "}
-            manager / manager123
-          </strong>
-        </Typography>
-      </Alert>
+      
 
       <Button
         type="submit"
