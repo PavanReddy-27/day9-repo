@@ -1,0 +1,57 @@
+.leave-chart-card {
+    padding: 24px;
+    border-radius: 16px !important;
+    height: 420px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .leave-chart-title {
+    margin-bottom: 6px !important;
+  }
+  
+  .leave-chart-subtitle {
+    margin-bottom: 16px !important;
+  }
+  
+  .leave-chart-container {
+    flex: 1;
+    width: 100%;
+    min-height: 320px;
+  }
+  
+  /* Tablet */
+  
+  @media (max-width: 900px) {
+    .leave-chart-card {
+      padding: 20px;
+      height: 400px;
+    }
+  
+    .leave-chart-container {
+      min-height: 300px;
+    }
+  }
+  
+  /* Mobile */
+  
+  @media (max-width: 600px) {
+    .leave-chart-card {
+      padding: 16px;
+      height: 360px;
+      border-radius: 12px !important;
+    }
+  
+    .leave-chart-title {
+      font-size: 18px !important;
+    }
+  
+    .leave-chart-subtitle {
+      font-size: 13px !important;
+      margin-bottom: 12px !important;
+    }
+  
+    .leave-chart-container {
+      min-height: 260px;
+    }
+  }

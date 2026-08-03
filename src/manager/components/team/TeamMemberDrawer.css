@@ -1,0 +1,63 @@
+.member-drawer {
+    width: 420px;
+    padding: 24px;
+  }
+  
+  .member-profile {
+    margin-top: 32px;
+  }
+  
+  .member-avatar {
+    width: 90px !important;
+    height: 90px !important;
+    font-size: 30px !important;
+    background: #1976d2 !important;
+  }
+  
+  .member-divider {
+    margin: 32px 0 !important;
+  }
+  
+  .member-info {
+    gap: 16px;
+  }
+  
+  .member-actions {
+    margin-top: 8px;
+  }
+  
+  /* Tablet */
+  
+  @media (max-width: 768px) {
+    .member-drawer {
+      width: 360px;
+      padding: 20px;
+    }
+  }
+  
+  /* Mobile */
+  
+  @media (max-width: 600px) {
+    .member-drawer {
+      width: 100vw;
+      padding: 16px;
+    }
+  
+    .member-profile {
+      margin-top: 24px;
+    }
+  
+    .member-avatar {
+      width: 80px !important;
+      height: 80px !important;
+      font-size: 26px !important;
+    }
+  
+    .member-actions {
+      flex-direction: column !important;
+    }
+  
+    .member-actions .MuiButton-root {
+      width: 100%;
+    }
+  }

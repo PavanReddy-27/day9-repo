@@ -93,7 +93,7 @@ const LoginForm = () => {
           })
         );
 
-        navigate("/dashboard", {
+        navigate("/manager/dashboard", {
           replace: true,
         });
       } catch (err) {
