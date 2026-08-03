@@ -1,18 +1,33 @@
-﻿import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import type { RootState } from "../redux/store";
+﻿import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAppSelector } from '../redux/hooks';
 
-type ProtectedRouteProps = {
-  children: ReactNode;
-};
+export interface ProtectedRouteProps {
+  children: React.ReactNode;
+  role?: string;
+  allowedRoles?: string[];
+  requiredRole?: string;
+}
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, role, allowedRoles, requiredRole }) => {
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
-}
+  const userRole = user?.role;
+  const targetRole = role || requiredRole;
+
+  if (targetRole && userRole !== targetRole) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+export default ProtectedRoute;
