@@ -18,7 +18,7 @@ export interface LeaveRequest {
   status: 'Pending' | 'Approved' | 'Rejected';
 }
 
-interface HRState {
+export interface HRState {
   openPositions: RecruitmentPosition[];
   leaveRequests: LeaveRequest[];
   attritionRate: number;

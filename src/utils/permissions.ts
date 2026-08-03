@@ -1,79 +1,125 @@
-<<<<<<< HEAD
+// ====================================
+// File: src/utils/permissions.ts
+// ====================================
+
 import type { UserRole } from "../types/auth";
 
-export function hasPermission(
-  role: UserRole,
-  permission: string,
-): boolean {
-  const rolePermissions: Record<UserRole, string[]> = {
-    Admin: [
-      "dashboard:view",
-      "workforce:view",
-      "employees:view",
-      "reports:view",
-      "settings:view",
-    ],
-    HR: [
-      "dashboard:view",
-      "workforce:view",
-      "employees:view",
-      "reports:view",
-    ],
-    Manager: [
-      "dashboard:view",
-      "workforce:view",
-      "employees:view",
-      "reports:view",
-    ],
-  };
-
-  return rolePermissions[role].includes(permission);
-}
-=======
-import type { UserRole } from '../types/auth';
-
-const defaultPermissions = ['view_dashboard'];
-
-const adminPermissions = [
-  'view_dashboard',
-  'manage_employees',
-  'manage_recruitment',
-  'approve_leaves',
-  'view_analytics',
-  'admin_settings',
-];
-
-const hrPermissions = [
-  'view_dashboard',
-  'manage_employees',
-  'manage_recruitment',
-  'approve_leaves',
-  'view_analytics',
-];
-
-const managerPermissions = [
-  'view_dashboard',
-  'approve_leaves',
-  'view_analytics',
-];
-
-const analystPermissions = [
-  'view_dashboard',
-  'view_analytics',
-];
-
-export const rolePermissions: Record<UserRole, string[]> = {
-  admin: adminPermissions,
-  Admin: adminPermissions,
-  hr: hrPermissions,
-  HR: hrPermissions,
-  manager: managerPermissions,
-  Manager: managerPermissions,
-  analyst: analystPermissions,
+export const ROLE_HIERARCHY: Record<UserRole, number> = {
+  Admin: 3,
+  HR: 2,
+  Manager: 1,
 };
 
-export const hasPermission = (role: UserRole, permission: string): boolean => {
-  const permissions = rolePermissions[role] || defaultPermissions;
-  return permissions.includes(permission);
+export const hasRole = (
+  userRole: UserRole,
+  allowedRoles: UserRole[]
+): boolean => {
+  return allowedRoles.includes(userRole);
 };
->>>>>>> origin/feature/ravi
+
+export const hasMinimumRole = (
+  userRole: UserRole,
+  minimumRole: UserRole
+): boolean => {
+  return (
+    ROLE_HIERARCHY[userRole] >=
+    ROLE_HIERARCHY[minimumRole]
+  );
+};
+
+export const canAccessDashboard = (
+  role: UserRole
+) => {
+  return hasRole(role, [
+    "Admin",
+    "HR",
+    "Manager",
+  ]);
+};
+
+export const canManageEmployees = (
+  role: UserRole
+) => {
+  return hasRole(role, [
+    "Admin",
+    "HR",
+  ]);
+};
+
+export const canViewAnalytics = (
+  role: UserRole
+) => {
+  return hasRole(role, [
+    "Admin",
+    "HR",
+  ]);
+};
+
+export const canViewReports = (
+  role: UserRole
+) => {
+  return hasRole(role, [
+    "Admin",
+    "HR",
+    "Manager",
+  ]);
+};
+
+export const canAccessSettings = (
+  role: UserRole
+) => {
+  return role === "Admin";
+};
+
+export const canManageUsers = (
+  role: UserRole
+) => {
+  return role === "Admin";
+};
+
+export const canManageRoles = (
+  role: UserRole
+) => {
+  return role === "Admin";
+};
+
+export const canExportReports = (
+  role: UserRole
+) => {
+  return hasRole(role, [
+    "Admin",
+    "HR",
+  ]);
+};
+
+export const canApproveLeave = (
+  role: UserRole
+) => {
+  return hasRole(role, [
+    "Admin",
+    "HR",
+    "Manager",
+  ]);
+};
+
+export const canEditProfile = (
+  role: UserRole
+) => {
+  return hasRole(role, [
+    "Admin",
+    "HR",
+    "Manager",
+  ]);
+};
+
+export const isAdmin = (
+  role: UserRole
+) => role === "Admin";
+
+export const isHR = (
+  role: UserRole
+) => role === "HR";
+
+export const isManager = (
+  role: UserRole
+) => role === "Manager";
