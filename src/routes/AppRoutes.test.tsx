@@ -17,8 +17,13 @@ describe("AppRoutes", () => {
       preloadedState: {
         auth: {
           user: null,
+          accessToken: null,
+          refreshToken: null,
+          expiresAt: null,
+          rememberMe: false,
           isAuthenticated: false,
           isLoading: false,
+          initialized: false,
           error: null,
           accessToken: null,
           refreshToken: null,
