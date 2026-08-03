@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // src/redux/store.ts
 
 import {
@@ -9,26 +8,13 @@ import {
 
 import authReducer from "./authSlice";
 import dashboardReducer from "./dashboardSlice";
-
-/* ==========================================================
-   Store Configuration
-========================================================== */
-=======
-import { configureStore } from '@reduxjs/toolkit';
-import dashboardReducer from './dashboardSlice';
-import authReducer from './authSlice'; // or whatever your auth slice is named
-import hrReducer from './hrSlice';     // 👈 1. Import hrReducer
->>>>>>> origin/feature/ravi
+import hrReducer from "./hrSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-<<<<<<< HEAD
-
     dashboard: dashboardReducer,
-=======
-    hr: hrReducer,                    // 👈 2. Add hr here
->>>>>>> origin/feature/ravi
+    hr: hrReducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -37,7 +23,6 @@ export const store = configureStore({
         ignoredActions: [],
         ignoredPaths: [],
       },
-
       immutableCheck: true,
     }),
 
@@ -48,16 +33,11 @@ export const store = configureStore({
    Types
 ========================================================== */
 
-export type RootState = ReturnType<
-  typeof store.getState
->;
+export type RootState = ReturnType<typeof store.getState>;
 
-export type AppDispatch =
-  typeof store.dispatch;
+export type AppDispatch = typeof store.dispatch;
 
-export type AppThunk<
-  ReturnType = void
-> = ThunkAction<
+export type AppThunk<ReturnType = void> = ThunkAction<
   ReturnType,
   RootState,
   unknown,
@@ -68,10 +48,9 @@ export type AppThunk<
    Selectors
 ========================================================== */
 
-export const selectAuthState = (
-  state: RootState
-) => state.auth;
+export const selectAuthState = (state: RootState) => state.auth;
 
-export const selectDashboardState = (
-  state: RootState
-) => state.dashboard;
+export const selectDashboardState = (state: RootState) =>
+  state.dashboard;
+
+export const selectHRState = (state: RootState) => state.hr;

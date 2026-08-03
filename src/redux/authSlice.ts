@@ -1,7 +1,5 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { AuthState, User } from '../types/auth';
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-<<<<<<< HEAD
 import type {
   AuthState,
   AuthSession,
@@ -35,15 +33,11 @@ const createSession = (
   rememberMe: boolean
 ): AuthSession => ({
   user: response.user,
-
   accessToken: response.accessToken,
-
   refreshToken: response.refreshToken,
-
   expiresAt:
-    response.expiresAt ||
+    response.expiresAt ??
     Date.now() + SESSION_DURATION,
-
   rememberMe,
 });
 
@@ -54,21 +48,13 @@ const createStateFromSession = (
   session: AuthSession
 ): AuthState => ({
   user: session.user,
-
   accessToken: session.accessToken,
-
   refreshToken: session.refreshToken,
-
   expiresAt: session.expiresAt,
-
   rememberMe: session.rememberMe,
-
   isAuthenticated: true,
-
   isLoading: false,
-
   initialized: true,
-
   error: null,
 });
 
@@ -77,21 +63,13 @@ const createStateFromSession = (
  */
 const createInitialState = (): AuthState => ({
   user: null,
-
   accessToken: null,
-
   refreshToken: null,
-
   expiresAt: null,
-
   rememberMe: false,
-
   isAuthenticated: false,
-
   isLoading: false,
-
   initialized: false,
-
   error: null,
 });
 
@@ -126,34 +104,16 @@ const restoreSession = (): AuthState => {
 ============================================================ */
 
 const initialState: AuthState = restoreSession();
+
 /* ============================================================
    Auth Slice
 ============================================================ */
 
 const authSlice = createSlice({
   name: "auth",
-
-=======
-const initialState: AuthState = {
-  user: {
-    id: 'emp-101',
-    name: 'Sarah Jenkins',
-    email: 'sarah.j@company.com',
-    role: 'HR',
-    department: 'Human Resources',
-  },
-  token: 'mock-jwt-token-12345',
-  isAuthenticated: true,
-};
-
-export const authSlice = createSlice({
-  name: 'auth',
->>>>>>> origin/feature/ravi
   initialState,
 
-  reducers: {
-<<<<<<< HEAD
-    /* ===========================
+  reducers: {    /* ===========================
        Loading
     ============================ */
 
@@ -183,25 +143,13 @@ export const authSlice = createSlice({
       saveSession(session);
 
       state.user = session.user;
-
-      state.accessToken =
-        session.accessToken;
-
-      state.refreshToken =
-        session.refreshToken;
-
-      state.expiresAt =
-        session.expiresAt;
-
-      state.rememberMe =
-        session.rememberMe;
-
+      state.accessToken = session.accessToken;
+      state.refreshToken = session.refreshToken;
+      state.expiresAt = session.expiresAt;
+      state.rememberMe = session.rememberMe;
       state.isAuthenticated = true;
-
       state.isLoading = false;
-
       state.initialized = true;
-
       state.error = null;
     },
 
@@ -214,21 +162,13 @@ export const authSlice = createSlice({
       action: PayloadAction<string>
     ) {
       state.user = null;
-
       state.accessToken = null;
-
       state.refreshToken = null;
-
       state.expiresAt = null;
-
       state.rememberMe = false;
-
       state.isAuthenticated = false;
-
       state.isLoading = false;
-
       state.initialized = true;
-
       state.error = action.payload;
 
       clearSession();
@@ -249,7 +189,6 @@ export const authSlice = createSlice({
             initialized: true,
           }
         );
-
         return;
       }
 
@@ -263,7 +202,6 @@ export const authSlice = createSlice({
             initialized: true,
           }
         );
-
         return;
       }
 
@@ -305,8 +243,7 @@ export const authSlice = createSlice({
       state,
       action: PayloadAction<boolean>
     ) {
-      state.rememberMe =
-        action.payload;
+      state.rememberMe = action.payload;
 
       const session = getSession();
 
@@ -330,14 +267,9 @@ export const authSlice = createSlice({
         expiresAt: number;
       }>
     ) {
-      state.accessToken =
-        action.payload.accessToken;
-
-      state.refreshToken =
-        action.payload.refreshToken;
-
-      state.expiresAt =
-        action.payload.expiresAt;
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
+      state.expiresAt = action.payload.expiresAt;
 
       const session = getSession();
 
@@ -345,14 +277,9 @@ export const authSlice = createSlice({
 
       saveSession({
         ...session,
-        accessToken:
-          action.payload.accessToken,
-
-        refreshToken:
-          action.payload.refreshToken,
-
-        expiresAt:
-          action.payload.expiresAt,
+        accessToken: action.payload.accessToken,
+        refreshToken: action.payload.refreshToken,
+        expiresAt: action.payload.expiresAt,
       });
     },
 
@@ -372,17 +299,6 @@ export const authSlice = createSlice({
             "Your session has expired. Please login again.",
         }
       );
-=======
-    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.isAuthenticated = true;
-    },
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      state.isAuthenticated = false;
->>>>>>> origin/feature/ravi
     },
   },
 });
@@ -390,7 +306,6 @@ export const authSlice = createSlice({
    Actions
 ============================================================ */
 
-<<<<<<< HEAD
 export const {
   loginStart,
   loginSuccess,
@@ -505,7 +420,4 @@ export const selectIsSessionExpired = (
    Default Export
 ============================================================ */
 
-=======
-export const { loginSuccess, logout } = authSlice.actions;
->>>>>>> origin/feature/ravi
 export default authSlice.reducer;
