@@ -1,0 +1,178 @@
+.welcome-banner {
+    padding: 2rem;
+    border-radius: 18px !important;
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%) !important;
+    color: #fff;
+    overflow: hidden;
+  }
+  
+  .welcome-content {
+    flex: 1;
+  }
+  
+  .welcome-title {
+    font-weight: 700 !important;
+    color: #fff;
+  }
+  
+  .welcome-subtitle {
+    margin-top: 10px !important;
+    opacity: 0.95;
+    color: white;
+  }
+  
+  .welcome-description {
+    margin-top: 18px !important;
+    max-width: 650px;
+    line-height: 1.7;
+    opacity: 0.9;
+    color: white;
+  }
+  
+  /* ---------- Chips ---------- */
+  
+  .welcome-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 28px;
+  }
+  
+  .welcome-chip {
+    margin: 0 !important;
+  }
+  
+  .welcome-chip .MuiChip-label {
+    padding: 0 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+  
+  .welcome-chip.MuiChip-root {
+    height: 38px;
+    border-radius: 20px;
+  }
+  
+  /* ---------- Buttons ---------- */
+  
+  .welcome-buttons {
+    margin-top: 34px !important;
+  }
+  
+  .btn-primary {
+    background: #fff !important;
+    color: #2563eb !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    border-radius: 10px !important;
+    padding: 10px 22px !important;
+  }
+  
+  .btn-primary:hover {
+    background: #f3f4f6 !important;
+  }
+  
+  .btn-outline {
+    color: #fff !important;
+    border: 1px solid #fff !important;
+    text-transform: none !important;
+    border-radius: 10px !important;
+    padding: 10px 22px !important;
+  }
+  
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: #fff !important;
+  }
+  
+  /* ---------- Profile ---------- */
+  
+  .welcome-profile {
+    min-width: 260px;
+    text-align: center;
+  }
+  
+  .manager-avatar {
+    width: 90px !important;
+    height: 90px !important;
+    margin: 0 auto 16px !important;
+    background: #fff !important;
+    color: #2563eb !important;
+    font-size: 34px !important;
+    font-weight: 700 !important;
+  }
+  
+  .manager-role {
+    margin-top: 6px;
+    opacity: 0.9;
+    color: white;
+  }
+  
+  .login-title {
+    margin-top: 18px !important;
+    opacity: 0.8;
+    color: white;
+  }
+  
+  /* ---------- Tablet ---------- */
+  
+  @media (max-width: 900px) {
+    .welcome-banner {
+      padding: 1.6rem;
+    }
+  
+    .welcome-title {
+      font-size: 2rem !important;
+    }
+  
+    .welcome-chip-group {
+      gap: 12px;
+    }
+  }
+  
+  /* ---------- Mobile ---------- */
+  
+  @media (max-width: 600px) {
+    .welcome-banner {
+      padding: 1.2rem;
+    }
+  
+    .welcome-title {
+      font-size: 1.6rem !important;
+    }
+  
+    .welcome-description {
+      font-size: 15px;
+    }
+  
+    .welcome-chip-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 22px;
+    }
+  
+    .welcome-chip {
+      width: 100%;
+      justify-content: center;
+    }
+  
+    .welcome-buttons {
+      margin-top: 28px !important;
+    }
+  
+    .welcome-buttons .MuiButton-root {
+      width: 100%;
+    }
+  
+    .manager-avatar {
+      width: 72px !important;
+      height: 72px !important;
+      font-size: 28px !important;
+    }
+  
+    .welcome-profile {
+      width: 100%;
+      margin-top: 24px;
+    }
+  }

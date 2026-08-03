@@ -1,0 +1,68 @@
+.manager-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 24px;
+  }
+  
+  .manager-kpi-card {
+    border-radius: 16px !important;
+    transition: all 0.3s ease !important;
+    height: 100%;
+  }
+  
+  .manager-kpi-card:hover {
+    transform: translateY(-6px);
+  }
+  
+  .manager-kpi-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #ffffff;
+    margin-bottom: 18px;
+  }
+  
+  .manager-kpi-chip {
+    margin-top: 16px !important;
+  }
+  
+  .manager-kpi-progress {
+    margin-top: 16px !important;
+    height: 8px !important;
+    border-radius: 10px !important;
+  }
+  
+  .manager-kpi-text {
+    display: block;
+    margin-top: 8px !important;
+  }
+  
+  /* Large Tablets */
+  @media (max-width: 1200px) {
+    .manager-kpi-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  /* Tablets */
+  @media (max-width: 900px) {
+    .manager-kpi-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* Mobile */
+  @media (max-width: 600px) {
+    .manager-kpi-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  
+    .manager-kpi-icon {
+      width: 52px;
+      height: 52px;
+    }
+  }

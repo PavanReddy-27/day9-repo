@@ -1,0 +1,57 @@
+.activity-feed {
+    padding: 24px;
+    border-radius: 16px !important;
+    height: 100%;
+  }
+  
+  .activity-subtitle {
+    margin-bottom: 24px !important;
+  }
+  
+  .activity-item {
+    padding: 16px 0 !important;
+  }
+  
+  .activity-avatar {
+    background: #1976d2 !important;
+    font-weight: 600;
+  }
+  
+  .activity-status {
+    min-width: 90px;
+    text-align: center;
+  }
+  
+  .activity-chip {
+    margin-top: 8px !important;
+  }
+  
+  /* Tablet */
+  @media (max-width: 768px) {
+    .activity-feed {
+      padding: 20px;
+    }
+  
+    .activity-status {
+      min-width: 75px;
+    }
+  }
+  
+  /* Mobile */
+  @media (max-width: 600px) {
+    .activity-feed {
+      padding: 16px;
+    }
+  
+    .activity-item {
+      align-items: flex-start !important;
+    }
+  
+    .activity-status {
+      min-width: 70px;
+    }
+  
+    .activity-chip {
+      font-size: 10px !important;
+    }
+  }
