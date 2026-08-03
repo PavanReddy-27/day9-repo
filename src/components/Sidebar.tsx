@@ -1,101 +1,38 @@
 import { NavLink } from "react-router-dom";
+import "./Sidebar.css";
 
-import type {
-  Permission,
-  User,
-} from "../types/auth";
-
-import { hasPermission } from "../utils/permissions";
-
-interface SidebarProps {
-  user: User;
-}
-
-const navigation: {
-  label: string;
-  path: string;
-  permission: Permission;
-  icon: string;
-}[] = [
-  {
-    label: "Dashboard",
-    path: "/dashboard",
-    permission: "dashboard:view",
-    icon: "📊",
-  },
-  {
-    label: "Workforce",
-    path: "/workforce",
-    permission: "workforce:view",
-    icon: "👥",
-  },
-  {
-    label: "Employees",
-    path: "/employees",
-    permission: "employees:view",
-    icon: "👤",
-  },
-  {
-    label: "Reports",
-    path: "/reports",
-    permission: "reports:view",
-    icon: "📈",
-  },
-  {
-    label: "Settings",
-    path: "/settings",
-    permission: "settings:view",
-    icon: "⚙️",
-  },
+const menuItems = [
+  { label: "Dashboard", path: "/admin/dashboard" },
+  { label: "Users", path: "/admin/users" },
+  { label: "Roles", path: "/admin/roles" },
+  { label: "Departments", path: "/admin/departments" },
+  { label: "Reports", path: "/admin/reports" },
+  { label: "Audit Logs", path: "/admin/audit-logs" },
+  { label: "Settings", path: "/admin/settings" },
 ];
 
-function Sidebar({
-  user,
-}: SidebarProps) {
-
+const Sidebar = () => {
   return (
     <aside className="sidebar">
-
       <div className="logo">
-        Workforce
+        AdminPro
       </div>
 
-      <nav
-        className="sidebar-nav"
-        aria-label="Main navigation"
-      >
-
-        {navigation
-          .filter((item) =>
-            hasPermission(
-              user.role,
-              item.permission,
-            ),
-          )
-          .map((item) => (
-
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                isActive
-                  ? "nav-item active"
-                  : "nav-item"
-              }
-            >
-              <span>{item.icon}</span>
-
-              <span>
-                {item.label}
-              </span>
-            </NavLink>
-
-          ))}
-
+      <nav className="menu">
+        {menuItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              isActive ? "menu-item active" : "menu-item"
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
-
     </aside>
   );
-}
+};
 
 export default Sidebar;

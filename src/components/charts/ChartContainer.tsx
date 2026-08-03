@@ -48,7 +48,7 @@ const ChartContainer = ({
   title,
   subtitle,
   children,
-  height = 360,
+  height = 300,
   loading = false,
   error,
   empty = false,

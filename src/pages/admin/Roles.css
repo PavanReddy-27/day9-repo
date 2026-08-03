@@ -1,0 +1,172 @@
+.roles-page {
+  background: #f3f6fb;
+  padding: 32px 28px 36px;
+  min-height: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.roles-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.roles-header h1 {
+  margin: 0;
+  font-size: 36px;
+  color: #111827;
+}
+
+.roles-header p {
+  margin: 10px 0 0;
+  color: #475569;
+  max-width: 620px;
+  line-height: 1.6;
+}
+
+.add-role-btn {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 18px 40px rgba(79, 70, 229, 0.18);
+}
+
+.add-role-btn:hover {
+  transform: translateY(-1px);
+}
+
+.roles-card {
+  background: white;
+  border-radius: 24px;
+  padding: 26px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.roles-table-wrapper {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.roles-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 720px;
+}
+
+.roles-table th,
+.roles-table td {
+  padding: 18px 22px;
+  text-align: left;
+  color: #334155;
+}
+
+.roles-table thead {
+  background: #f8fafc;
+}
+
+.roles-table th {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.roles-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.roles-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.roles-table tbody tr + tr td {
+  border-top: 1px solid #edf2f7;
+}
+
+.status {
+  background: #dcfce7;
+  color: green;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-btn,
+.view-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-btn {
+  background: #4338ca;
+  color: white;
+}
+
+.view-btn {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.edit-btn:hover {
+  background: #3730a3;
+}
+
+.view-btn:hover {
+  background: #c7d2fe;
+}
+
+@media (max-width: 900px) {
+  .roles-page {
+    padding: 24px 20px 26px;
+  }
+
+  .roles-table {
+    min-width: unset;
+  }
+}

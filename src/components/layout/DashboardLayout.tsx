@@ -22,7 +22,7 @@ function DashboardLayout() {
 
   return (
     <div className="app-shell">
-      <Sidebar user={dashboardUser} />
+      <Sidebar />
 
       <div className="main-area">
         <Topbar user={dashboardUser} />

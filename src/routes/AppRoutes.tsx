@@ -1,66 +1,51 @@
 ﻿import { Routes, Route, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 
-import type { RootState } from "../redux/store";
-
-import ProtectedRoute from "../components/ProtectedRoute";
-import DashboardLayout from "../layouts/DashboardLayout";
-
+import AdminLayout from "../layouts/AdminLayout";
+import Dashboard from "../pages/admin/Dashboard";
+import Users from "../pages/admin/Users";
+import Roles from "../pages/admin/Roles";
+import Departments from "../pages/admin/Departments";
+import Reports from "../pages/admin/Reports";
+import AuditLogs from "../pages/admin/AuditLogs";
+import Settings from "../pages/admin/Settings";
 import Login from "../pages/Login/Login";
-import Dashboard from "../pages/Dashboard";
-import Employees from "../pages/Employees";
-import Analytics from "../pages/Analytics";
-import Reports from "../pages/Reports";
-import Settings from "../pages/Settings";
-import NotFound from "../pages/NotFound";
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-
   return (
     <Routes>
       {/* Default Route */}
+
       <Route
         path="/"
-        element={
-          <Navigate
-            to={isAuthenticated ? "/dashboard" : "/login"}
-            replace
-          />
-        }
+        element={<Navigate to="/admin/dashboard" replace />}
       />
 
-      {/* Login */}
-      <Route
-        path="/login"
-        element={
-          isAuthenticated ? (
-            <Navigate to="/dashboard" replace />
-          ) : (
-            <Login />
-          )
-        }
-      />
+      {/* Admin Routes */}
 
-      {/* Protected Routes */}
-      <Route
-        element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/employees" element={<Employees />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/settings" element={<Settings />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="users" element={<Users />} />
+        <Route path="roles" element={<Roles />} />
+        <Route path="departments" element={<Departments />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="audit-logs" element={<AuditLogs />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
-      {/* 404 */}
-      <Route path="*" element={<NotFound />} />
+      {/* Optional Login Route */}
+
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
+      {/* Not Found */}
+
+      <Route
+        path="*"
+        element={<Navigate to="/admin/dashboard" replace />}
+      />
     </Routes>
   );
 };

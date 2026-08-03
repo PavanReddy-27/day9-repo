@@ -1,79 +1,49 @@
-import { useEffect } from "react";
-import {
-  Box,
-  Divider,
-  Paper,
-  Typography,
-} from "@mui/material";
-import { useSelector } from "react-redux";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import type { RootState } from "../../redux/store";
-
-import LoginForm from "./LoginForm";
-
+import { useAuth } from "../../context";
 import "./Login.css";
 
 const Login = () => {
-  const navigate = useNavigate();
+	const navigate = useNavigate();
+	const { login } = useAuth();
 
-  const { isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard", {
-        replace: true,
-      });
-    }
-  }, [isAuthenticated, navigate]);
+	const handleLogin = (e: React.FormEvent) => {
+		e.preventDefault();
 
-  return (
-    <Box className="login-container">
-      <Paper
-        elevation={0}
-        className="login-card"
-      >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            mb: 3,
-          }}
-        >
-          <img
-            src="https://thestackly.com/assets/imgs/logo-stackly%20(1).png"
-            alt="Stackly"
-            style={{
-              width: 220,
-              height: "auto",
-            }}
-          />
-        </Box>
+		const success = login(email, password);
 
-       
-        <Typography
-          align="center"
-          className="login-subtitle"
-          sx={{ mb: 4 }}
-        >
-          Sign in to continue to Workforce Analytics Dashboard
-        </Typography>
+		if (success) {
+			navigate("/dashboard");
+		} else {
+			alert("Invalid Credentials");
+		}
+	};
 
-        <LoginForm />
+	return (
+		<div className="login-container">
+			<form onSubmit={handleLogin}>
+				<h2> Admin Login</h2>
+				<input
+					type="email"
+					value={email}
+					placeholder="Email"
+					onChange={(e) => setEmail(e.target.value)}
+				/>
 
-        <Divider sx={{ my: 4 }} />
+				<input
+					type="password"
+					value={password}
+					placeholder="Password"
+					onChange={(e) => setPassword(e.target.value)}
+				/>
 
-        <Typography
-          className="login-footer"
-        >
-          Workforce Analytics Dashboard
-        </Typography>
-
-      </Paper>
-    </Box>
-  );
+				<button type="submit">Login</button>
+			</form>
+		</div>
+	);
 };
 
 export default Login;

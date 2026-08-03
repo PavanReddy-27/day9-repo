@@ -1,20 +1,39 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../context";
+import type { FC } from "react";
+import { FaBell, FaSearch, FaUserCircle } from "react-icons/fa";
+import "./Navbar.css";
 
-export default function Navbar() {
-  const { user, logout } = useAuth();
-
+const Navbar: FC = () => {
   return (
-    <nav className="navbar">
-      <Link to="/">Home</Link>
+    <header className="navbar">
+      <div className="navbar-left">
+        <h2>Dashboard</h2>
+      </div>
 
-      {user && <Link to="/dashboard">Dashboard</Link>}
+      <div className="navbar-right">
 
-      {!user ? (
-        <Link to="/login">Login</Link>
-      ) : (
-        <button onClick={logout}>Logout</button>
-      )}
-    </nav>
+        <div className="search-box">
+          <FaSearch />
+          <input
+            type="text"
+            placeholder="Search..."
+          />
+        </div>
+
+        <button className="icon-btn">
+          <FaBell />
+        </button>
+
+        <div className="profile">
+          <FaUserCircle className="profile-icon" />
+          <div>
+            <h4>Admin</h4>
+            <small>Administrator</small>
+          </div>
+        </div>
+
+      </div>
+    </header>
   );
-}
+};
+
+export default Navbar;
