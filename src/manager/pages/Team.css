@@ -1,0 +1,33 @@
+.team-page {
+  padding: 24px;
+}
+
+.team-page-title {
+  font-weight: 700 !important;
+  margin-bottom: 24px !important;
+  color: #1e293b;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .team-page {
+    padding: 20px;
+  }
+
+  .team-page-title {
+    font-size: 1.8rem !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .team-page {
+    padding: 16px;
+  }
+
+  .team-page-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 20px !important;
+  }
+}
+

@@ -23,7 +23,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard", {
+      navigate("/manager/dashboard", {
         replace: true,
       });
     }

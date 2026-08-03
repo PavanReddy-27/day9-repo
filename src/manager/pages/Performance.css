@@ -1,0 +1,129 @@
+.performance-page {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+  }
+  
+  .performance-title {
+    margin-bottom: 24px !important;
+    font-weight: 700 !important;
+    color: #1e293b;
+  }
+  
+  .performance-kpi-grid {
+    margin-bottom: 24px !important;
+  }
+  
+  .performance-card {
+    padding: 24px;
+    border-radius: 16px !important;
+    height: 100%;
+    transition: all 0.3s ease;
+  }
+  
+  .performance-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.15);
+  }
+  
+  .performance-value {
+    margin-top: 8px !important;
+    font-weight: 700 !important;
+    color: #2563eb;
+  }
+  
+  .performance-search-card {
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: 16px !important;
+  }
+  
+  .performance-search-card .MuiOutlinedInput-root {
+    border-radius: 12px;
+  }
+  
+  .performance-table-card {
+    height: 500px;
+    margin-bottom: 24px;
+    border-radius: 16px !important;
+    overflow: hidden;
+  }
+  
+  .performance-table-card .MuiDataGrid-root {
+    border: none;
+  }
+  
+  .performance-table-card .MuiDataGrid-columnHeaders {
+    background-color: #f1f5f9;
+  }
+  
+  .performance-table-card .MuiDataGrid-columnHeaderTitle {
+    font-weight: 700;
+  }
+  
+  .performance-table-card .MuiDataGrid-row:hover {
+    background-color: #eff6ff;
+  }
+  
+  .performance-table-card .MuiDataGrid-cell {
+    display: flex;
+    align-items: center;
+  }
+  
+  .performance-chart-card {
+    padding: 24px;
+    border-radius: 16px !important;
+  }
+  
+  .chart-title {
+    margin-bottom: 20px !important;
+  }
+  
+  .performance-chart {
+    width: 100%;
+    height: 320px;
+  }
+  
+  @media (max-width: 900px) {
+    .performance-page {
+      padding: 20px;
+    }
+  
+    .performance-table-card {
+      height: 450px;
+    }
+  
+    .performance-chart {
+      height: 280px;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .performance-page {
+      padding: 16px;
+    }
+  
+    .performance-title {
+      font-size: 1.8rem !important;
+    }
+  
+    .performance-card {
+      padding: 18px;
+    }
+  
+    .performance-search-card {
+      padding: 16px;
+    }
+  
+    .performance-table-card {
+      height: 400px;
+    }
+  
+    .performance-chart {
+      height: 240px;
+    }
+  
+    .chart-title {
+      font-size: 1.1rem !important;
+    }
+  }

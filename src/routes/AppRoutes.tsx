@@ -1,18 +1,23 @@
-﻿import { Routes, Route, Navigate } from "react-router-dom";
+﻿
+
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import type { RootState } from "../redux/store";
 
 import ProtectedRoute from "../components/ProtectedRoute";
-import DashboardLayout from "../layouts/DashboardLayout";
+import ManagerLayout from "../manager/layouts/ManagerLayout";
 
 import Login from "../pages/Login/Login";
-import Dashboard from "../pages/Dashboard";
-import Employees from "../pages/Employees";
-import Analytics from "../pages/Analytics";
-import Reports from "../pages/Reports";
-import Settings from "../pages/Settings";
 import NotFound from "../pages/NotFound";
+
+// Manager Pages
+import ManagerDashboard from "../manager/pages/ManagerDashboard";
+import Team from "../manager/pages/Team";
+import Attendance from "../manager/pages/Attendance";
+import LeaveRequests from "../manager/pages/LeaveRequests";
+import Performance from "../manager/pages/Performance";
+import Analytics from "../manager/pages/Analytics";
 
 const AppRoutes = () => {
   const { isAuthenticated } = useSelector(
@@ -21,12 +26,16 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Default Route */}
+      {/* Default */}
       <Route
         path="/"
         element={
           <Navigate
-            to={isAuthenticated ? "/dashboard" : "/login"}
+            to={
+              isAuthenticated
+                ? "/manager/dashboard"
+                : "/login"
+            }
             replace
           />
         }
@@ -37,30 +46,70 @@ const AppRoutes = () => {
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate to="/dashboard" replace />
+            <Navigate
+              to="/manager/dashboard"
+              replace
+            />
           ) : (
             <Login />
           )
         }
       />
 
-      {/* Protected Routes */}
-      <Route
+      {/* Manager Routes */}
+       {/* <Route
         element={
           <ProtectedRoute>
             <DashboardLayout />
           </ProtectedRoute>
         }
-      >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/employees" element={<Employees />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/settings" element={<Settings />} />
+      >  */}
+      <Route
+  element={
+    <ProtectedRoute>
+      <ManagerLayout />
+    </ProtectedRoute>
+  }
+>
+      
+
+
+        <Route
+          path="/manager/dashboard"
+          element={<ManagerDashboard />}
+        />
+
+        <Route
+          path="/manager/team"
+          element={<Team />}
+        />
+
+        <Route
+          path="/manager/attendance"
+          element={<Attendance />}
+        />
+
+        <Route
+          path="/manager/leave-requests"
+          element={<LeaveRequests />}
+        />
+
+        <Route
+          path="/manager/performance"
+          element={<Performance />}
+        />
+
+        <Route
+          path="/manager/analytics"
+          element={<Analytics />}
+        />
       </Route>
 
       {/* 404 */}
-      <Route path="*" element={<NotFound />} />
+      <Route
+        path="*"
+        element={<NotFound />}
+      />
     </Routes>
   );
 };
