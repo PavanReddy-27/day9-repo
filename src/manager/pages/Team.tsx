@@ -7,17 +7,24 @@ import TeamMemberDrawer from "../components/team/TeamMemberDrawer";
 
 import { teamData } from "../data/teamData";
 import type { TeamMember } from "../data/teamData";
+import { useAppSelector } from "../../redux/hooks";
 
 import "./Team.css";
 
 const Team = () => {
+  const { user } = useAppSelector((state) => state.auth);
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState("");
   const [risk, setRisk] = useState("");
   const [selected, setSelected] = useState<TeamMember | null>(null);
 
   const rows = useMemo(() => {
-    return teamData.filter((member) => {
+    let restrictedData = teamData;
+    if (user && user.role === "Manager") {
+      restrictedData = teamData.filter(member => member.department === user.department);
+    }
+    
+    return restrictedData.filter((member) => {
       const matchesSearch =
         member.name
           .toLowerCase()
@@ -38,7 +45,7 @@ const Team = () => {
         matchesRisk
       );
     });
-  }, [search, attendance, risk]);
+  }, [search, attendance, risk, user]);
 
   return (
     <Box className="team-page">

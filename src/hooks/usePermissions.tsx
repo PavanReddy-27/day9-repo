@@ -60,10 +60,10 @@ const usePermissions = () => {
         canManageEmployees(user.role),
 
       canViewAnalytics:
-        canViewAnalytics(user.role),
+        canViewAnalytics(),
 
       canViewReports:
-        canViewReports(user.role),
+        canViewReports(),
 
       canAccessSettings:
         canAccessSettings(user.role),
@@ -75,13 +75,13 @@ const usePermissions = () => {
         canManageRoles(user.role),
 
       canExportReports:
-        canExportReports(user.role),
+        canExportReports(),
 
       canApproveLeave:
         canApproveLeave(user.role),
 
       canEditProfile:
-        canEditProfile(user.role),
+        canEditProfile(),
 
       isAdmin: isAdmin(user.role),
       isHR: isHR(user.role),

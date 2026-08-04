@@ -1,20 +1,8 @@
+import auditService from "../../services/auditService";
 import "./AuditLogs.css";
 
 const AuditLogs = () => {
-  const logs = [
-    {
-      id: 1,
-      user: "Admin",
-      action: "Created User",
-      date: "30-07-2026",
-    },
-    {
-      id: 2,
-      user: "HR",
-      action: "Updated Employee",
-      date: "31-07-2026",
-    },
-  ];
+  const logs = auditService.getAllLogs();
 
   return (
     <div className="admin-audit-page">
@@ -28,7 +16,7 @@ const AuditLogs = () => {
           <thead>
             <tr>
               <th>ID</th>
-              <th>User</th>
+              <th>User (Role)</th>
               <th>Action</th>
               <th>Date</th>
             </tr>
@@ -38,7 +26,7 @@ const AuditLogs = () => {
             {logs.map((log) => (
               <tr key={log.id}>
                 <td>{log.id}</td>
-                <td>{log.user}</td>
+                <td>{log.user} ({log.role})</td>
                 <td>{log.action}</td>
                 <td>{log.date}</td>
               </tr>

@@ -57,7 +57,7 @@ const Employees = () => {
         (deptFilter === "All" || e.department === deptFilter) &&
         (riskFilter === "All" || e.risk === riskFilter)
       );
-    }), [search, deptFilter, riskFilter]);
+    }), [employees, search, deptFilter, riskFilter]);
 
   const avatarColor = (name: string) => {
     const colors = ["#2563EB", "#7C3AED", "#DB2777", "#D97706", "#16A34A", "#0891B2"];

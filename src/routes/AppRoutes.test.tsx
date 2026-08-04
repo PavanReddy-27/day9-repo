@@ -38,7 +38,7 @@ describe("AppRoutes", () => {
     );
 
     expect(
-      screen.getByText(/Sign in to continue to Workforce Analytics Dashboard/i)
+      screen.getByText(/Secure Sign In/i)
     ).toBeInTheDocument();
 
     rerender(
@@ -50,7 +50,7 @@ describe("AppRoutes", () => {
     );
 
     expect(
-      screen.getByText(/Sign in to continue to Workforce Analytics Dashboard/i)
+      screen.getByText(/Secure Sign In/i)
     ).toBeInTheDocument();
   });
 });

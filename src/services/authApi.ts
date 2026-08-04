@@ -17,6 +17,7 @@ import {
 } from "../utils/authStorage";
 
 import { ROLE_DASHBOARD } from "../config/roles";
+import auditService from "./auditService";
 
 interface MockUser extends User {
   username: string;
@@ -138,6 +139,8 @@ class AuthApi {
 
     const { ...authUser } = user;
 
+    auditService.log(authUser.username, authUser.role, "User Login Successful");
+
     return createLoginResponse(
       authUser,
       payload.rememberMe ?? false
@@ -145,6 +148,10 @@ class AuthApi {
   }
 
   logout(): void {
+    const user = this.getCurrentUser();
+    if (user) {
+      auditService.log(user.username, user.role, "User Logout");
+    }
     clearSession();
   }
 

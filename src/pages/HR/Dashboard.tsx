@@ -1,19 +1,13 @@
 import React from 'react';
 import { useAppSelector } from '../../redux/hooks';
 
+import { selectRestrictedHROpenPositions, selectRestrictedHRLeaveRequests } from '../../redux/hrSlice';
+
 export const HRDashboard: React.FC = () => {
-  const hrState = useAppSelector((state) => state.hr);
+  const openPositions = useAppSelector(selectRestrictedHROpenPositions) || [];
+  const leaveRequests = useAppSelector(selectRestrictedHRLeaveRequests) || [];
 
-  const openPositions = hrState?.openPositions || [
-    { id: '1', title: 'Senior Data Analyst', department: 'Analytics', applicantCount: 24, status: 'Open' },
-    { id: '2', title: 'HR Generalist', department: 'Human Resources', applicantCount: 12, status: 'Open' },
-    { id: '3', title: 'Frontend Developer', department: 'Engineering', applicantCount: 45, status: 'Interviewing' },
-  ];
 
-  const leaveRequests = hrState?.leaveRequests || [
-    { id: '101', employeeName: 'Alex Rivera', type: 'Annual Leave', status: 'Pending' },
-    { id: '102', employeeName: 'Priya Sharma', type: 'Sick Leave', status: 'Approved' },
-  ];
 
   return (
     <div style={{ padding: '32px', backgroundColor: 'var(--bg)', minHeight: '100vh', fontFamily: 'sans-serif' }}>

@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { RootState } from './store';
 
 export interface Employee {
   id: string;
@@ -155,4 +156,19 @@ const dashboardSlice = createSlice({
 });
 
 export const { setFilter, resetFilters } = dashboardSlice.actions;
+
+export const selectRestrictedDashboardEmployees = (state: RootState) => {
+  const { filteredEmployees } = state.dashboard;
+  const { user } = state.auth;
+
+  if (!user) return [];
+  // Admin and HR can see all departments in the dashboard
+  if (user.role === 'Admin' || user.role === 'HR') return filteredEmployees;
+  // Managers can only see their own department's employees
+  if (user.role === 'Manager') {
+    return filteredEmployees.filter((emp) => emp.department === user.department);
+  }
+  return [];
+};
+
 export default dashboardSlice.reducer;

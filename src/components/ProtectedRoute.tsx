@@ -9,6 +9,7 @@ import authApi from "../services/authApi";
 
 import type { UserRole } from "../types/auth";
 import { simulateBackendChecks, BackendSimulationError } from "../services/backendSimulation";
+import auditService from "../services/auditService";
 
 interface ProtectedRouteProps {
   allowedRoles?: UserRole[];
@@ -61,6 +62,7 @@ const ProtectedRoute = ({
     allowedRoles.length > 0 &&
     !allowedRoles.includes(user.role)
   ) {
+    auditService.log(user.username, user.role, `Access Denied: Attempted to access restricted route`);
     return (
       <Navigate
         to="/unauthorized"
@@ -78,6 +80,7 @@ const ProtectedRoute = ({
     simulateBackendChecks("route_access", "read");
   } catch (error) {
     if (error instanceof BackendSimulationError && error.status === 403) {
+      auditService.log(user.username, user.role, `Access Denied: Backend Simulation Check Failed`);
       return (
         <Navigate
           to="/unauthorized"

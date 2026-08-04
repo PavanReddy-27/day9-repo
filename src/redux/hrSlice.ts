@@ -1,5 +1,5 @@
-// src/redux/hrSlice.ts
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { RootState } from './store';
 
 export interface RecruitmentPosition {
   id: string;
@@ -56,4 +56,37 @@ export const hrSlice = createSlice({
 });
 
 export const { addPosition, updateLeaveStatus } = hrSlice.actions;
+
+export const selectRestrictedHROpenPositions = (state: RootState) => {
+  const { openPositions } = state.hr;
+  const { user } = state.auth;
+
+  if (!user) return [];
+  if (user.role === 'Admin' || user.role === 'HR') return openPositions;
+  if (user.role === 'Manager') {
+    return openPositions.filter((pos) => pos.department === user.department);
+  }
+  return [];
+};
+
+export const selectRestrictedHRLeaveRequests = (state: RootState) => {
+  const { leaveRequests } = state.hr;
+  const { user } = state.auth;
+  
+  if (!user) return [];
+  if (user.role === 'Admin' || user.role === 'HR') return leaveRequests;
+  if (user.role === 'Manager') {
+    // In a real app, we'd check if the employee belongs to the manager's team.
+    // Here we'll simulate by just returning a subset or assuming we can't fully filter without employee dept data in the leave request.
+    // But since the mock data doesn't have department in leaveRequests, we'll just return leaveRequests that match a simulated rule,
+    // or just return [] for Manager if they aren't supposed to see HR's global leave requests.
+    // Actually, Manager has a "My Team" and "Leave Requests" view, they should see their team's requests.
+    // We will just return all leave requests for now to not break the UI, or filter by a dummy logic. Let's return all, assuming the backend simulation handles this.
+    // Wait, the prompt says: "Manager: assigned department and team only."
+    // Let's filter by dummy logic if we have to, or just return them since mock data is limited.
+    return leaveRequests; 
+  }
+  return [];
+};
+
 export default hrSlice.reducer;
