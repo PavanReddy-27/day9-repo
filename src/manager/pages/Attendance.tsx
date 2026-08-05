@@ -1,10 +1,14 @@
+import { useState, useEffect, useMemo } from "react";
+import { useAppSelector } from "../../hooks/redux";
 import { Box, Paper, Typography, Chip } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import { teamData } from "../data/teamData";
+import { attendanceApi } from "../../services/attendanceApi";
+import type { AttendanceRecord } from "../../types/attendance";
 import "./Attendance.css";
 
-const rows = teamData.map((t) => ({
+const baseRows = teamData.map((t) => ({
   ...t,
   date: "2026-07-31",
   checkIn: t.attendance === "Present" ? "09:12" : "--",
@@ -58,6 +62,34 @@ const columns: GridColDef[] = [
 ];
 
 const Attendance = () => {
+  const { user } = useAppSelector((state) => state.auth);
+  const [liveData, setLiveData] = useState<AttendanceRecord[]>([]);
+
+  useEffect(() => {
+    const fetchRecords = async () => {
+      if (user) {
+        const records = await attendanceApi.getTeamRecords(user.username);
+        setLiveData(records);
+      }
+    };
+    fetchRecords();
+  }, [user]);
+
+  const rows = useMemo(() => {
+    const liveRows = liveData.map(r => ({
+      id: r.id,
+      employeeId: r.employeeId,
+      name: r.employeeName,
+      role: "Team Member",
+      performance: "Good",
+      attendance: r.status,
+      date: r.date,
+      checkIn: r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--",
+      checkOut: r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--",
+    }));
+    return [...liveRows, ...baseRows];
+  }, [liveData]);
+
   const present = rows.filter(
     (r) => r.attendance === "Present"
   ).length;

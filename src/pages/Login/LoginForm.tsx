@@ -260,12 +260,16 @@ const LoginForm = () => {
             } else if (selectedRole === "Manager") {
               setUsername("manager");
               setPassword("manager123");
+            } else if (selectedRole === "Employee") {
+              setUsername("employee");
+              setPassword("employee123");
             }
           }}
         >
           <MenuItem value="Admin">Admin</MenuItem>
           <MenuItem value="HR">HR</MenuItem>
           <MenuItem value="Manager">Manager</MenuItem>
+          <MenuItem value="Employee">Employee</MenuItem>
         </Select>
       </FormControl>
 

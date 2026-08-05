@@ -41,6 +41,10 @@ import ManagerLeaveRequests from "../manager/pages/LeaveRequests";
 import ManagerPerformance from "../manager/pages/Performance";
 import ManagerAnalytics from "../manager/pages/Analytics";
 
+// Employee Pages
+import EmployeeDashboard from "../pages/Employee/Dashboard";
+import EmployeeAttendance from "../pages/Employee/Attendance";
+
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import SessionExpired from "../pages/SessionExpired/SessionExpired";
 import NotFound from "../pages/NotFound";
@@ -67,6 +71,9 @@ const AppRoutes = () => {
 
       case "Manager":
         return "/manager/dashboard";
+
+      case "Employee":
+        return "/employee/dashboard";
 
       default:
         return "/login";
@@ -312,6 +319,34 @@ const AppRoutes = () => {
           <Route
             path="/manager/analytics"
             element={<ManagerAnalytics />}
+          />
+        </Route>
+      </Route>
+
+      {/* ===========================
+          EMPLOYEE
+      ============================ */}
+
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              "Employee",
+              "Admin",
+            ]}
+          />
+        }
+      >
+        <Route
+          element={<DashboardLayout />}
+        >
+          <Route
+            path="/employee/dashboard"
+            element={<EmployeeDashboard />}
+          />
+          <Route
+            path="/employee/attendance"
+            element={<EmployeeAttendance />}
           />
         </Route>
       </Route>

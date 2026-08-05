@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { attendanceApi } from "../../services/attendanceApi";
 import {
   Box,
   Typography,
@@ -51,9 +52,9 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   "Half Day": { bg: "#2563EB22", color: "#2563EB" },
 };
 
-const exportCSV = () => {
+const exportCSV = (dataToExport: AttendanceRecord[]) => {
   const headers = ["ID", "Employee", "Department", "Date", "Check In", "Check Out", "Hours", "Status"];
-  const rows = attendanceData.map((r) => [r.id, r.employeeName, r.department, r.date, r.checkIn, r.checkOut, r.hours, r.status]);
+  const rows = dataToExport.map((r) => [r.id, r.employeeName, r.department, r.date, r.checkIn, r.checkOut, r.hours, r.status]);
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -67,22 +68,45 @@ const Attendance = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [deptFilter, setDeptFilter] = useState("All");
+  const [liveData, setLiveData] = useState<any[]>([]);
 
-  const departments = ["All", ...Array.from(new Set(attendanceData.map((a) => a.department)))];
+  useEffect(() => {
+    const fetchLive = async () => {
+      const records = await attendanceApi.getAllRecords();
+      setLiveData(records);
+    };
+    fetchLive();
+  }, []);
+
+  const mergedData = useMemo(() => {
+    const formattedLive = liveData.map(r => ({
+      id: r.employeeId,
+      employeeName: r.employeeName,
+      department: "Engineering",
+      date: r.date,
+      checkIn: r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-",
+      checkOut: r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-",
+      hours: r.workingHours ? `${r.workingHours}h` : "-",
+      status: r.status,
+    }));
+    return [...formattedLive, ...attendanceData];
+  }, [liveData]);
+
+  const departments = ["All", ...Array.from(new Set(mergedData.map((a) => a.department)))];
 
   const filtered = useMemo(() =>
-    attendanceData.filter((r) => {
+    mergedData.filter((r) => {
       const q = search.toLowerCase();
       return (
         (r.employeeName.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
         (statusFilter === "All" || r.status === statusFilter) &&
         (deptFilter === "All" || r.department === deptFilter)
       );
-    }), [search, statusFilter, deptFilter]);
+    }), [search, statusFilter, deptFilter, mergedData]);
 
   const summary = ["Present", "Late", "Absent", "Half Day"].map((s) => ({
     label: s,
-    count: attendanceData.filter((r) => r.status === s).length,
+    count: mergedData.filter((r) => r.status === s).length,
     ...statusColors[s],
   }));
 
@@ -97,7 +121,7 @@ const Attendance = () => {
             Monitor daily check-ins, tardiness, and absence trends across all departments.
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={exportCSV} sx={{ borderRadius: 2 }}>
+        <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={() => exportCSV(mergedData)} sx={{ borderRadius: 2 }}>
           Export CSV
         </Button>
       </Box>

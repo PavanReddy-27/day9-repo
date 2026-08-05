@@ -114,6 +114,24 @@ const users: MockUser[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
+  {
+    id: "4",
+    employeeId: "EMP-004",
+    username: "employee",
+    password: "employee123",
+    firstName: "Sarah",
+    lastName: "Connor",
+    fullName: "Sarah Connor",
+    email: "employee@company.com",
+    role: "Employee",
+    department: "Engineering",
+    designation: "Software Engineer",
+    location: "Austin",
+    avatar: "",
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 ];
 
 class AuthApi {

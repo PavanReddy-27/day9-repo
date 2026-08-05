@@ -20,7 +20,7 @@ export interface NavigationItem {
 
 export const navigationItems: NavigationItem[] = [
   // Shared by All
-  { name: "Dashboard", icon: FiHome, route: "dashboard", roles: ["Admin", "HR", "Manager"] },
+  { name: "Dashboard", icon: FiHome, route: "dashboard", roles: ["Admin", "HR", "Manager", "Employee"] },
 
   // Shared by HR & Manager
   { name: "Analytics", icon: FiBarChart2, route: "analytics", roles: ["HR", "Manager", "Admin"] },
@@ -37,7 +37,7 @@ export const navigationItems: NavigationItem[] = [
   { name: "Settings", icon: FiSettings, route: "settings", roles: ["Admin"] },
 
   // Shared by HR & Manager
-  { name: "Attendance", icon: FiFileText, route: "attendance", roles: ["HR", "Manager", "Admin"] },
+  { name: "Attendance", icon: FiFileText, route: "attendance", roles: ["HR", "Manager", "Admin", "Employee"] },
   { name: "Leave Requests", icon: FiFileText, route: "leave-requests", roles: ["HR", "Manager", "Admin"] },
   { name: "Performance", icon: FiBarChart2, route: "performance", roles: ["HR", "Manager", "Admin"] },
 
