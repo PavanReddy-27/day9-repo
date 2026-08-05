@@ -1,11 +1,11 @@
 :root {
   --bg: #f8fafc;
-  --manager-bg: #f0f4f8; /* Distinct background for Manager */
+  --manager-bg: #f8fafc; 
   --surface: #ffffff;
   --surface-solid: #ffffff;
   
   --primary: #4f46e5;
-  --primary-light: #818cf8;
+  --primary-light: #8b5cf6;
   --primary-dark: #3730a3;
   --primary-bg: rgba(79, 70, 229, 0.1);
 
@@ -22,12 +22,12 @@
   --info-bg: rgba(59, 130, 246, 0.1);
 
   --text: #0f172a;
-  --text-light: #475569;
+  --text-light: #64748b;
   --text-h: #020617;
 
-  --border: #e2e8f0;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --hover: #f1f5f9;
+  --border: #f1f5f9;
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  --hover: #f8fafc;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -35,15 +35,15 @@
 }
 
 body[data-theme="dark"] {
-  --bg: #0f172a;
-  --manager-bg: #0b1120; /* Distinct dark background for Manager */
-  --surface: #1e293b;
-  --surface-solid: #1e293b;
+  --bg: #0b0f19;
+  --manager-bg: #0b0f19; 
+  --surface: #111827;
+  --surface-solid: #111827;
 
-  --primary: #818cf8;
+  --primary: #8b5cf6;
   --primary-light: #c7d2fe;
   --primary-dark: #4f46e5;
-  --primary-bg: rgba(129, 140, 248, 0.15);
+  --primary-bg: rgba(139, 92, 246, 0.15);
 
   --secondary: #a78bfa;
   --secondary-bg: rgba(167, 139, 250, 0.15);
@@ -58,12 +58,12 @@ body[data-theme="dark"] {
   --info-bg: rgba(96, 165, 250, 0.15);
 
   --text: #f8fafc;
-  --text-light: #cbd5e1;
+  --text-light: #94a3b8;
   --text-h: #ffffff;
 
-  --border: #334155;
+  --border: #1f2937;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --hover: #334155;
+  --hover: #1f2937;
 }
 
 * {
@@ -102,4 +102,37 @@ button {
 .MuiDrawer-paper {
   background-color: var(--bg) !important;
   color: var(--text) !important;
+}
+
+/* Recharts Global Styles */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  padding: 12px !important;
+}
+
+[data-theme="dark"] .recharts-tooltip-wrapper .recharts-default-tooltip {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+.recharts-tooltip-item {
+  color: var(--text-h) !important;
+  font-weight: 600 !important;
+}
+
+.recharts-tooltip-label {
+  color: var(--text-light) !important;
+  font-weight: 500 !important;
+  margin-bottom: 4px !important;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border) !important;
+}
+
+.recharts-text {
+  fill: var(--text-light) !important;
 }

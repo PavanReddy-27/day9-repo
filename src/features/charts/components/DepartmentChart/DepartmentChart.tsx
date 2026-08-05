@@ -70,7 +70,7 @@ const DepartmentChart = ({
     >
       <ResponsiveContainer
         width="100%"
-        height="100%"
+        height={420}
       >
         <PieChart>
           <Pie

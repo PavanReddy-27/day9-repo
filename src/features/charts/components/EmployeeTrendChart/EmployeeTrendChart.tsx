@@ -2,7 +2,7 @@
 
 import {
   ResponsiveContainer,
-  AreaChart,
+  ComposedChart,
   Area,
   Line,
   CartesianGrid,
@@ -56,8 +56,8 @@ const EmployeeTrendChart = ({
       onRetry={onRetry}
       retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
-        <AreaChart
+      <ResponsiveContainer width="100%" height={config.height} role="img" aria-label={config.title}>
+        <ComposedChart
           style={{ backgroundColor: "var(--surface-solid)" }}
           data={data}
           margin={{
@@ -180,7 +180,7 @@ const EmployeeTrendChart = ({
             strokeWidth={3}
             strokeDasharray="6 6"
           />
-        </AreaChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </ChartContainer>
   );

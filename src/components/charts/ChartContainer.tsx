@@ -5,7 +5,7 @@ import {
   Button,
   Chip,
   Divider,
-  Fade,
+
   IconButton,
   Paper,
   Skeleton,
@@ -164,10 +164,11 @@ const ChartContainer = ({
       <Box
         sx={{
           flex: 1,
+          height: typeof height === "number" ? `${height}px` : height,
           minHeight: typeof height === "number" ? `${height}px` : height,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          display: (loading || hasState) ? "flex" : "block",
+          alignItems: (loading || hasState) ? "center" : undefined,
+          justifyContent: (loading || hasState) ? "center" : undefined,
           p: 2,
         }}
       >
@@ -198,9 +199,7 @@ const ChartContainer = ({
             )}
           </Box>
         ) : (
-          <Fade in timeout={300}>
-            <Box sx={{ width: "100%", height: "100%" }}>{children}</Box>
-          </Fade>
+          children
         )}
       </Box>
     </Paper>

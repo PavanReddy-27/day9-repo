@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppSelector } from '../../redux/hooks';
 
 import { selectRestrictedHROpenPositions, selectRestrictedHRLeaveRequests } from '../../redux/hrSlice';
+import KPICards from '../../features/kpi/components/KPICards';
 
 export const HRDashboard: React.FC = () => {
   const openPositions = useAppSelector(selectRestrictedHROpenPositions) || [];
@@ -27,84 +28,37 @@ export const HRDashboard: React.FC = () => {
       </div>
 
       {/* KPI Stat Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '36px' }}>
-        
-        {/* Card 1: Total Workforce */}
-        <div style={{
-          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-          color: 'var(--text-h)',
-          borderRadius: '16px',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.9 }}>Total Workforce</span>
-          </div>
-          <div style={{ fontSize: '36px', fontWeight: 'bold', margin: '16px 0 8px' }}>
-            10,000
-          </div>
-          <span style={{ fontSize: '12px', opacity: 0.85 }}>+2.4% vs last quarter</span>
-        </div>
-
-        {/* Card 2: New Onboarded */}
-        <div style={{
-          background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-          color: 'var(--text-h)',
-          borderRadius: '16px',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.9 }}>New Onboarded (Q3)</span>
-          </div>
-          <div style={{ fontSize: '36px', fontWeight: 'bold', margin: '16px 0 8px' }}>
-            38
-          </div>
-          <span style={{ fontSize: '12px', opacity: 0.85 }}>Onboarding on schedule</span>
-        </div>
-
-        {/* Card 3: Open Positions */}
-        <div style={{
-          background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
-          color: 'var(--text-h)',
-          borderRadius: '16px',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.9 }}>Open Positions</span>
-          </div>
-          <div style={{ fontSize: '36px', fontWeight: 'bold', margin: '16px 0 8px' }}>
-            {openPositions.length}
-          </div>
-          <span style={{ fontSize: '12px', opacity: 0.85 }}>Active requisitions</span>
-        </div>
-
-        {/* Card 4: Monthly Attrition Rate */}
-        <div style={{
-          background: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
-          color: 'var(--text-h)',
-          borderRadius: '16px',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.9 }}>Monthly Attrition Rate</span>
-          </div>
-          <div style={{ fontSize: '36px', fontWeight: 'bold', margin: '16px 0 8px' }}>
-            4.2%
-          </div>
-          <span style={{ fontSize: '12px', opacity: 0.85 }}>-0.5% lower than target</span>
-        </div>
-
+      <div style={{ marginBottom: '36px' }}>
+        <KPICards data={[
+          {
+            id: 'totalEmployees',
+            title: 'Total Workforce',
+            value: '10,000',
+            trend: 2.4,
+            subtitle: 'vs last quarter'
+          },
+          {
+            id: 'newHires',
+            title: 'New Onboarded (Q3)',
+            value: 38,
+            trend: 5,
+            subtitle: 'Onboarding on schedule'
+          },
+          {
+            id: 'activeEmployees',
+            title: 'Open Positions',
+            value: openPositions.length,
+            trend: 0,
+            subtitle: 'Active requisitions'
+          },
+          {
+            id: 'attritionRate',
+            title: 'Monthly Attrition Rate',
+            value: '4.2%',
+            trend: -0.5,
+            subtitle: 'lower than target'
+          }
+        ]} />
       </div>
 
       {/* Main Content Panels Grid */}

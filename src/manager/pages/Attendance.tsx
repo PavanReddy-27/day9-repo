@@ -49,8 +49,8 @@ const columns: GridColDef[] = [
           params.value === "Present"
             ? "success"
             : params.value === "Leave"
-            ? "warning"
-            : "error"
+              ? "warning"
+              : "error"
         }
       />
     ),

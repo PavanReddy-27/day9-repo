@@ -1,44 +1,41 @@
-import {
-  Box,
-  Typography,
-  Paper,
-  Divider,
-  LinearProgress,
-} from "@mui/material";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Legend,
-} from "recharts";
+import { Box, Typography, Paper, Divider, LinearProgress } from "@mui/material";
 import { Analytics as AnalyticsIcon } from "@mui/icons-material";
+import KPICards from "../../features/kpi/components/KPICards";
+import type { KPIItem } from "../../features/kpi/components/KPICards/KPICards";
+import EmployeeTrendChart from "../../features/charts/components/EmployeeTrendChart";
+import RoleChart from "../../features/charts/components/RoleChart";
+import DepartmentChart from "../../features/charts/components/DepartmentChart";
+import type { TrendChartData, RoleChartData, DepartmentChartData } from "../../types/chart";
+
 import { departments } from "../../data/departments";
 
-const headcountData = departments.map((d) => ({ name: d.shortName, employees: d.totalEmployees }));
+const headcountData: RoleChartData[] = departments.map((d) => ({
+  id: d.id.toString(),
+  role: d.shortName,
+  employees: d.totalEmployees,
+  averageSalary: 0,
+  averageExperience: 0,
+}));
 
-const attritionTrend = [
-  { month: "Jan", attrition: 2.1, industry: 4.5 },
-  { month: "Feb", attrition: 1.9, industry: 4.3 },
-  { month: "Mar", attrition: 2.4, industry: 4.6 },
-  { month: "Apr", attrition: 1.7, industry: 4.4 },
-  { month: "May", attrition: 2.0, industry: 4.2 },
-  { month: "Jun", attrition: 1.5, industry: 4.1 },
-  { month: "Jul", attrition: 1.8, industry: 4.3 },
+const attritionTrend: TrendChartData[] = [
+  { month: "Jan", activeEmployees: 780, totalEmployees: 800, newHires: 15, attrition: 2.1 },
+  { month: "Feb", activeEmployees: 785, totalEmployees: 805, newHires: 10, attrition: 1.9 },
+  { month: "Mar", activeEmployees: 790, totalEmployees: 812, newHires: 12, attrition: 2.4 },
+  { month: "Apr", activeEmployees: 802, totalEmployees: 825, newHires: 18, attrition: 1.7 },
+  { month: "May", activeEmployees: 810, totalEmployees: 830, newHires: 12, attrition: 2.0 },
+  { month: "Jun", activeEmployees: 815, totalEmployees: 840, newHires: 15, attrition: 1.5 },
+  { month: "Jul", activeEmployees: 822, totalEmployees: 848, newHires: 14, attrition: 1.8 },
+  { month: "Aug", activeEmployees: 828, totalEmployees: 855, newHires: 12, attrition: 1.5 },
+  { month: "Sep", activeEmployees: 835, totalEmployees: 862, newHires: 11, attrition: 1.7 },
+  { month: "Oct", activeEmployees: 842, totalEmployees: 870, newHires: 14, attrition: 1.6 },
+  { month: "Nov", activeEmployees: 850, totalEmployees: 880, newHires: 15, attrition: 1.3 },
+  { month: "Dec", activeEmployees: 858, totalEmployees: 890, newHires: 12, attrition: 1.5 },
 ];
 
-const genderData = [
-  { name: "Male", value: 58, color: "#2563EB" },
-  { name: "Female", value: 38, color: "#DB2777" },
-  { name: "Other", value: 4, color: "#7C3AED" },
+const genderData: DepartmentChartData[] = [
+  { id: "1", name: "Male", value: 58, activeEmployees: 0, inactiveEmployees: 0, averageSalary: 0, averageExperience: 0, performanceScore: 0, trainingCompletion: 0 },
+  { id: "2", name: "Female", value: 38, activeEmployees: 0, inactiveEmployees: 0, averageSalary: 0, averageExperience: 0, performanceScore: 0, trainingCompletion: 0 },
+  { id: "3", name: "Other", value: 4, activeEmployees: 0, inactiveEmployees: 0, averageSalary: 0, averageExperience: 0, performanceScore: 0, trainingCompletion: 0 },
 ];
 
 const retentionTargets = [
@@ -50,11 +47,11 @@ const retentionTargets = [
   { department: "Operations", current: 97.1, target: 96 },
 ];
 
-const kpis = [
-  { label: "Total Headcount", value: departments.reduce((s, d) => s + d.totalEmployees, 0).toLocaleString(), color: "#2563EB" },
-  { label: "Avg Retention Rate", value: "95.8%", color: "#16A34A" },
-  { label: "Avg Performance Score", value: `${Math.round(departments.reduce((s, d) => s + d.performanceScore, 0) / departments.length)}%`, color: "#7C3AED" },
-  { label: "Avg Engagement Score", value: `${Math.round(departments.reduce((s, d) => s + d.engagementScore, 0) / departments.length)}%`, color: "#D97706" },
+const kpiData: KPIItem[] = [
+  { id: "totalEmployees", title: "Total Headcount", value: departments.reduce((s, d) => s + d.totalEmployees, 0).toLocaleString(), trend: 0 },
+  { id: "trainingCompletion", title: "Avg Retention Rate", value: "95.8%", trend: 0 },
+  { id: "performanceScore", title: "Avg Performance Score", value: `${Math.round(departments.reduce((s, d) => s + d.performanceScore, 0) / departments.length)}%`, trend: 0 },
+  { id: "engagementScore", title: "Avg Engagement Score", value: `${Math.round(departments.reduce((s, d) => s + d.engagementScore, 0) / departments.length)}%`, trend: 0 },
 ];
 
 const HRAnalytics = () => {
@@ -70,61 +67,20 @@ const HRAnalytics = () => {
       </Box>
 
       {/* KPI Cards */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 2, mb: 4 }}>
-        {kpis.map((k) => (
-          <Paper key={k.label} elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid var(--border)", bgcolor: "var(--surface)" }}>
-            <Typography sx={{ color: "var(--text-light)", fontSize: 13, mb: 1 }}>{k.label}</Typography>
-            <Typography sx={{ color: k.color, fontSize: 30, fontWeight: 800 }}>{k.value}</Typography>
-          </Paper>
-        ))}
+      <Box sx={{ mb: 4 }}>
+        <KPICards data={kpiData} />
       </Box>
 
       {/* Charts Row 1 */}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 3, mb: 3 }}>
-        <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid var(--border)", bgcolor: "var(--surface)" }}>
-          <Typography sx={{ color: "var(--text-h)", fontWeight: 700, mb: 2 }}>Headcount by Department</Typography>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={headcountData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="name" tick={{ fill: "var(--text-light)", fontSize: 12 }} />
-              <YAxis tick={{ fill: "var(--text-light)", fontSize: 12 }} />
-              <Tooltip contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
-              <Bar dataKey="employees" fill="#2563EB" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Paper>
-
-        <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid var(--border)", bgcolor: "var(--surface)" }}>
-          <Typography sx={{ color: "var(--text-h)", fontWeight: 700, mb: 2 }}>Workforce by Gender</Typography>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie data={genderData} dataKey="value" nameKey="name" outerRadius={85} label={({ name, value }) => `${name}: ${value}%`}>
-                {genderData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </Paper>
+        <RoleChart data={headcountData} />
+        <DepartmentChart data={genderData} />
       </Box>
 
       {/* Attrition Trend */}
-      <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid var(--border)", bgcolor: "var(--surface)", mb: 3 }}>
-        <Typography sx={{ color: "var(--text-h)", fontWeight: 700, mb: 2 }}>Attrition Trend vs Industry Average (%)</Typography>
-        <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={attritionTrend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="month" tick={{ fill: "var(--text-light)", fontSize: 12 }} />
-            <YAxis tick={{ fill: "var(--text-light)", fontSize: 12 }} domain={[0, 6]} />
-            <Tooltip contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
-            <Legend />
-            <Line type="monotone" dataKey="attrition" name="Our Attrition" stroke="#2563EB" strokeWidth={3} dot={{ r: 4 }} />
-            <Line type="monotone" dataKey="industry" name="Industry Avg" stroke="#DC2626" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </Paper>
+      <Box sx={{ mb: 3 }}>
+        <EmployeeTrendChart data={attritionTrend} />
+      </Box>
 
       {/* Retention Targets */}
       <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid var(--border)", bgcolor: "var(--surface)" }}>

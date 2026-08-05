@@ -20,7 +20,7 @@ import ThemeToggle from "./ThemeToggle";
 import "./Header.css";
 
 interface HeaderProps {
-  toggleSidebar: () =>void;
+  toggleSidebar: () => void;
   user: User;
 }
 
