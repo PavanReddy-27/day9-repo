@@ -41,7 +41,7 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
         return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }},
       { field: "workingHours", headerName: "Hours", flex: 0.8, minWidth: 50, valueFormatter: (value: any) => {
-        return value ? `${value}h` : "--";
+        return (value !== null && value !== undefined) ? `${value}h` : "--";
       }},
       {
         field: "status",

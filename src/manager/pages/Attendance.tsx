@@ -57,7 +57,7 @@ const Attendance = () => {
       if (r.lateArrival) flags.push("Late");
       if (r.isOvertime) flags.push("Overtime");
       if (r.source === "Offline") flags.push("Offline");
-      return [r.employeeId, r.employeeName, r.date, r.checkInTime, r.checkOutTime, r.workingHours, r.status, flags.join(", ")];
+      return [r.employeeId, r.employeeName, r.date, r.checkInTime || '--', r.checkOutTime || '--', r.workingHours ?? '--', r.status, flags.join(", ")];
     });
     const csv = [headers, ...csvRows].map((row) => row.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
