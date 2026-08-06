@@ -1,5 +1,14 @@
-﻿import { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+
+// Suppress React 18.3 defaultProps deprecation warnings caused by Recharts
+const originalConsoleError = console.error;
+console.error = (...args: any[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('Support for defaultProps will be removed from function components')) {
+    return;
+  }
+  originalConsoleError(...args);
+};
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 

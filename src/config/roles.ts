@@ -13,6 +13,7 @@ export const USER_ROLES = {
   ADMIN: "Admin",
   HR: "HR",
   MANAGER: "Manager",
+  EMPLOYEE: "Employee",
 } as const;
 
 export const DEFAULT_ROLE: UserRole = USER_ROLES.HR;
@@ -24,6 +25,7 @@ export const ROLE_DASHBOARD: Record<UserRole, string> = {
   Admin: "/admin/dashboard",
   HR: "/hr/dashboard",
   Manager: "/manager/dashboard",
+  Employee: "/employee/dashboard",
 };
 
 /**
@@ -38,9 +40,10 @@ export const getDashboardRoute = (role: UserRole): string => {
  * Higher value = Higher privilege
  */
 export const ROLE_PRIORITY: Record<UserRole, number> = {
-  Admin: 3,
-  HR: 2,
-  Manager: 1,
+  Admin: 4,
+  HR: 3,
+  Manager: 2,
+  Employee: 1,
 };
 
 /**
@@ -108,18 +111,18 @@ export const APP_ROUTES = {
 
   MANAGER: {
     ROOT: "/manager",
-
     DASHBOARD: "/manager/dashboard",
-
     TEAM: "/manager/team",
-
     ATTENDANCE: "/manager/attendance",
-
     LEAVE_REQUESTS: "/manager/leave-requests",
-
     PERFORMANCE: "/manager/performance",
-
     ANALYTICS: "/manager/analytics",
+  },
+
+  EMPLOYEE: {
+    ROOT: "/employee",
+    DASHBOARD: "/employee/dashboard",
+    ATTENDANCE: "/employee/attendance",
   },
 } as const;
 
@@ -158,6 +161,12 @@ export const ROLE_ROUTES: Record<UserRole, string[]> = {
     APP_ROUTES.MANAGER.LEAVE_REQUESTS,
     APP_ROUTES.MANAGER.PERFORMANCE,
     APP_ROUTES.MANAGER.ANALYTICS,
+  ],
+
+  Employee: [
+    APP_ROUTES.EMPLOYEE.ROOT,
+    APP_ROUTES.EMPLOYEE.DASHBOARD,
+    APP_ROUTES.EMPLOYEE.ATTENDANCE,
   ],
 };
 

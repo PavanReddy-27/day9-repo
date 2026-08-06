@@ -45,6 +45,15 @@ export const simulateBackendChecks = (
     throw new BackendSimulationError("RBAC Check Failed: Action not permitted", 403);
   }
 
+  // Attendance RBAC Check: Employees can only view/correct their own records.
+  if (resource === "attendance_corrections" && action === "review" && user.role === "Employee") {
+    throw new BackendSimulationError("RBAC Check Failed: Employees cannot review corrections.", 403);
+  }
+  
+  if (resource === "attendance_export" && user.role === "Employee") {
+    throw new BackendSimulationError("RBAC Check Failed: Employees cannot export global attendance.", 403);
+  }
+
   // 3. Department Scope Check
   // Example rule: Managers can only access data within their own department.
   if (user.role === "Manager" && targetDepartmentId && targetDepartmentId !== user.department) {

@@ -24,6 +24,9 @@ export function hasPermission(
       "employees:view",
       "reports:view",
     ],
+    Employee: [
+      "dashboard:view",
+    ],
   };
 
   return rolePermissions[role].includes(permission);

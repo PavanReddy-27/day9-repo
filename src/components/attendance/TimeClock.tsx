@@ -59,7 +59,7 @@ const TimeClock = () => {
     <Paper elevation={2} sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 2, minWidth: 300, justifyContent: 'space-between' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <AccessTimeIcon color="primary" />
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
           Today's Shift
         </Typography>
       </Box>
@@ -76,7 +76,7 @@ const TimeClock = () => {
         </Button>
       ) : !record.checkOutTime ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" color="success.main" fontWeight="bold">
+          <Typography variant="body2" color="success.main" sx={{ fontWeight: "bold" }}>
             🟢 Checked In
           </Typography>
           <Button
@@ -90,7 +90,7 @@ const TimeClock = () => {
           </Button>
         </Box>
       ) : (
-        <Typography variant="body2" color="text.secondary" fontWeight="bold">
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: "bold" }}>
           Shift Complete ({record.workingHours} hrs)
         </Typography>
       )}

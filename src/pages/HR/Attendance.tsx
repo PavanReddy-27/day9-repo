@@ -1,49 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
+import { Box, Paper, Typography, Button, TextField, FormControl, InputLabel, Select, MenuItem, InputAdornment, IconButton, Collapse, Tooltip } from "@mui/material";
+import { EventAvailable, Search, DownloadForOffline, CalendarMonth } from "@mui/icons-material";
 import { attendanceApi } from "../../services/attendanceApi";
-import {
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  TextField,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-} from "@mui/material";
-import { EventAvailable, Search, DownloadForOffline } from "@mui/icons-material";
-
-interface AttendanceRecord {
-  id: string;
-  employeeName: string;
-  department: string;
-  date: string;
-  checkIn: string;
-  checkOut: string;
-  hours: string;
-  status: "Present" | "Late" | "Absent" | "Half Day";
-}
-
-const attendanceData: AttendanceRecord[] = [
-  { id: "EMP001", employeeName: "John Smith", department: "Engineering", date: "2026-08-03", checkIn: "09:02 AM", checkOut: "06:10 PM", hours: "9h 08m", status: "Present" },
-  { id: "EMP002", employeeName: "Emily Zhang", department: "HR", date: "2026-08-03", checkIn: "09:45 AM", checkOut: "06:00 PM", hours: "8h 15m", status: "Late" },
-  { id: "EMP003", employeeName: "Alex Rivera", department: "Engineering", date: "2026-08-03", checkIn: "-", checkOut: "-", hours: "-", status: "Absent" },
-  { id: "EMP004", employeeName: "Priya Sharma", department: "Analytics", date: "2026-08-03", checkIn: "09:00 AM", checkOut: "01:30 PM", hours: "4h 30m", status: "Half Day" },
-  { id: "EMP005", employeeName: "David Kim", department: "Finance", date: "2026-08-03", checkIn: "08:55 AM", checkOut: "05:55 PM", hours: "9h 00m", status: "Present" },
-  { id: "EMP006", employeeName: "Maria Garcia", department: "Marketing", date: "2026-08-03", checkIn: "09:10 AM", checkOut: "06:15 PM", hours: "9h 05m", status: "Present" },
-  { id: "EMP007", employeeName: "Robert King", department: "Operations", date: "2026-08-03", checkIn: "10:02 AM", checkOut: "06:30 PM", hours: "8h 28m", status: "Late" },
-  { id: "EMP008", employeeName: "Sara Connor", department: "Finance", date: "2026-08-03", checkIn: "09:00 AM", checkOut: "06:00 PM", hours: "9h 00m", status: "Present" },
-  { id: "EMP009", employeeName: "Tom Bradley", department: "Marketing", date: "2026-08-03", checkIn: "-", checkOut: "-", hours: "-", status: "Absent" },
-  { id: "EMP010", employeeName: "Nancy Cooper", department: "Engineering", date: "2026-08-03", checkIn: "09:05 AM", checkOut: "06:05 PM", hours: "9h 00m", status: "Present" },
-];
+import { AttendanceRecord } from "../../types/attendance";
+import CorrectionRequests from "../../components/Attendance/CorrectionRequests";
+import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
+import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
 
 const statusColors: Record<string, { bg: string; color: string }> = {
   Present: { bg: "#16A34A22", color: "#16A34A" },
@@ -52,23 +14,14 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   "Half Day": { bg: "#2563EB22", color: "#2563EB" },
 };
 
-const exportCSV = (dataToExport: AttendanceRecord[]) => {
-  const headers = ["ID", "Employee", "Department", "Date", "Check In", "Check Out", "Hours", "Status"];
-  const rows = dataToExport.map((r) => [r.id, r.employeeName, r.department, r.date, r.checkIn, r.checkOut, r.hours, r.status]);
-  const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "attendance_report.csv";
-  a.click();
-};
 
 const Attendance = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [deptFilter, setDeptFilter] = useState("All");
-  const [liveData, setLiveData] = useState<any[]>([]);
+  const [dateFilter, setDateFilter] = useState("");
+  const [showCalendar, setShowCalendar] = useState(true);
+  const [liveData, setLiveData] = useState<AttendanceRecord[]>([]);
 
   useEffect(() => {
     const fetchLive = async () => {
@@ -76,52 +29,62 @@ const Attendance = () => {
       setLiveData(records);
     };
     fetchLive();
+    
+    const handleUpdate = () => fetchLive();
+    window.addEventListener('attendance_updated', handleUpdate);
+    return () => window.removeEventListener('attendance_updated', handleUpdate);
   }, []);
 
-  const mergedData = useMemo(() => {
-    const formattedLive = liveData.map(r => ({
-      id: r.employeeId,
-      employeeName: r.employeeName,
-      department: "Engineering",
-      date: r.date,
-      checkIn: r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-",
-      checkOut: r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-",
-      hours: r.workingHours ? `${r.workingHours}h` : "-",
-      status: r.status,
-    }));
-    return [...formattedLive, ...attendanceData];
-  }, [liveData]);
-
-  const departments = ["All", ...Array.from(new Set(mergedData.map((a) => a.department)))];
-
-  const filtered = useMemo(() =>
-    mergedData.filter((r) => {
+  const filteredRecords = useMemo(() => {
+    return liveData.filter((r) => {
       const q = search.toLowerCase();
       return (
-        (r.employeeName.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
+        (r.employeeName.toLowerCase().includes(q) || r.employeeId.toLowerCase().includes(q)) &&
         (statusFilter === "All" || r.status === statusFilter) &&
-        (deptFilter === "All" || r.department === deptFilter)
+        (deptFilter === "All" || r.department === deptFilter) &&
+        (dateFilter === "" || r.date === dateFilter)
       );
-    }), [search, statusFilter, deptFilter, mergedData]);
+    });
+  }, [liveData, search, statusFilter, deptFilter, dateFilter]);
+
+  const departments = ["All", ...Array.from(new Set(liveData.map((a) => a.department || "Unknown")))];
 
   const summary = ["Present", "Late", "Absent", "Half Day"].map((s) => ({
     label: s,
-    count: mergedData.filter((r) => r.status === s).length,
+    count: liveData.filter((r) => r.status === s || (s === "Late" && r.lateArrival)).length,
     ...statusColors[s],
   }));
+
+  const exportCSV = () => {
+    const headers = ["Employee ID", "Name", "Department", "Date", "Shift", "Check In", "Check Out", "Hours", "Status", "Flags"];
+    const csvRows = filteredRecords.map((r) => {
+      const flags = [];
+      if (r.lateArrival) flags.push("Late");
+      if (r.isOvertime) flags.push("Overtime");
+      if (r.source === "Offline") flags.push("Offline");
+      return [r.employeeId, r.employeeName, r.department, r.date, r.shiftType || 'Regular', r.checkInTime || '--', r.checkOutTime || '--', r.workingHours || '--', r.status, flags.join(", ")];
+    });
+    const csv = [headers, ...csvRows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "hr_attendance_report.csv";
+    a.click();
+  };
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> Workforce Attendance
+            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> Global Attendance
           </Typography>
           <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
-            Monitor daily check-ins, tardiness, and absence trends across all departments.
+            Monitor daily check-ins, tardiness, absence trends, and manage corrections across all departments.
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={() => exportCSV(mergedData)} sx={{ borderRadius: 2 }}>
+        <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={exportCSV} sx={{ borderRadius: 2 }}>
           Export CSV
         </Button>
       </Box>
@@ -130,22 +93,38 @@ const Attendance = () => {
         {summary.map((s) => (
           <Paper key={s.label} elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid var(--border)", bgcolor: "var(--surface)", textAlign: "center" }}>
             <Typography sx={{ color: "var(--text-light)", fontSize: 13, mb: 1 }}>{s.label}</Typography>
-            <Typography sx={{ color: s.color, fontSize: 34, fontWeight: 800 }}>{s.count}</Typography>
+            <Typography sx={{ color: s.color || "#000", fontSize: 34, fontWeight: 800 }}>{s.count}</Typography>
           </Paper>
         ))}
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap", alignItems: "center" }}>
+        <Tooltip title={showCalendar ? "Hide Calendar" : "Show Calendar"}>
+          <IconButton 
+            onClick={() => setShowCalendar(!showCalendar)} 
+            sx={{ bgcolor: showCalendar ? "var(--primary)" : "var(--surface)", color: showCalendar ? "#fff" : "var(--text-light)", '&:hover': { bgcolor: showCalendar ? "var(--primary)" : "var(--border)" } }}
+          >
+            <CalendarMonth fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
         <TextField
           size="small" placeholder="Search employee..." value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ flex: 1, minWidth: 200, bgcolor: "var(--surface)" }}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><Search fontSize="small" sx={{ color: "var(--text-light)" }} /></InputAdornment> } }}
         />
+        <TextField
+          type="date"
+          size="small"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          sx={{ minWidth: 160, bgcolor: "var(--surface)", '& input': { color: dateFilter ? 'var(--text-h)' : 'var(--text-light)' } }}
+        />
         <FormControl size="small" sx={{ minWidth: 140 }}>
           <InputLabel>Status</InputLabel>
           <Select label="Status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} sx={{ bgcolor: "var(--surface)" }}>
-            {["All", "Present", "Late", "Absent", "Half Day"].map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+            {["All", "Present", "Absent", "Half Day"].map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ minWidth: 160 }}>
@@ -156,33 +135,23 @@ const Attendance = () => {
         </FormControl>
       </Box>
 
-      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 3, border: "1px solid var(--border)", bgcolor: "var(--surface)" }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {["Employee ID", "Name", "Department", "Date", "Check In", "Check Out", "Hours", "Status"].map((h) => (
-                <TableCell key={h} sx={{ color: "var(--text-light)", fontWeight: 600, borderColor: "var(--border)" }}>{h}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell sx={{ color: "var(--text-light)", fontSize: 13 }}>{row.id}</TableCell>
-                <TableCell sx={{ color: "var(--text-h)", fontWeight: 600 }}>{row.employeeName}</TableCell>
-                <TableCell sx={{ color: "var(--text-light)" }}>{row.department}</TableCell>
-                <TableCell sx={{ color: "var(--text-light)" }}>{row.date}</TableCell>
-                <TableCell sx={{ color: "var(--text-h)" }}>{row.checkIn}</TableCell>
-                <TableCell sx={{ color: "var(--text-h)" }}>{row.checkOut}</TableCell>
-                <TableCell sx={{ color: "var(--text-h)", fontWeight: 500 }}>{row.hours}</TableCell>
-                <TableCell>
-                  <Chip label={row.status} size="small" sx={{ bgcolor: statusColors[row.status].bg, color: statusColors[row.status].color, fontWeight: 600 }} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4, mb: 4 }}>
+        <Collapse in={showCalendar} orientation="horizontal" unmountOnExit>
+          <Box sx={{ flexShrink: 0 }}>
+            <AttendanceCalendar 
+              records={liveData} 
+              selectedDate={dateFilter} 
+              onSelectDate={setDateFilter} 
+            />
+          </Box>
+        </Collapse>
+
+        <Box sx={{ flex: 1, minWidth: 300 }}>
+          <SmartAttendanceTable records={filteredRecords} role="HR" />
+        </Box>
+      </Box>
+      
+      <CorrectionRequests />
     </Box>
   );
 };

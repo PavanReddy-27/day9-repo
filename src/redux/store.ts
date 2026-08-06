@@ -9,12 +9,14 @@ import {
 import authReducer from "./authSlice";
 import dashboardReducer from "./dashboardSlice";
 import hrReducer from "./hrSlice";
+import attendanceReducer from "./attendanceSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     dashboard: dashboardReducer,
     hr: hrReducer,
+    attendance: attendanceReducer,
   },
 
   middleware: (getDefaultMiddleware) =>

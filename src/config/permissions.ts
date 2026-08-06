@@ -138,6 +138,32 @@ export const PERMISSIONS: Record<UserRole, PermissionMap> = {
 
     auditLogs: NO_ACCESS,
   },
+
+  Employee: {
+    dashboard: READ_ONLY,
+    users: NO_ACCESS,
+    employees: NO_ACCESS,
+    departments: NO_ACCESS,
+    recruitment: NO_ACCESS,
+    attendance: {
+      read: true,
+      create: true,
+      update: true,
+      delete: false,
+      export: false,
+    },
+    leave: {
+      read: true,
+      create: true,
+      update: false,
+      delete: false,
+      export: false,
+    },
+    analytics: NO_ACCESS,
+    reports: NO_ACCESS,
+    settings: NO_ACCESS,
+    auditLogs: NO_ACCESS,
+  },
 };
 
 /**
