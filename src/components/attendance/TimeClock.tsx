@@ -17,7 +17,7 @@ const TimeClock = () => {
     const fetchTodayRecord = async () => {
       if (user) {
         try {
-          const todayRecord = await attendanceApi.getTodayRecord(user.employeeId);
+          const todayRecord = await attendanceApi.getTodayRecord(user.id);
           setRecord(todayRecord);
         } catch (error) {
           console.error("Error fetching record", error);
@@ -32,7 +32,7 @@ const TimeClock = () => {
   const handleCheckIn = async () => {
     if (!user) return;
     try {
-      const newRecord = await attendanceApi.checkIn(user.employeeId, user.fullName);
+      const newRecord = await attendanceApi.checkIn(user.id, user.fullName);
       setRecord(newRecord);
       setToastMsg({ open: true, message: "Successfully checked in for today!", severity: "success" });
     } catch (error: any) {
@@ -43,7 +43,7 @@ const TimeClock = () => {
   const handleCheckOut = async () => {
     if (!user) return;
     try {
-      const updatedRecord = await attendanceApi.checkOut(user.employeeId);
+      const updatedRecord = await attendanceApi.checkOut(user.id);
       setRecord(updatedRecord);
       setToastMsg({ open: true, message: `Checked out successfully. Hours logged: ${updatedRecord.workingHours}`, severity: "success" });
     } catch (error: any) {
@@ -71,6 +71,11 @@ const TimeClock = () => {
           startIcon={<PlayArrowIcon />}
           onClick={handleCheckIn}
           disableElevation
+          sx={{
+            '&:hover': {
+              color: '#111827'
+            }
+          }}
         >
           Check In
         </Button>

@@ -1,6 +1,7 @@
 import type { AttendanceRecord, CorrectionRequest, AttendanceAuditLog, Location, ShiftType, AttendanceSource, AttendancePolicyType } from "../types/attendance";
 import authApi from "./authApi";
 import { simulateBackendChecks, BackendSimulationError } from "./backendSimulation";
+import { getDistanceMeters, getOfficeLocation, GEOFENCE_RADIUS_METERS, MAX_GPS_ACCURACY_METERS } from "../config/attendance";
 
 const STORAGE_KEY = "workforce_attendance";
 const CORRECTIONS_KEY = "workforce_corrections";
@@ -75,7 +76,13 @@ const emitAttendanceEvent = (eventName: string, detail?: Record<string, unknown>
   }
 };
 
-const getAttendancePolicy = (department: string): AttendancePolicyType => {
+// An explicit workMode on the user's profile always wins (it's what a WFH/hybrid
+// employee is actually configured as); falling back to a department-name heuristic
+// keeps existing department-only data (and department can't double as a location
+// signal for team/manager scoping, so this is only ever a fallback).
+export const getAttendancePolicy = (department: string | undefined, workMode?: AttendancePolicyType): AttendancePolicyType => {
+  if (workMode) return workMode;
+
   const normalized = department?.toLowerCase() || "";
   if (normalized.includes("remote")) return "Remote";
   if (normalized.includes("hybrid")) return "Hybrid";
@@ -106,6 +113,48 @@ const assertAttendanceAccess = (resource: string, action: string, targetDepartme
   }
 
   simulateBackendChecks(resource, action, targetDepartment ?? actor.department);
+};
+
+// Employees may only act on / view their own attendance records.
+const assertSelfAccess = (actor: ReturnType<typeof getCurrentAttendanceActor>, employeeId: string) => {
+  if (!actor.user) {
+    throw new BackendSimulationError("Your session has expired. Please log in again.", 401);
+  }
+  if (actor.role === "Employee" && employeeId !== actor.user.id) {
+    throw new BackendSimulationError("Access denied: employees may only access their own attendance.", 403);
+  }
+};
+
+// Lets callers distinguish "GPS too imprecise to trust" from "confirmed outside
+// the office radius" programmatically (e.g. to render different UI/icons)
+// instead of pattern-matching on the error message.
+export class GeofenceError extends Error {
+  constructor(message: string, public readonly reason: "inaccurate_gps" | "outside_geofence") {
+    super(message);
+    this.name = "GeofenceError";
+  }
+}
+
+const assertGeofenceAndAccuracy = (location: Location | undefined, policyType: AttendancePolicyType, action: "Check-in" | "Check-out" = "Check-in") => {
+  if (!location) return;
+
+  if (location.accuracy > MAX_GPS_ACCURACY_METERS) {
+    throw new GeofenceError(
+      `GPS reading is too inaccurate (±${Math.round(location.accuracy)}m) to verify your location. Please try again with a stronger signal.`,
+      "inaccurate_gps"
+    );
+  }
+
+  if (policyType === "Office") {
+    const officeLocation = getOfficeLocation();
+    const distance = getDistanceMeters(location, officeLocation);
+    if (distance > GEOFENCE_RADIUS_METERS) {
+      throw new GeofenceError(
+        `${action} blocked: you are ${Math.round(distance)}m away from ${officeLocation.name}, outside the ${GEOFENCE_RADIUS_METERS}m allowed range.`,
+        "outside_geofence"
+      );
+    }
+  }
 };
 
 const evaluateAttendanceFlags = (record: AttendanceRecord) => {
@@ -148,16 +197,12 @@ const evaluateAttendanceFlags = (record: AttendanceRecord) => {
 
 export const attendanceApi = {
   getTodayRecord: async (employeeId: string): Promise<AttendanceRecord | null> => {
+    const actor = getCurrentAttendanceActor();
+    assertAttendanceAccess("attendance", "read", actor.department);
+    assertSelfAccess(actor, employeeId);
+
     const records = getStoredRecords();
     const today = getServerTime().split("T")[0];
-    const actor = getCurrentAttendanceActor();
-
-    if (actor.role === "Employee") {
-      const openRecord = records.find(r => r.employeeId === employeeId && !r.checkOutTime);
-      if (openRecord) return openRecord;
-
-      return records.find(r => r.employeeId === employeeId && r.date === today) || null;
-    }
 
     const openRecord = records.find(r => r.employeeId === employeeId && !r.checkOutTime);
     if (openRecord) return openRecord;
@@ -174,7 +219,8 @@ export const attendanceApi = {
     idempotencyKey?: string,
     department: string = "Unknown"
   ): Promise<AttendanceRecord> => {
-    const user = authApi.getCurrentUser();
+    const actor = getCurrentAttendanceActor();
+    assertSelfAccess(actor, employeeId);
     const records = getStoredRecords();
 
     if (idempotencyKey) {
@@ -187,12 +233,13 @@ export const attendanceApi = {
       throw new Error("Already checked in or active session exists.");
     }
 
-    const userRole = user?.role ?? "Employee";
     assertAttendanceAccess("attendance", "create", department);
+
+    const policyType = getAttendancePolicy(department, actor.user?.workMode);
+    assertGeofenceAndAccuracy(location, policyType);
 
     const today = getServerTime().split("T")[0];
     const checkInTime = getServerTime();
-    const policyType = getAttendancePolicy(department);
     const normalizedShiftType = getShiftKind(shiftType, checkInTime);
 
     const newRecord: AttendanceRecord = {
@@ -218,7 +265,7 @@ export const attendanceApi = {
       lastUpdatedAt: getServerTime(),
     };
 
-    if (userRole !== "Employee") {
+    if (actor.role !== "Employee") {
       newRecord.status = "Present";
     }
 
@@ -243,6 +290,7 @@ export const attendanceApi = {
   },
 
   startBreak: async (employeeId: string): Promise<AttendanceRecord> => {
+    assertSelfAccess(getCurrentAttendanceActor(), employeeId);
     const records = getStoredRecords();
     const record = records.find(r => r.employeeId === employeeId && !r.checkOutTime);
     if (!record) throw new Error("No active check-in found.");
@@ -257,6 +305,7 @@ export const attendanceApi = {
   },
 
   endBreak: async (employeeId: string): Promise<AttendanceRecord> => {
+    assertSelfAccess(getCurrentAttendanceActor(), employeeId);
     const records = getStoredRecords();
     const record = records.find(r => r.employeeId === employeeId && !r.checkOutTime);
     if (!record) throw new Error("No active check-in found.");
@@ -276,7 +325,8 @@ export const attendanceApi = {
     return record;
   },
 
-  checkOut: async (employeeId: string): Promise<AttendanceRecord> => {
+  checkOut: async (employeeId: string, location?: Location): Promise<AttendanceRecord> => {
+    assertSelfAccess(getCurrentAttendanceActor(), employeeId);
     const records = getStoredRecords();
 
     const index = records.findIndex(r => r.employeeId === employeeId && !r.checkOutTime);
@@ -294,6 +344,10 @@ export const attendanceApi = {
       }
     }
 
+    // Reuse the policy resolved at check-in time (stored on the record) rather than
+    // re-deriving it, so check-out is always consistent with how the session started.
+    assertGeofenceAndAccuracy(location, record.policyType ?? getAttendancePolicy(record.department), "Check-out");
+
     if (record.breakStartTime) {
       const bStart = new Date(record.breakStartTime).getTime();
       const bEnd = new Date(getServerTime()).getTime();
@@ -302,6 +356,7 @@ export const attendanceApi = {
     }
 
     record.checkOutTime = getServerTime();
+    record.checkOutLocation = location;
     record.lastUpdatedAt = getServerTime();
 
     evaluateAttendanceFlags(record);
@@ -368,12 +423,15 @@ export const attendanceApi = {
   },
 
   // Corrections
-  submitCorrection: async (req: Omit<CorrectionRequest, "id" | "status" | "submittedAt">): Promise<CorrectionRequest> => {
+  submitCorrection: async (req: Omit<CorrectionRequest, "id" | "status" | "submittedAt" | "department">): Promise<CorrectionRequest> => {
+    const actor = getCurrentAttendanceActor();
     assertAttendanceAccess("attendance_corrections", "create");
+    assertSelfAccess(actor, req.employeeId);
     const corrections = getStoredCorrections();
     const newCorrection: CorrectionRequest = {
       ...req,
       id: Math.random().toString(36).substr(2, 9),
+      department: actor.department,
       status: "Pending",
       submittedAt: getServerTime(),
     };
@@ -385,11 +443,12 @@ export const attendanceApi = {
 
   getPendingCorrections: async (managerDepartment?: string): Promise<CorrectionRequest[]> => {
     const actor = getCurrentAttendanceActor();
-    assertAttendanceAccess("attendance_corrections", "read", managerDepartment ?? actor.department);
+    const targetDepartment = managerDepartment ?? actor.department;
+    assertAttendanceAccess("attendance_corrections", "read", targetDepartment);
     const corrections = getStoredCorrections().filter(c => c.status === "Pending");
 
     if (actor.role === "Manager") {
-      return corrections.filter(c => c.employeeName.includes(actor.department) || true);
+      return corrections.filter(c => c.department === actor.department);
     }
 
     return corrections;
@@ -412,8 +471,9 @@ export const attendanceApi = {
     const cIdx = corrections.findIndex(c => c.id === correctionId);
     if (cIdx === -1) throw new Error("Correction not found");
 
-    const user = authApi.getCurrentUser();
-    assertAttendanceAccess("attendance_corrections", "review", user?.department);
+    // Scope the department check to the correction's own department, not the
+    // reviewer's, so a Manager cannot approve/reject requests from other teams.
+    assertAttendanceAccess("attendance_corrections", "review", corrections[cIdx].department);
 
     corrections[cIdx].status = status;
     corrections[cIdx].managerComment = managerComment;
@@ -449,5 +509,20 @@ export const attendanceApi = {
     const actor = getCurrentAttendanceActor();
     assertAttendanceAccess("attendance_audit", "read", actor.department);
     return getStoredAudit();
+  },
+
+  /**
+   * Clear all attendance related data from localStorage. Useful for resetting the
+   * application state during development or testing.
+   */
+  clearAllData: (): void => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(CORRECTIONS_KEY);
+    localStorage.removeItem(AUDIT_KEY);
+    localStorage.removeItem(SERVER_TIME_OFFSET_KEY);
+    // Emit events so any listeners can react to the purge.
+    window.dispatchEvent(new Event("attendance_updated"));
+    window.dispatchEvent(new Event("corrections_updated"));
+    window.dispatchEvent(new Event("attendance_audit_updated"));
   }
 };

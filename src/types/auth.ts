@@ -1,3 +1,5 @@
+import type { AttendancePolicyType } from "./attendance";
+
 export type UserRole = "Admin" | "HR" | "Manager" | "Employee";
 
 export interface User {
@@ -16,6 +18,13 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  /**
+   * How this employee is expected to attend work. Drives attendance geofencing:
+   * "Office" enforces the configured office radius on check-in/out, "Remote"/"Hybrid"
+   * do not. Kept separate from `department` so team/department scoping (used for
+   * manager visibility, corrections, etc.) isn't overloaded with work-location meaning.
+   */
+  workMode?: AttendancePolicyType;
 }
 
 export interface LoginRequest {

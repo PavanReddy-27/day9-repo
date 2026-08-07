@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { Box, Chip } from '@mui/material';
+import { Box, Chip, IconButton, Tooltip } from '@mui/material';
+import { LocationOn } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { AttendanceRecord } from '../../types/attendance';
+import { AttendanceRecord, Location } from '../../types/attendance';
 
 interface SmartAttendanceTableProps {
   records: AttendanceRecord[];
@@ -15,6 +16,39 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   Leave: { bg: "#9333EA22", color: "#9333EA" },
   "Half Day": { bg: "#2563EB22", color: "#2563EB" },
 };
+
+const formatTimeOnly = (isoStr: string | null | undefined) => {
+  if (!isoStr) return "--:--";
+  return new Date(isoStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const openInMaps = (location: Location) => {
+  window.open(`https://www.google.com/maps?q=${location.latitude},${location.longitude}`, '_blank', 'noopener,noreferrer');
+};
+
+// Renders a time cell as a clickable location pin + timestamp (blue when a
+// GPS reading is attached), matching the check-in/out pattern from payroll's
+// attendance table. Clicking the pin opens the reading in Google Maps.
+const LocationTimeCell = ({ time, location }: { time: string | null | undefined; location?: Location }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, height: '100%' }}>
+    {location ? (
+      <>
+        <Tooltip title={`${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)} — View on map`}>
+          <IconButton
+            size="small"
+            onClick={(e) => { e.stopPropagation(); openInMaps(location); }}
+            sx={{ p: 0.25, color: '#2563EB' }}
+          >
+            <LocationOn fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Box component="span" sx={{ color: '#2563EB', fontWeight: 600 }}>{formatTimeOnly(time)}</Box>
+      </>
+    ) : (
+      <Box component="span" sx={{ pl: '30px' }}>{formatTimeOnly(time)}</Box>
+    )}
+  </Box>
+);
 
 export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ records, role }) => {
   const columns = useMemo(() => {
@@ -32,14 +66,20 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
     cols.push(
       { field: "date", headerName: "Date", flex: 1, minWidth: 70 },
       { field: "shiftType", headerName: "Shift", flex: 1, minWidth: 60 },
-      { field: "checkInTime", headerName: "Check In", flex: 1, minWidth: 60, valueFormatter: (value: any) => {
-        if (!value) return "--:--";
-        return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      }},
-      { field: "checkOutTime", headerName: "Check Out", flex: 1, minWidth: 60, valueFormatter: (value: any) => {
-        if (!value) return "--:--";
-        return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      }},
+      {
+        field: "checkInTime",
+        headerName: "Check In",
+        flex: 1.2,
+        minWidth: 110,
+        renderCell: (params) => <LocationTimeCell time={params.value} location={params.row.location} />
+      },
+      {
+        field: "checkOutTime",
+        headerName: "Check Out",
+        flex: 1.2,
+        minWidth: 110,
+        renderCell: (params) => <LocationTimeCell time={params.value} location={params.row.checkOutLocation} />
+      },
       { field: "workingHours", headerName: "Hours", flex: 0.8, minWidth: 50, valueFormatter: (value: any) => {
         return (value !== null && value !== undefined) ? `${value}h` : "--";
       }},

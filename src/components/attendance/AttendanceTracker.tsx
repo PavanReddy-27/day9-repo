@@ -1,29 +1,14 @@
 import { useState, useEffect } from 'react';
-import { 
-  Box, Typography, Button, Paper, CircularProgress, 
-  Alert, Tooltip, Grow, Fade, FormControl, Select, MenuItem, InputLabel 
+import {
+  Box, Typography, Button, Paper, CircularProgress,
+  Alert, Tooltip, Grow, Fade, FormControl, Select, MenuItem, InputLabel, IconButton
 } from '@mui/material';
 import { PlayArrow, Pause, Stop, Sync, LocationOn, AccessTime, WbSunny, NightsStay } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkIn, checkOut, startBreak, endBreak, fetchTodayRecord, queueOfflineAction, clearOfflineQueue } from '../../redux/attendanceSlice';
 import { Location } from '../../types/attendance';
-import { attendanceApi } from '../../services/attendanceApi';
-
-// Office coords for geofencing demo (e.g. some downtown location)
-const OFFICE_COORDS = { latitude: 37.7749, longitude: -122.4194 };
-const MAX_RADIUS_METERS = 500; 
-
-// Haversine distance
-const getDistance = (loc1: Location, loc2: { latitude: number; longitude: number }) => {
-  const R = 6371e3; // metres
-  const φ1 = loc1.latitude * Math.PI/180;
-  const φ2 = loc2.latitude * Math.PI/180;
-  const Δφ = (loc2.latitude-loc1.latitude) * Math.PI/180;
-  const Δλ = (loc2.longitude-loc1.longitude) * Math.PI/180;
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-};
+import { attendanceApi, getAttendancePolicy } from '../../services/attendanceApi';
+import { getDistanceMeters, getOfficeLocation, GEOFENCE_RADIUS_METERS, MAX_GPS_ACCURACY_METERS } from '../../config/attendance';
 
 const AttendanceTracker = () => {
   const dispatch = useAppDispatch();
@@ -92,6 +77,24 @@ const AttendanceTracker = () => {
     });
   };
 
+  // Returns an error message if the reading fails geofence/accuracy checks, or null if it's valid.
+  const validateGeofenceAndAccuracy = (loc: Location, action: 'Check-in' | 'Check-out'): string | null => {
+    if (loc.accuracy > MAX_GPS_ACCURACY_METERS) {
+      return `Your location signal is too weak (±${Math.round(loc.accuracy)}m accuracy). Move to an open area or wait for GPS to stabilize, then try again.`;
+    }
+
+    const policyType = user ? getAttendancePolicy(user.department, user.workMode) : "Office";
+    if (policyType === "Office") {
+      const officeLocation = getOfficeLocation();
+      const distance = getDistanceMeters(loc, officeLocation);
+      if (distance > GEOFENCE_RADIUS_METERS) {
+        return `You are ${Math.round(distance)}m away from ${officeLocation.name}. ${action} requires being within ${GEOFENCE_RADIUS_METERS}m of the office.`;
+      }
+    }
+
+    return null;
+  };
+
   const handleCheckIn = async () => {
     try {
       setGeoError(null);
@@ -100,14 +103,15 @@ const AttendanceTracker = () => {
         loc = await getLocation();
         setCurrentLocation(loc);
       }
-      
-      const distance = getDistance(loc, OFFICE_COORDS);
-      if (distance > MAX_RADIUS_METERS) {
-        console.warn(`User is ${Math.round(distance)}m away from office.`);
+
+      const validationError = validateGeofenceAndAccuracy(loc, 'Check-in');
+      if (validationError) {
+        setGeoError(validationError);
+        return;
       }
 
       const idempotencyKey = Math.random().toString(36).substr(2, 9);
-      
+
       if (!isOnline) {
          dispatch(queueOfflineAction({ type: 'checkIn', location: loc, shiftType, idempotencyKey }));
          setGeoError("You are offline. Check-in queued for sync.");
@@ -129,9 +133,37 @@ const AttendanceTracker = () => {
     }
   };
 
+  const handleCheckOut = async () => {
+    if (!user) return;
+    try {
+      setGeoError(null);
+      const loc = await getLocation();
+      setCurrentLocation(loc);
+
+      const validationError = validateGeofenceAndAccuracy(loc, 'Check-out');
+      if (validationError) {
+        setGeoError(validationError);
+        return;
+      }
+
+      dispatch(checkOut({ employeeId: user.id, location: loc }));
+    } catch (err) {
+      setGeoError(String(err));
+    }
+  };
+
   const formatTime = (isoStr: string | null) => {
     if (!isoStr) return "--:--";
     return new Date(isoStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatLocationTooltip = (loc: Location) => {
+    const distance = Math.round(getDistanceMeters(loc, getOfficeLocation()));
+    return `${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)} · ±${Math.round(loc.accuracy)}m accuracy · ${distance}m from office — View on map`;
+  };
+
+  const openInMaps = (loc: Location) => {
+    window.open(`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`, '_blank', 'noopener,noreferrer');
   };
 
   if (!user) return null;
@@ -212,11 +244,37 @@ const AttendanceTracker = () => {
                   <Typography variant="caption" sx={{ color: "var(--text-light)", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
                     <AccessTime fontSize="inherit" /> Check In
                   </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mt: 0.5, color: "var(--text-h)" }}>{formatTime(todayRecord?.checkInTime || null)}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.25, mt: 0.5 }}>
+                    {todayRecord?.location && (
+                      <Tooltip title={formatLocationTooltip(todayRecord.location)}>
+                        <IconButton
+                          size="small"
+                          onClick={() => openInMaps(todayRecord.location!)}
+                          sx={{ p: 0.25, color: '#2563EB' }}
+                        >
+                          <LocationOn fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: todayRecord?.location ? '#2563EB' : "var(--text-h)" }}>{formatTime(todayRecord?.checkInTime || null)}</Typography>
+                  </Box>
                </Box>
                <Box sx={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--border)' }}>
                   <Typography variant="caption" sx={{ color: "var(--text-light)" }}>Check Out</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mt: 0.5, color: "var(--text-h)" }}>{formatTime(todayRecord?.checkOutTime || null)}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.25, mt: 0.5 }}>
+                    {todayRecord?.checkOutLocation && (
+                      <Tooltip title={formatLocationTooltip(todayRecord.checkOutLocation)}>
+                        <IconButton
+                          size="small"
+                          onClick={() => openInMaps(todayRecord.checkOutLocation!)}
+                          sx={{ p: 0.25, color: '#2563EB' }}
+                        >
+                          <LocationOn fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: todayRecord?.checkOutLocation ? '#2563EB' : "var(--text-h)" }}>{formatTime(todayRecord?.checkOutTime || null)}</Typography>
+                  </Box>
                </Box>
                <Box sx={{ flex: 1, textAlign: 'center' }}>
                   <Typography variant="caption" sx={{ color: "var(--text-light)" }}>Total Break</Typography>
@@ -258,7 +316,7 @@ const AttendanceTracker = () => {
                     fontSize: '1rem',
                     fontWeight: 700,
                     transition: 'all 0.3s ease',
-                    '&:hover': { bgcolor: 'var(--primary-hover)', transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(15,118,110,0.3)' },
+                    '&:hover': { bgcolor: 'var(--primary-light)', color: '#111827', transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(79, 70, 229, 0.3)' },
                     '&:active': { transform: 'translateY(0)' }
                   }}
                 >
@@ -290,7 +348,7 @@ const AttendanceTracker = () => {
                 <Button 
                   variant="contained" 
                   startIcon={<Stop />}
-                  onClick={() => dispatch(checkOut(user.id))}
+                  onClick={handleCheckOut}
                   disabled={loading}
                   sx={{ 
                     flex: 1, 

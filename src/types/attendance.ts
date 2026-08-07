@@ -21,6 +21,7 @@ export interface AttendanceRecord {
   shiftType?: ShiftType;
   policyType?: AttendancePolicyType;
   location?: Location;
+  checkOutLocation?: Location;
   source?: AttendanceSource;
   breakStartTime?: string | null;
   totalBreakDuration?: number; // in minutes
@@ -39,6 +40,7 @@ export interface CorrectionRequest {
   recordId: string;
   employeeId: string;
   employeeName: string;
+  department: string;
   requestedCheckIn: string | null;
   requestedCheckOut: string | null;
   reason: string;

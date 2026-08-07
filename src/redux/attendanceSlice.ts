@@ -54,8 +54,8 @@ export const endBreak = createAsyncThunk(
 
 export const checkOut = createAsyncThunk(
   'attendance/checkOut',
-  async (employeeId: string) => {
-    return await attendanceApi.checkOut(employeeId);
+  async (payload: { employeeId: string, location?: Location }) => {
+    return await attendanceApi.checkOut(payload.employeeId, payload.location);
   }
 );
 
