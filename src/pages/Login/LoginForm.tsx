@@ -111,30 +111,23 @@ const LoginForm = () => {
   ) => {
     switch (role) {
       case "Admin":
-        navigate(
-          "/admin/dashboard",
-          {
-            replace: true,
-          }
-        );
+        navigate("/admin/dashboard", { replace: true });
         break;
 
       case "HR":
-        navigate(
-          "/hr/dashboard",
-          {
-            replace: true,
-          }
-        );
+        navigate("/hr/dashboard", { replace: true });
         break;
 
       case "Manager":
-        navigate(
-          "/manager/dashboard",
-          {
-            replace: true,
-          }
-        );
+        navigate("/manager/dashboard", { replace: true });
+        break;
+
+      case "Team Lead":
+        navigate("/teamlead/dashboard", { replace: true });
+        break;
+
+      case "Employee":
+        navigate("/employee/dashboard", { replace: true });
         break;
 
       default:
@@ -260,6 +253,9 @@ const LoginForm = () => {
             } else if (selectedRole === "Manager") {
               setUsername("manager");
               setPassword("manager123");
+            } else if (selectedRole === "Team Lead") {
+              setUsername("teamlead");
+              setPassword("teamlead123");
             } else if (selectedRole === "Employee") {
               setUsername("employee");
               setPassword("employee123");
@@ -269,6 +265,7 @@ const LoginForm = () => {
           <MenuItem value="Admin">Admin</MenuItem>
           <MenuItem value="HR">HR</MenuItem>
           <MenuItem value="Manager">Manager</MenuItem>
+          <MenuItem value="Team Lead">Team Lead</MenuItem>
           <MenuItem value="Employee">Employee</MenuItem>
         </Select>
       </FormControl>
