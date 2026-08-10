@@ -348,6 +348,26 @@ const AppRoutes = () => {
             path="/teamlead/dashboard"
             element={<TeamLeadDashboard />}
           />
+          <Route
+            path="/teamlead/team"
+            element={<ManagerTeam />}
+          />
+          <Route
+            path="/teamlead/attendance"
+            element={<ManagerAttendance />}
+          />
+          <Route
+            path="/teamlead/leave-requests"
+            element={<ManagerLeaveRequests />}
+          />
+          <Route
+            path="/teamlead/performance"
+            element={<ManagerPerformance />}
+          />
+          <Route
+            path="/teamlead/analytics"
+            element={<ManagerAnalytics />}
+          />
         </Route>
       </Route>
 

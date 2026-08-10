@@ -17,7 +17,7 @@ const navigation: NavigationItem[] = [
   {
     label: "Dashboard",
     path: "/dashboard",
-    allowedRoles: ["Admin", "HR", "Manager"],
+    allowedRoles: ["Admin", "HR", "Manager", "Team Lead"],
     icon: "📊",
   },
   {
