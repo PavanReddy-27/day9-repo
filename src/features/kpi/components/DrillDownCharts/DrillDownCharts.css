@@ -1,0 +1,134 @@
+/* src/features/kpi/components/DrillDownCharts/DrillDownCharts.css */
+
+.drilldown-charts {
+  width: 100%;
+
+  background: var(--surface-solid);
+
+  border: 1px solid var(--border);
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+  transition: all 0.25s ease;
+}
+
+.drilldown-charts:hover {
+  box-shadow: var(--shadow);
+}
+
+.drilldown-charts__header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 20px 24px;
+
+  border-bottom: 1px solid var(--border);
+
+  background: var(--surface);
+}
+
+.drilldown-charts__header h6 {
+  font-weight: 700;
+
+  color: var(--text-h);
+}
+
+.drilldown-charts__header p {
+  margin-top: 4px;
+
+  color: var(--text-light);
+}
+
+.drilldown-charts .MuiToggleButton-root {
+  min-width: 42px;
+
+  height: 40px;
+
+  border-radius: 10px !important;
+
+  border: 1px solid var(--border);
+}
+
+.drilldown-charts .MuiToggleButton-root.Mui-selected {
+  background: var(--primary);
+
+  color: var(--surface-solid);
+}
+
+.drilldown-charts .MuiIconButton-root {
+  width: 40px;
+
+  height: 40px;
+
+  border-radius: 10px;
+
+  border: 1px solid var(--border);
+}
+
+.drilldown-charts .recharts-wrapper {
+  padding: 20px;
+}
+
+.drilldown-charts__loading,
+.drilldown-charts__empty {
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 16px;
+
+  min-height: 380px;
+
+  color: var(--text-light);
+
+  text-align: center;
+}
+
+.drilldown-charts__loading svg {
+  color: var(--primary);
+}
+
+.recharts-cartesian-grid line {
+  stroke: var(--border);
+}
+
+.recharts-legend-wrapper {
+  padding-top: 16px;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+@media (max-width: 900px) {
+
+  .drilldown-charts__header {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+}
+
+@media (max-width: 600px) {
+
+  .drilldown-charts__header {
+    padding: 16px;
+  }
+
+  .drilldown-charts .recharts-wrapper {
+    padding: 10px;
+  }
+
+}

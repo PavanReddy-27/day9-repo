@@ -1,0 +1,103 @@
+.attendance-page {
+    padding: 24px;
+  }
+  
+  .attendance-title {
+    font-weight: 700 !important;
+    margin-bottom: 24px !important;
+  }
+  
+  .attendance-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .attendance-card {
+    padding: 24px;
+    border-radius: 16px !important;
+  }
+  
+  .attendance-label {
+    color: var(--text-light);
+  }
+  
+  .attendance-present {
+    font-weight: 700 !important;
+    color: #16a34a;
+  }
+  
+  .attendance-leave {
+    font-weight: 700 !important;
+    color: #f59e0b;
+  }
+  
+  .attendance-absent {
+    font-weight: 700 !important;
+    color: var(--error);
+  }
+  
+  .attendance-table-paper {
+    padding: 16px;
+    border-radius: 16px !important;
+  }
+  
+  .attendance-table {
+    width: 100%;
+    height: 600px;
+  }
+  
+  .attendance-table .MuiDataGrid-root {
+    border: none;
+  }
+  
+  .attendance-table .MuiDataGrid-columnHeaders {
+    background: var(--bg);
+    font-weight: 700;
+  }
+  
+  .attendance-table .MuiDataGrid-row:hover {
+    background: var(--bg);
+  }
+  
+  .attendance-table .MuiDataGrid-cell {
+    display: flex;
+    align-items: center;
+  }
+  
+  @media (max-width: 900px) {
+    .attendance-summary {
+      grid-template-columns: 1fr;
+    }
+  
+    .attendance-page {
+      padding: 16px;
+    }
+  
+    .attendance-title {
+      font-size: 1.8rem !important;
+    }
+  
+    .attendance-table {
+      height: 500px;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .attendance-page {
+      padding: 12px;
+    }
+  
+    .attendance-card {
+      padding: 18px;
+    }
+  
+    .attendance-title {
+      font-size: 1.5rem !important;
+    }
+  
+    .attendance-table {
+      height: 450px;
+    }
+  }

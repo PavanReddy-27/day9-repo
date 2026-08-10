@@ -1,0 +1,115 @@
+.manager-header-appbar {
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06) !important;
+}
+
+.manager-header-toolbar {
+  min-height: 70px !important;
+  padding: 0 24px !important;
+  gap: 16px;
+}
+
+.manager-header-title {
+  min-width: 0;
+}
+
+.manager-header-title h5 {
+  margin: 0;
+}
+
+.manager-header-subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.manager-header-spacer {
+  flex: 1 1 auto;
+}
+
+.manager-header-search {
+  width: 280px;
+  margin-right: 8px !important;
+}
+
+.manager-header-search .MuiOutlinedInput-root {
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.manager-header-search .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary);
+}
+
+.manager-header-icon {
+  margin-right: 8px !important;
+}
+
+.manager-header-avatar {
+  background: var(--primary) !important;
+  width: 42px !important;
+  height: 42px !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  cursor: pointer;
+}
+
+.manager-header-profile {
+  margin-left: 12px !important;
+}
+
+.manager-header-profile-name {
+  font-weight: 600 !important;
+  line-height: 1.3;
+}
+
+.manager-header-profile-role {
+  color: var(--text-light);
+  line-height: 1.3;
+}
+
+
+@media (max-width: 900px) {
+  .manager-header-toolbar {
+    padding: 0 16px !important;
+  }
+
+  .manager-header-search {
+    display: none !important;
+  }
+
+  .manager-header-profile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .manager-header-toolbar {
+    min-height: 60px !important;
+    padding: 0 12px !important;
+  }
+
+  .manager-header-title h5 {
+    font-size: 1.1rem !important;
+  }
+
+  .manager-header-subtitle {
+    display: none !important;
+  }
+
+  .manager-header-icon {
+    margin-right: 4px !important;
+  }
+
+  .manager-header-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 14px !important;
+  }
+}
+
+
+
+ 

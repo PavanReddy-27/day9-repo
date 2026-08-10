@@ -1,0 +1,50 @@
+.manager-dashboard {
+    background-color: transparent;
+    min-height: 100vh;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .dashboard-section {
+    margin-top: 32px;
+    margin-bottom: 8px;
+  }
+  
+  .dashboard-grid {
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  /* Tablet */
+  @media (max-width: 900px) {
+    .manager-dashboard {
+      padding: 20px;
+    }
+  
+    .dashboard-section {
+      margin-top: 24px;
+    }
+  
+    .dashboard-grid {
+      margin-top: 4px !important;
+      margin-bottom: 4px !important;
+    }
+  }
+  
+  /* Mobile */
+  @media (max-width: 600px) {
+    .manager-dashboard {
+      padding: 16px;
+    }
+  
+    .dashboard-section {
+      margin-top: 20px;
+    }
+  
+    .dashboard-grid {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+  }
+

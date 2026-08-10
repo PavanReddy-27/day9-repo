@@ -1,0 +1,126 @@
+ /* .team-table-paper {
+    margin-top: 24px;
+    border-radius: 16px !important;
+    overflow: hidden;
+  }
+  
+  .employee-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  
+  .employee-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    background: var(--primary) !important;
+  }
+  
+  .employee-name {
+    font-weight: 600;
+    color: var(--text-h);
+  }
+  
+  .employee-role {
+    font-size: 12px;
+    color: var(--text-light);
+  }
+  
+  .team-data-grid {
+    border: none !important;
+  }
+  
+  .team-data-grid .MuiDataGrid-columnHeaders {
+    background: var(--bg);
+    font-weight: 700;
+  }
+  
+  .team-data-grid .MuiDataGrid-cell {
+    display: flex;
+    align-items: center;
+  }
+  
+  .team-data-grid .MuiDataGrid-row:hover {
+    background: var(--bg);
+  }
+  
+  
+  
+  @media (max-width: 900px) {
+    .employee-name {
+      font-size: 14px;
+    }
+  
+    .employee-role {
+      font-size: 11px;
+    }
+  }
+  
+  
+  
+  @media (max-width: 600px) {
+    .team-table-paper {
+      margin-top: 16px;
+      border-radius: 12px !important;
+    }
+  
+    .employee-avatar {
+      width: 34px !important;
+      height: 34px !important;
+      font-size: 14px !important;
+    }
+  
+    .employee-name {
+      font-size: 13px;
+    }
+  
+    .employee-role {
+      font-size: 10px;
+    }
+  }  */
+
+
+  .team-table-paper {
+    border-radius: 18px !important;
+    overflow: hidden;
+  }
+  
+  .team-data-grid {
+    border: none !important;
+  }
+  
+  .team-data-grid .MuiDataGrid-columnHeaders {
+    font-weight: 700;
+    font-size: 15px;
+  }
+  
+  .team-data-grid .MuiDataGrid-cell {
+    display: flex;
+    align-items: center;
+  }
+  
+  .employee-cell {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  
+  .employee-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+  
+  .employee-name {
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+  
+  .employee-role {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 2px;
+  }

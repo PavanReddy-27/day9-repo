@@ -1,0 +1,137 @@
+/* Page Header */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  color: var(--text-light);
+  font-size: 15px;
+}
+
+/* Main Card */
+
+.analytics-card {
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.08);
+  border: 1px solid #eef2f7;
+}
+
+.analytics-card h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 25px;
+}
+
+/* Settings Row */
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-row strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.settings-row p {
+  font-size: 14px;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+/* Toggle Switch */
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 58px;
+  height: 32px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Slider */
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #d1d5db;
+  border-radius: 50px;
+  transition: 0.3s ease;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 24px;
+  width: 24px;
+  left: 4px;
+  bottom: 4px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.switch input:checked + .slider {
+  background: var(--primary);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(26px);
+}
+
+/* Hover Effect */
+
+.analytics-card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 26px;
+  }
+
+  .analytics-card {
+    padding: 20px;
+  }
+}

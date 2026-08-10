@@ -1,0 +1,150 @@
+/* src/features/kpi/components/KPICard/KPICard.css */
+
+.kpi-card {
+  height: 100%;
+  border-radius: 20px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface-solid) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-theme="dark"] .kpi-card {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow);
+}
+
+.kpi-card__action {
+  height: 100%;
+  padding: 24px 24px 0 24px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.kpi-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.kpi-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpi-card__icon svg {
+  font-size: 24px;
+}
+
+.kpi-card__title {
+  color: var(--text-h) !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+.kpi-card__subtitle {
+  color: var(--text-light) !important;
+  font-size: 0.75rem !important;
+}
+
+.kpi-card__more {
+  color: var(--text-light) !important;
+  padding: 4px !important;
+}
+
+.kpi-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kpi-card__value {
+  font-weight: 700 !important;
+  color: var(--text-h);
+  font-size: 2.5rem !important;
+  line-height: 1 !important;
+  letter-spacing: -1px;
+}
+
+.kpi-card__trend-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 4px;
+}
+
+.kpi-card__trend-text {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+}
+
+.kpi-card__trend-text svg {
+  margin-right: 2px;
+}
+
+.kpi-card__trend-text.positive {
+  color: var(--success) !important;
+}
+
+.kpi-card__trend-text.negative {
+  color: var(--error) !important;
+}
+
+.kpi-card__trend-text.neutral {
+  color: var(--text-light) !important;
+}
+
+.kpi-card__trend-label {
+  font-size: 0.65rem !important;
+  color: var(--text-light) !important;
+  margin-top: 2px;
+}
+
+.kpi-card__chart {
+  width: calc(100% + 48px);
+  margin-left: -24px;
+  margin-right: -24px;
+  height: 80px;
+  margin-top: auto;
+}
+
+/* Make sparkline glow slightly on dark mode */
+[data-theme="dark"] .kpi-card__chart .recharts-area-line {
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+@media (max-width: 600px) {
+  .kpi-card__action {
+    padding: 20px 20px 0 20px !important;
+  }
+
+  .kpi-card__chart {
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    margin-right: -20px;
+  }
+
+  .kpi-card__value {
+    font-size: 2rem !important;
+  }
+}
