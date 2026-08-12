@@ -1,6 +1,16 @@
 import { getSession, clearSession } from "../utils/authStorage";
 
-const API_BASE_URL = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL || "/api/v1";
+const getApiUrl = (endpoint: string): string => {
+  const envUrl = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL;
+  const baseUrl = envUrl || "/api/v1";
+  if (baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
+    return `${baseUrl.replace(/\/$/, "")}${endpoint}`;
+  }
+  if (typeof window !== "undefined" && window.location?.origin && window.location.origin !== "null" && !window.location.origin.startsWith("about:")) {
+    return `${window.location.origin.replace(/\/$/, "")}${baseUrl}${endpoint}`;
+  }
+  return `http://localhost:5173${baseUrl}${endpoint}`;
+};
 
 export class ApiError extends Error {
   public status: number;
@@ -41,7 +51,8 @@ export const apiClient = async <T = any>(
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const url = getApiUrl(endpoint);
+    const response = await fetch(url, config);
     
     // Handle 401 Unauthorized
     if (response.status === 401) {

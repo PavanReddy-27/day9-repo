@@ -3,10 +3,11 @@ import { Box, Paper, Typography, Button, TextField, FormControl, InputLabel, Sel
 import { EventAvailable, Search, DownloadForOffline, CalendarMonth } from "@mui/icons-material";
 import { attendanceApi } from "../../services/attendanceApi";
 import { AttendanceRecord } from "../../types/attendance";
+import { useAppSelector } from "../../hooks/redux";
 import CorrectionRequests from "../../components/Attendance/CorrectionRequests";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
-import TimeClock from "../../components/attendance/TimeClock";
+import AttendanceTracker from "../../components/attendance/AttendanceTracker";
 
 const statusColors: Record<string, { bg: string; color: string }> = {
   Present: { bg: "#16A34A22", color: "#16A34A" },
@@ -17,6 +18,7 @@ const statusColors: Record<string, { bg: string; color: string }> = {
 
 
 const Attendance = () => {
+  const { user } = useAppSelector((state) => state.auth);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [deptFilter, setDeptFilter] = useState("All");
@@ -86,12 +88,17 @@ const Attendance = () => {
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <TimeClock />
           <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={exportCSV} sx={{ borderRadius: 2 }}>
             Export CSV
           </Button>
         </Box>
       </Box>
+
+      {user?.role !== "Admin" && (
+        <Box sx={{ mb: 4 }}>
+          <AttendanceTracker />
+        </Box>
+      )}
 
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 2, mb: 4 }}>
         {summary.map((s) => (

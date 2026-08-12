@@ -20,6 +20,7 @@ const AttendanceTracker = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [shiftType, setShiftType] = useState<ShiftType>("Regular");
+  const [workMode, setWorkMode] = useState<"Office" | "Work From Home">("Work From Home");
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -85,13 +86,29 @@ const AttendanceTracker = () => {
     });
   };
 
+  const isIndiaCoordinates = (loc: Location): boolean => {
+    return loc.latitude >= 6.0 && loc.latitude <= 37.5 && loc.longitude >= 68.0 && loc.longitude <= 97.5;
+  };
+
   // Returns an error message if the reading fails geofence/accuracy checks, or null if it's valid.
   const validateGeofenceAndAccuracy = (loc: Location, action: 'Check-in' | 'Check-out'): string | null => {
+    // Work From Home or any Indian location is acceptable for check-in!
+    if (workMode === "Work From Home" || isIndiaCoordinates(loc)) {
+      return null;
+    }
+
     if (loc.accuracy > MAX_GPS_ACCURACY_METERS) {
       return `Your location signal is too weak (±${Math.round(loc.accuracy)}m accuracy). Move to an open area or wait for GPS to stabilize, then try again.`;
     }
 
-    // Geofence checking is disabled per user request. We allow check-in from anywhere (marked as WFH on backend if outside office).
+    const policyType = user?.workMode || "Office";
+    if (policyType === "Office" && workMode === "Office") {
+      const officeLocation = getOfficeLocation();
+      const distance = getDistanceMeters(loc, officeLocation);
+      if (distance > GEOFENCE_RADIUS_METERS) {
+        return `You are ${Math.round(distance)}m away from ${officeLocation.name}. Select 'Work From Home' if checking in remotely within India.`;
+      }
+    }
     return null;
   };
 
@@ -226,12 +243,14 @@ const AttendanceTracker = () => {
         </Box>
 
         <Box sx={{ display: 'flex', flex: '2 1 auto', flexDirection: { xs: 'column', md: 'row' }, gap: 3, position: 'relative', zIndex: 1, width: '100%' }}>
-          {(error || geoError) ? (
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {error && <Alert severity="error">{error}</Alert>}
-              {geoError && <Alert severity="warning">{geoError}</Alert>}
-            </Box>
-          ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 1 }}>
+            {(error || geoError) && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+                {error && <Alert severity="error">{error}</Alert>}
+                {geoError && <Alert severity="warning">{geoError}</Alert>}
+              </Box>
+            )}
+
             <Box sx={{ 
               display: 'flex', 
               flex: 1,
@@ -281,11 +300,24 @@ const AttendanceTracker = () => {
                   <Typography variant="h6" sx={{ fontWeight: 700, mt: 0.5, color: "var(--text-h)" }}>{todayRecord?.totalBreakDuration || 0}m</Typography>
                </Box>
             </Box>
-          )}
+          </Box>
 
           <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
             {!isCheckedIn && !isCheckedOut && (
               <>
+                <FormControl size="small" fullWidth sx={{ mb: 1 }}>
+                  <InputLabel id="workmode-select-label" sx={{ color: "var(--text-light)" }}>Work Mode / Location</InputLabel>
+                  <Select
+                    labelId="workmode-select-label"
+                    value={workMode}
+                    label="Work Mode / Location"
+                    onChange={(e) => setWorkMode(e.target.value as "Office" | "Work From Home")}
+                    sx={{ color: "var(--text-h)", bgcolor: "var(--bg)", '& .MuiOutlinedInput-notchedOutline': { borderColor: "var(--border)" } }}
+                  >
+                    <MenuItem value="Work From Home">🏠 Work From Home (All India Locations)</MenuItem>
+                    <MenuItem value="Office">🏢 Office Location (Geofenced)</MenuItem>
+                  </Select>
+                </FormControl>
                 <FormControl size="small" fullWidth sx={{ mb: 1 }}>
                   <InputLabel id="shift-select-label" sx={{ color: "var(--text-light)" }}>Select Shift</InputLabel>
                   <Select
