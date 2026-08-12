@@ -33,7 +33,8 @@ app.use("/api/v1", apiLimiter);
 app.use("/api/v1", apiRoutes);
 
 // Centralized Error Handler
-app.use((err, req, res, next) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+app.use((err: any, req, res, next) => {
   console.error("[Backend Error]", err.message, err.stack);
   res.status(err.status || 500).json({
     success: false,
@@ -46,7 +47,7 @@ let server;
 async function startServer() {
   await connectDB();
 
-  let currentPort = parseInt(PORT, 10);
+  const currentPort = parseInt(PORT as string, 10);
 
   const tryListen = (portToTry) => {
     server = app
@@ -84,7 +85,7 @@ async function startServer() {
   process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 }
 
-if (process.argv[1]?.includes("index.js")) {
+if (process.argv[1]?.includes("index.ts")) {
   startServer();
 }
 

@@ -21,8 +21,10 @@ import {
   LinearProgress,
 } from "@mui/material";
 import { People, Search, DownloadForOffline } from "@mui/icons-material";
-import { employees } from "../../data/employees";
-import type { Employee } from "../../types/employee";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees, selectRestrictedDashboardEmployees } from "../../redux/dashboardSlice";
+import type { AppDispatch } from "../../redux/store";
 
 const riskColors: Record<string, { bg: string; color: string }> = {
   Low: { bg: "#16A34A22", color: "#16A34A" },
@@ -30,9 +32,13 @@ const riskColors: Record<string, { bg: string; color: string }> = {
   High: { bg: "#DC262622", color: "#DC2626" },
 };
 
-const exportCSV = (data: Employee[]) => {
+const exportCSV = (data: any[]) => {
   const headers = ["Employee ID", "Name", "Department", "Role", "Location", "Status", "Risk"];
-  const rows = data.map((e) => [e.employeeId, e.fullName, e.department, e.designation, e.location, e.status, e.risk]);
+  const rows = data.map((e) => {
+    const dept = typeof e.department === 'object' ? e.department.name : e.department;
+    const loc = typeof e.location === 'object' ? e.location.name : e.location;
+    return [e.employeeId, e.fullName || e.name, dept, e.role || e.designation, loc, e.status, e.risk];
+  });
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -43,18 +49,27 @@ const exportCSV = (data: Employee[]) => {
 };
 
 const Employees = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const employees = useSelector(selectRestrictedDashboardEmployees);
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("All");
   const [riskFilter, setRiskFilter] = useState("All");
 
-  const depts = ["All", ...Array.from(new Set(employees.map((e) => e.department)))].sort();
+  const depts = ["All", ...Array.from(new Set(employees.map((e) => typeof e.department === 'object' ? e.department.name : e.department)))].sort();
 
   const filtered = useMemo(() =>
     employees.filter((e) => {
       const q = search.toLowerCase();
+      const empName = e.fullName || e.name || '';
+      const empDept = typeof e.department === 'object' ? e.department.name : e.department;
       return (
-        (e.fullName.toLowerCase().includes(q) || e.employeeId.toLowerCase().includes(q)) &&
-        (deptFilter === "All" || e.department === deptFilter) &&
+        (empName.toLowerCase().includes(q) || e.employeeId.toLowerCase().includes(q)) &&
+        (deptFilter === "All" || empDept === deptFilter) &&
         (riskFilter === "All" || e.risk === riskFilter)
       );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,21 +145,21 @@ const Employees = () => {
               <TableRow key={emp.employeeId}>
                 <TableCell>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: avatarColor(emp.fullName) }}>{emp.firstName[0]}</Avatar>
+                    <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: avatarColor(emp.fullName || emp.name || '') }}>{(emp.fullName || emp.name || '?')[0]}</Avatar>
                     <Box>
-                      <Typography sx={{ color: "var(--text-h)", fontWeight: 600, fontSize: 14 }}>{emp.fullName}</Typography>
+                      <Typography sx={{ color: "var(--text-h)", fontWeight: 600, fontSize: 14 }}>{emp.fullName || emp.name}</Typography>
                       <Typography sx={{ color: "var(--text-light)", fontSize: 12 }}>{emp.email}</Typography>
                     </Box>
                   </Box>
                 </TableCell>
                 <TableCell sx={{ color: "var(--text-light)", fontSize: 13 }}>{emp.employeeId}</TableCell>
-                <TableCell sx={{ color: "var(--text-h)" }}>{emp.department}</TableCell>
-                <TableCell sx={{ color: "var(--text-light)", fontSize: 13 }}>{emp.designation}</TableCell>
-                <TableCell sx={{ color: "var(--text-light)" }}>{emp.location}</TableCell>
+                <TableCell sx={{ color: "var(--text-h)" }}>{typeof emp.department === 'object' ? emp.department.name : emp.department}</TableCell>
+                <TableCell sx={{ color: "var(--text-light)", fontSize: 13 }}>{(emp as any).role || (emp as any).designation}</TableCell>
+                <TableCell sx={{ color: "var(--text-light)" }}>{typeof emp.location === 'object' ? emp.location.name : emp.location}</TableCell>
                 <TableCell sx={{ minWidth: 120 }}>
                   <Box>
-                    <Typography sx={{ fontSize: 12, color: "var(--text-light)", mb: 0.3 }}>{emp.performanceScore ?? 85}%</Typography>
-                    <LinearProgress variant="determinate" value={emp.performanceScore ?? 85} sx={{ height: 5, borderRadius: 2, bgcolor: "var(--hover)" }} />
+                    <Typography sx={{ fontSize: 12, color: "var(--text-light)", mb: 0.3 }}>{(emp as any).performanceScore ?? 85}%</Typography>
+                    <LinearProgress variant="determinate" value={(emp as any).performanceScore ?? 85} sx={{ height: 5, borderRadius: 2, bgcolor: "var(--hover)" }} />
                   </Box>
                 </TableCell>
                 <TableCell>

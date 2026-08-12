@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { attendanceApi, GeofenceError } from '../services/attendanceApi';
+import { attendanceApi } from '../services/attendanceApi';
 import { saveSession } from '../utils/authStorage';
 import type { AuthSession, User } from '../types/auth';
 
@@ -170,6 +170,7 @@ describe('Attendance API', () => {
     expect(record.checkInTime).toBe(new Date(2026, 7, 6, 7, 0, 0).toISOString());
   });
 
+<<<<<<< HEAD
   describe('Geofence and GPS accuracy validation', () => {
     // Office defaults to San Francisco (37.7749, -122.4194) with a 500m radius,
     // see src/config/attendance.ts.
@@ -371,4 +372,6 @@ describe('Attendance API', () => {
       await expect(attendanceApi.reviewCorrection(correction.id, 'Rejected', 'Not approved')).resolves.toBeUndefined();
     });
   });
+=======
+>>>>>>> 12380b2a83dda9116cf22a3f0f7956a35c837bec
 });

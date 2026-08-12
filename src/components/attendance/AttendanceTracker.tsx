@@ -7,7 +7,7 @@ import { PlayArrow, Pause, Stop, Sync, LocationOn, AccessTime, WbSunny, NightsSt
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkIn, checkOut, startBreak, endBreak, fetchTodayRecord, queueOfflineAction, clearOfflineQueue } from '../../redux/attendanceSlice';
 import { Location, ShiftType } from '../../types/attendance';
-import { attendanceApi, getAttendancePolicy } from '../../services/attendanceApi';
+import { attendanceApi } from '../../services/attendanceApi';
 import { getDistanceMeters, getOfficeLocation, GEOFENCE_RADIUS_METERS, MAX_GPS_ACCURACY_METERS } from '../../config/attendance';
 
 const AttendanceTracker = () => {
@@ -91,7 +91,7 @@ const AttendanceTracker = () => {
       return `Your location signal is too weak (±${Math.round(loc.accuracy)}m accuracy). Move to an open area or wait for GPS to stabilize, then try again.`;
     }
 
-    const policyType = user ? getAttendancePolicy(user.department, user.workMode) : "Office";
+    const policyType = user?.workMode || "Office";
     if (policyType === "Office") {
       const officeLocation = getOfficeLocation();
       const distance = getDistanceMeters(loc, officeLocation);

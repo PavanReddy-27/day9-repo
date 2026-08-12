@@ -1,22 +1,49 @@
 import { Box, Typography } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 
 import TeamToolbar from "../components/team/TeamToolbar";
 import TeamTable from "../components/team/TeamTable";
 import TeamMemberDrawer from "../components/team/TeamMemberDrawer";
 
-import { teamData } from "../data/teamData";
-import type { TeamMember } from "../data/teamData";
 import { useAppSelector } from "../../redux/hooks";
+import { fetchEmployees, selectRestrictedDashboardEmployees } from "../../redux/dashboardSlice";
+import type { AppDispatch } from "../../redux/store";
+import type { TeamMember } from "../data/teamData";
 
 import "./Team.css";
 
 const Team = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useAppSelector((state) => state.auth);
+  const rawEmployees = useAppSelector(selectRestrictedDashboardEmployees);
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState("");
   const [risk, setRisk] = useState("");
   const [selected, setSelected] = useState<TeamMember | null>(null);
+
+  const teamData: TeamMember[] = useMemo(() => {
+    return rawEmployees.map((emp, i) => ({
+      id: i + 1,
+      employeeId: emp.employeeId,
+      name: emp.fullName || emp.name || 'Unknown',
+      designation: emp.role,
+      department: typeof emp.department === 'object' ? emp.department.name : emp.department,
+      email: emp.email,
+      phone: "+1 555-0100", // Placeholder
+      attendance: "Present", // Placeholder
+      performance: "Good", // Placeholder
+      risk: (emp.risk as any) || "Low",
+      experience: emp.experience || 0,
+      productivity: 85, // Placeholder
+      avatar: (emp.fullName || emp.name || 'A')[0].toUpperCase(),
+    }));
+  }, [rawEmployees]);
 
   const rows = useMemo(() => {
     let restrictedData = teamData;
@@ -47,7 +74,7 @@ const Team = () => {
         matchesRisk
       );
     });
-  }, [search, attendance, risk, user]);
+  }, [search, attendance, risk, user, teamData]);
 
   return (
     <Box className="team-page">

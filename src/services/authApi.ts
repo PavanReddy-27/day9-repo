@@ -59,38 +59,8 @@ class AuthApi {
       auditService.log(data.user.username, data.user.role, "User Login Successful");
       return data;
     } catch (err: unknown) {
-      console.warn("Backend authentication failed. Falling back to mock session so you can preview the UI.");
-      
-      const mockData: LoginResponse = {
-        success: true,
-        user: {
-          id: "mock-admin-id",
-          employeeId: "EMP-001",
-          firstName: "Admin",
-          lastName: "User",
-          fullName: "Admin User",
-          username: "Admin User",
-          email: payload.email,
-          role: "Admin",
-          department: "Engineering",
-          designation: "Administrator",
-          location: "Hyderabad",
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        accessToken: "mock-token-123",
-        refreshToken: "mock-refresh-123",
-        expiresAt: Date.now() + 15 * 60 * 1000,
-      };
-
-      saveSession({
-        ...mockData,
-        rememberMe: payload.rememberMe ?? false,
-      });
-
-      localStorage.setItem("accessToken", mockData.accessToken);
-      return mockData;
+      console.error("Backend authentication failed:", err);
+      throw err;
     }
   }
 

@@ -4,7 +4,7 @@ import BreakSession from "../models/BreakSession.js";
 import CorrectionRequest from "../models/CorrectionRequest.js";
 import ApprovalHistory from "../models/ApprovalHistory.js";
 import Location from "../models/Location.js";
-import AuditLog from "../models/AuditLog.js";
+
 import IdempotencyRecord from "../models/IdempotencyRecord.js";
 
 // Haversine formula for geofence validation
@@ -45,7 +45,7 @@ async function saveIdempotency(req, idempotencyKey, status, body) {
       responseBody: body,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     });
-  } catch (err) {
+  } catch {
     // Ignore duplicate key collision
   }
 }
@@ -96,7 +96,7 @@ export const checkIn = async (req, res) => {
     // Geofence check
     const location = await Location.findById(req.employee.locationId);
     let distanceMeters = 0;
-    let isGeofenced = true;
+    const isGeofenced = true;
 
     if (location && coordinates && location.coordinates?.lat) {
       distanceMeters = calculateHaversineDistance(

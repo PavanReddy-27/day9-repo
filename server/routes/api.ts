@@ -1,6 +1,6 @@
 import express from "express";
 import { getDBHealth } from "../config/db.js";
-import { login, refreshToken, logout } from "../controllers/authController.js";
+import { login, refresh, logout } from "../controllers/authController.js";
 import {
   getLocations,
   getDepartments,
@@ -46,7 +46,7 @@ router.get("/health", (req, res) => {
 
 // Authentication Routes
 router.post("/auth/login", login);
-router.post("/auth/refresh", refreshToken);
+router.post("/auth/refresh", refresh);
 router.post("/auth/logout", authenticateJWT, logout);
 
 // Protected Organization & Employee Routes
