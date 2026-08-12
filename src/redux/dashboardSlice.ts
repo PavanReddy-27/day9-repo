@@ -33,24 +33,36 @@ export const DEPARTMENT_DEPENDENCIES: Record<string, { roles: string[]; skills: 
     roles: ['Frontend Developer', 'Backend Developer', 'DevOps Engineer', 'QA Engineer'],
     skills: ['React', 'Node.js', 'Python', 'AWS', 'Docker', 'TypeScript'],
   },
-  Design: {
-    roles: ['UI/UX Designer', 'Product Designer', 'Graphic Designer'],
-    skills: ['Figma', 'Adobe XD', 'Prototyping', 'User Research'],
+  'Human Resources': {
+    roles: ['HR Manager', 'Recruiter', 'HR Generalist'],
+    skills: ['Recruitment', 'Employee Relations', 'Onboarding'],
   },
-  Analytics: {
-    roles: ['Data Analyst', 'Data Scientist', 'BI Developer'],
-    skills: ['Python', 'SQL', 'Tableau', 'Power BI', 'Machine Learning'],
+  Finance: {
+    roles: ['Financial Analyst', 'Accountant', 'Payroll Specialist'],
+    skills: ['Accounting', 'Financial Modeling', 'Payroll Management'],
   },
-  Management: {
-    roles: ['Team Lead', 'Project Manager', 'Product Owner'],
-    skills: ['Agile', 'Scrum', 'Leadership', 'Risk Management'],
+  Sales: {
+    roles: ['Sales Executive', 'Account Executive', 'Sales Manager'],
+    skills: ['B2B Sales', 'CRM', 'Negotiation'],
+  },
+  Marketing: {
+    roles: ['Marketing Manager', 'Content Writer', 'SEO Specialist'],
+    skills: ['SEO', 'Content Marketing', 'Social Media'],
+  },
+  Operations: {
+    roles: ['Operations Manager', 'Process Analyst', 'Logistics Coordinator'],
+    skills: ['Process Optimization', 'Logistics', 'Supply Chain'],
+  },
+  'Customer Support': {
+    roles: ['Support Representative', 'Customer Success Manager', 'Tech Support'],
+    skills: ['Customer Service', 'Troubleshooting', 'CRM'],
   },
 };
 
 // Generate 10,000 Mock Records efficiently
 const generateMockEmployees = (count: number): Employee[] => {
   const depts = Object.keys(DEPARTMENT_DEPENDENCIES);
-  const locations = ['India', 'USA', 'UK', 'Germany', 'Canada'];
+  const locations = ['HYD', 'VSP', 'CHN', 'BLR', 'KOC'];
   const statuses = ['Active', 'Inactive', 'On Leave'];
   const risks = ['Low', 'Medium', 'High'];
   const firstNames = ['Ravi', 'Sridhika', 'Pavan', 'Maheswari', 'Ananya', 'Vikram', 'Neha', 'Arjun'];

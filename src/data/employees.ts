@@ -69,7 +69,7 @@ export const employees: Employee[] = [
     designation: "Software Engineer",
     manager: "Robert King",
 
-    location: "Bangalore",
+    location: "Bengaluru",
     country: "India",
     employmentType: "Permanent",
 
@@ -216,7 +216,7 @@ export const employees: Employee[] = [
     designation: "Senior Accountant",
     manager: "Grace Thomas",
 
-    location: "Pune",
+    location: "Kochi",
     country: "India",
     employmentType: "Permanent",
 
@@ -265,7 +265,7 @@ export const employees: Employee[] = [
     designation: "Specialist",
     manager: "Nancy Cooper",
 
-    location: "Bangalore",
+    location: "Bengaluru",
     country: "India",
     employmentType: "Permanent",
 
