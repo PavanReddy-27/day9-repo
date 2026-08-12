@@ -6,7 +6,7 @@ import { AttendanceRecord, Location } from '../../types/attendance';
 
 interface SmartAttendanceTableProps {
   records: AttendanceRecord[];
-  role: 'HR' | 'Manager' | 'Employee';
+  role: 'HR' | 'Manager' | 'Team Lead' | 'Employee';
 }
 
 const statusColors: Record<string, { bg: string; color: string }> = {
@@ -150,6 +150,7 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
       <DataGrid
         sx={{ flex: 1 }}
         rows={records}
+        getRowId={(row) => row.id || row._id || Math.random().toString()}
         columns={columns}
         pageSizeOptions={[5, 10, 20, 50]}
         initialState={{

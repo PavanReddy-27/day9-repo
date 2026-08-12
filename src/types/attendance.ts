@@ -16,7 +16,9 @@ export interface AttendanceRecord {
   checkInTime: string | null;
   checkOutTime: string | null;
   workingHours: number;
-  status: "Present" | "Half-Day" | "Late" | "Absent" | "Leave" | "Suspicious";
+  workDurationMinutes?: number;
+  breakDurationMinutes?: number;
+  status: "Present" | "Half-Day" | "Late" | "Absent" | "Leave" | "Suspicious" | "Working" | "On Break" | "Checked Out" | "Not Checked In";
 
   shiftType?: ShiftType;
   policyType?: AttendancePolicyType;
@@ -33,6 +35,7 @@ export interface AttendanceRecord {
   department?: string;
   suspiciousReason?: string;
   lastUpdatedAt?: string;
+  workMode?: string;
 }
 
 export interface CorrectionRequest {

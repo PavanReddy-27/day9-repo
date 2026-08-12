@@ -30,8 +30,22 @@ const apiLimiter = rateLimit({
 });
 app.use("/api/v1", apiLimiter);
 
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // API Routes
 app.use("/api/v1", apiRoutes);
+
+// Serve static frontend in production
+app.use(express.static(path.join(__dirname, "../dist")));
+
+app.get(/.*/, (req, res, next) => {
+  if (req.path.startsWith("/api/")) return next();
+  res.sendFile(path.join(__dirname, "../dist/index.html"));
+});
 
 // Centralized Error Handler
 app.use((err: any, req, res, next) => {
