@@ -64,7 +64,7 @@ const LoginForm = () => {
     (state) => state.auth
   );
 
-  const [username, setUsername] =
+  const [email, setEmail] =
     useState("");
 
   const [password, setPassword] =
@@ -83,10 +83,10 @@ const LoginForm = () => {
     useState(false);
 
   const validateForm = (): boolean => {
-    if (!username.trim()) {
+    if (!email.trim()) {
       dispatch(
         loginFailure(
-          "Username is required."
+          "Email is required."
         )
       );
       return false;
@@ -148,8 +148,7 @@ const LoginForm = () => {
 
     try {
       const payload: LoginRequest = {
-        username:
-          username.trim(),
+        email: email.trim(),
 
         password,
 
@@ -182,10 +181,10 @@ const LoginForm = () => {
     }
   };
 
-  const handleUsernameChange = (
+  const handleEmailChange = (
     value: string
   ) => {
-    setUsername(value);
+    setEmail(value);
 
     if (error) {
       dispatch(clearError());
@@ -245,20 +244,20 @@ const LoginForm = () => {
             
             // Auto-fill logic based on selected role
             if (selectedRole === "Admin") {
-              setUsername("admin");
-              setPassword("admin123");
+              setEmail("admin@thestackly.com");
+              setPassword("Password123!");
             } else if (selectedRole === "HR") {
-              setUsername("hr");
-              setPassword("hr123");
+              setEmail("hr@thestackly.com");
+              setPassword("Password123!");
             } else if (selectedRole === "Manager") {
-              setUsername("manager");
-              setPassword("manager123");
+              setEmail("manager@thestackly.com");
+              setPassword("Password123!");
             } else if (selectedRole === "Team Lead") {
-              setUsername("teamlead");
-              setPassword("teamlead123");
+              setEmail("teamlead@thestackly.com");
+              setPassword("Password123!");
             } else if (selectedRole === "Employee") {
-              setUsername("employee");
-              setPassword("employee123");
+              setEmail("employee@thestackly.com");
+              setPassword("Password123!");
             }
           }}
         >
@@ -273,11 +272,11 @@ const LoginForm = () => {
       <TextField
         autoFocus
         fullWidth
-        label="Username"
-        placeholder="Enter your username"
-        value={username}
+        label="Email"
+        placeholder="Enter your email"
+        value={email}
         onChange={(e) =>
-          handleUsernameChange(
+          handleEmailChange(
             e.target.value
           )
         }

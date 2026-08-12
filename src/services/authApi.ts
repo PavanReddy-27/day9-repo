@@ -13,145 +13,12 @@ import {
   saveSession,
   clearSession,
   getSession,
-  updateSession,
 } from "../utils/authStorage";
 
 import { ROLE_DASHBOARD } from "../config/roles";
 import auditService from "./auditService";
 
-interface MockUser extends User {
-  username: string;
-  password: string;
-}
 
-const ACCESS_TOKEN_EXPIRY = 8 * 60 * 60 * 1000;
-
-const generateToken = (length = 64): string => {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-  return Array.from({ length }, () =>
-    chars.charAt(Math.floor(Math.random() * chars.length))
-  ).join("");
-};
-
-const createLoginResponse = (
-  user: User,
-  rememberMe: boolean
-): LoginResponse => {
-  const issuedAt = Date.now();
-
-  const response: LoginResponse = {
-    success: true,
-    user,
-    accessToken: generateToken(),
-    refreshToken: generateToken(),
-    expiresAt: issuedAt + ACCESS_TOKEN_EXPIRY,
-  };
-
-  saveSession({
-    ...response,
-    rememberMe,
-  });
-
-  return response;
-};
-
-const users: MockUser[] = [
-  {
-    id: "1",
-    employeeId: "EMP-001",
-    username: "admin",
-    password: "admin123",
-    firstName: "System",
-    lastName: "Administrator",
-    fullName: "System Administrator",
-    email: "admin@company.com",
-    role: "Admin",
-    department: "IT",
-    designation: "System Administrator",
-    location: "New York",
-    avatar: "",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-
-  {
-    id: "2",
-    employeeId: "EMP-002",
-    username: "hr",
-    password: "hr123",
-    firstName: "David",
-    lastName: "Miller",
-    fullName: "David Miller",
-    email: "hr@company.com",
-    role: "HR",
-    department: "Human Resources",
-    designation: "HR Manager",
-    location: "Chicago",
-    avatar: "",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-
-  {
-    id: "3",
-    employeeId: "EMP-003",
-    username: "manager",
-    password: "manager123",
-    firstName: "Robert",
-    lastName: "King",
-    fullName: "Robert King",
-    email: "manager@company.com",
-    role: "Manager",
-    department: "Engineering",
-    designation: "Engineering Manager",
-    location: "Austin",
-    avatar: "",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    employeeId: "EMP-004",
-    username: "teamlead",
-    password: "teamlead123",
-    firstName: "Sarah",
-    lastName: "Connor",
-    fullName: "Sarah Connor",
-    email: "teamlead@company.com",
-    role: "Team Lead",
-    department: "Engineering",
-    designation: "Team Lead",
-    location: "Austin",
-    avatar: "",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    employeeId: "EMP-005",
-    username: "employee",
-    password: "employee123",
-    firstName: "Pavan",
-    lastName: "Reddy",
-    fullName: "Pavan Reddy",
-    email: "employee@company.com",
-    role: "Employee",
-    department: "Engineering",
-    designation: "Software Engineer",
-    location: "Austin",
-    workMode: "Remote",
-    avatar: "",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 class AuthApi {
   private get ApiBase() {
@@ -171,7 +38,15 @@ class AuthApi {
         throw new Error(errorData.message || "Invalid username or password.");
       }
 
-      const data: LoginResponse = await res.json();
+      const responseData = await res.json();
+      const data: LoginResponse = {
+        success: responseData.success,
+        user: responseData.data,
+        accessToken: responseData.data.accessToken,
+        refreshToken: responseData.data.refreshToken,
+        expiresAt: Date.now() + 15 * 60 * 1000,
+      };
+
       saveSession({
         ...data,
         rememberMe: payload.rememberMe ?? false,
@@ -184,20 +59,7 @@ class AuthApi {
       auditService.log(data.user.username, data.user.role, "User Login Successful");
       return data;
     } catch (err: unknown) {
-      // Fallback for development if backend offline
-      const user = users.find(
-        (item) =>
-          item.username.toLowerCase() === payload.username.trim().toLowerCase() &&
-          item.password === payload.password
-      );
-
-      if (!user) {
-        throw err instanceof Error ? err : new Error("Invalid username or password.");
-      }
-
-      const { ...authUser } = user;
-      auditService.log(authUser.username, authUser.role, "User Login Successful (Mock Fallback)");
-      return createLoginResponse(authUser, payload.rememberMe ?? false);
+      throw err instanceof Error ? err : new Error("Network error. Could not connect to authentication server.");
     }
   }
 
@@ -254,16 +116,9 @@ class AuthApi {
       return null;
     }
 
-    const accessToken =
-      generateToken();
-
-    updateSession((currentSession) => ({
-      ...currentSession,
-      accessToken,
-      expiresAt: Date.now() + ACCESS_TOKEN_EXPIRY,
-    }));
-
-    return accessToken;
+    // Removed generateToken fallback since real refresh tokens come from backend
+    // This method should realistically call the backend /refresh endpoint
+    return null;
   }
 
   hasRole(

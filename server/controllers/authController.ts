@@ -1,4 +1,5 @@
 import User from '../models/User';
+import Employee from '../models/Employee';
 import jwt from 'jsonwebtoken';
 
 // Helper to generate tokens
@@ -26,16 +27,28 @@ export const login = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Account is deactivated' });
     }
 
+    const employee = await Employee.findOne({ email });
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
 
-    // In a real app, you might save the refresh token to the DB or send it in an HttpOnly cookie
     res.status(200).json({
       success: true,
       data: {
         _id: user._id,
+        id: user._id.toString(),
         employeeId: user.employeeId,
         email: user.email,
+        username: user.email,
         role: user.role,
+        firstName: employee?.firstName || 'System',
+        lastName: employee?.lastName || 'User',
+        fullName: employee?.fullName || 'System User',
+        department: employee?.department || 'IT',
+        designation: employee?.designation || user.role,
+        location: employee?.location || 'HQ',
+        avatar: employee?.avatar || '',
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
         accessToken,
         refreshToken
       }

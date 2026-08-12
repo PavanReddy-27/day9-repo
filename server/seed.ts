@@ -1,4 +1,4 @@
-import 'dotenv';.config();
+import 'dotenv/config';
 import mongoose from 'mongoose';
 import { faker } from '@faker-js/faker';
 import connectDB from './config/db';
@@ -81,7 +81,7 @@ const seedDB = async () => {
           firstName,
           lastName,
           fullName: `${firstName} ${lastName}`,
-          email: faker.internet.email({ firstName, lastName, provider: 'company.com' }).toLowerCase(),
+          email: faker.internet.email({ firstName, lastName, provider: 'thestackly.com' }).toLowerCase(),
           phone: faker.phone.number(),
           avatar: faker.image.avatar(),
           
@@ -124,13 +124,13 @@ const seedDB = async () => {
     for (const role of roles) {
       await User.create({
         employeeId: `DEV_${role.toUpperCase()}`,
-        email: `${role.toLowerCase().replace(' ', '')}@company.com`,
+        email: `${role.toLowerCase().replace(' ', '')}@thestackly.com`,
         password: 'Password123!',
         role: role
       });
     }
     
-    console.log('✅ Dev accounts created! (e.g. admin@company.com / Password123!)');
+    console.log('✅ Dev accounts created! (e.g. admin@thestackly.com / Password123!)');
     console.log('Seeding Complete! You may now exit.');
     process.exit(0);
     
