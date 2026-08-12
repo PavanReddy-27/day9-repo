@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { Box, Paper, Typography, TextField } from "@mui/material";
 
 import { DataGrid } from "@mui/x-data-grid";
@@ -9,12 +10,40 @@ import type { KPIItem } from "../../features/kpi/components/KPICards/KPICards";
 import StatusChart from "../../features/charts/components/StatusChart";
 import type { StatusChartData } from "../../types/chart";
 
-import { teamData } from "../data/teamData";
+import { useAppSelector } from "../../redux/hooks";
+import { fetchEmployees, selectRestrictedDashboardEmployees } from "../../redux/dashboardSlice";
+import type { AppDispatch } from "../../redux/store";
+import type { TeamMember } from "../data/teamData";
 
 import "./Performance.css";
 
 const Performance = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const rawEmployees = useAppSelector(selectRestrictedDashboardEmployees);
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
   const [search, setSearch] = useState("");
+
+  const teamData: TeamMember[] = useMemo(() => {
+    return rawEmployees.map((emp, i) => ({
+      id: i + 1,
+      employeeId: emp.employeeId,
+      name: emp.fullName || emp.name || 'Unknown',
+      designation: emp.role,
+      department: typeof emp.department === 'object' ? emp.department.name : emp.department,
+      email: emp.email,
+      phone: "+1 555-0100",
+      attendance: "Present",
+      performance: "Good",
+      risk: (emp.risk as any) || "Low",
+      experience: emp.experience || 0,
+      productivity: 85,
+      avatar: (emp.fullName || emp.name || 'A')[0].toUpperCase(),
+    }));
+  }, [rawEmployees]);
 
   const rows = useMemo(() => {
     return teamData.filter(
@@ -26,7 +55,7 @@ const Performance = () => {
           .toLowerCase()
           .includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, teamData]);
 
   const averageProductivity = Math.round(
     rows.reduce(

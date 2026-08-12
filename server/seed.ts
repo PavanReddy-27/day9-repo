@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import mongoose from 'mongoose';
+
 import { faker } from '@faker-js/faker';
-import connectDB from './config/db';
+import { connectDB } from './config/db';
 
 import Company from './models/Company';
 import Location from './models/Location';
@@ -31,7 +31,7 @@ const seedDB = async () => {
     }
 
     // 1. Create Company
-    const company = await Company.create({ name: 'Acme Corp', code: 'ACME' });
+    const company = await Company.create({ name: 'Stackly', code: 'STACKLY' });
 
     // 2. Create 5 Locations
     const locationsData = [

@@ -58,7 +58,7 @@ export const login = async (req, res, next) => {
   }
 };
 
-export const refresh = async (req, res, next) => {
+export const refresh = async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(401).json({ success: false, message: 'Refresh token required' });
@@ -70,7 +70,7 @@ export const refresh = async (req, res, next) => {
 
     const tokens = generateTokens(user._id, user.role);
     res.status(200).json({ success: true, data: tokens });
-  } catch (error) {
+  } catch {
     res.status(403).json({ success: false, message: 'Invalid refresh token' });
   }
 };

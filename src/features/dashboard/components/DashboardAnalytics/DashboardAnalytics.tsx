@@ -67,7 +67,7 @@ import {
 
 import "./DashboardAnalytics.css";
 
-import type { Employee } from "../../../../types/employee";
+import type { Employee } from "../../../../redux/dashboardSlice";
 
 interface DashboardAnalyticsProps {
   employees: Employee[];
@@ -88,7 +88,7 @@ const DashboardAnalytics = ({
   comparison,
   savedViews,
   saveCurrentView,
-} = useChartFilters(employees);
+} = useChartFilters(employees as any);
   /* ===========================================
      Charts
   =========================================== */
@@ -109,7 +109,7 @@ const DashboardAnalytics = ({
     dashboardSummary,
 
   } = useChartData(
-    filteredEmployees,
+    filteredEmployees as any,
     comparison.enabled
       ? {
           enabled: true,
@@ -154,7 +154,7 @@ const DashboardAnalytics = ({
 
     toggleComparisonMode,
   } = useDrillDown(
-    filteredEmployees
+    filteredEmployees as any
   );
 
   /* ===========================================
@@ -172,7 +172,7 @@ const DashboardAnalytics = ({
       }
 
       return compareDepartments(
-        filteredEmployees,
+        filteredEmployees as any,
 
         comparison.leftDepartment,
 

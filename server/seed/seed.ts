@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { connectDB, closeDB } from "../config/db.js";
@@ -492,7 +492,7 @@ async function printCollectionCounts() {
 }
 
 // CLI runner
-if (process.argv[1]?.includes("seed.js")) {
+if (process.argv[1]?.includes("seed.ts")) {
   const resetFlag = process.argv.includes("--reset");
   runSeed(resetFlag).catch((err) => {
     console.error("[Seed Engine] Fatal Error:", err);

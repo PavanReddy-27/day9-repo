@@ -8,7 +8,6 @@ import { useAppSelector } from "../hooks/redux";
 import authApi from "../services/authApi";
 
 import type { UserRole } from "../types/auth";
-import { simulateBackendChecks, BackendSimulationError } from "../services/backendSimulation";
 import auditService from "../services/auditService";
 
 interface ProtectedRouteProps {
@@ -71,24 +70,7 @@ const ProtectedRoute = ({
     );
   }
 
-  /**
-   * Simulated Backend Architecture Checks
-   */
-  try {
-    // We pass a dummy resource and department for simulation purposes.
-    // In a real app, this would happen in an axios interceptor on API calls.
-    simulateBackendChecks("route_access", "read");
-  } catch (error) {
-    if (error instanceof BackendSimulationError && error.status === 403) {
-      auditService.log(user.username, user.role, `Access Denied: Backend Simulation Check Failed`);
-      return (
-        <Navigate
-          to="/unauthorized"
-          replace
-        />
-      );
-    }
-  }
+
 
   /**
    * Render Protected Route

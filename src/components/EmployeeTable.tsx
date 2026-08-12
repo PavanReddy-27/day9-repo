@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
-  DEPARTMENT_DEPENDENCIES,
   resetFilters,
   setFilter,
 } from "../redux/dashboardSlice";
@@ -9,7 +8,7 @@ import type { RootState } from "../redux/store";
 
 export const EmployeeTable: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { filteredEmployees, filters } = useAppSelector(
+  const { filteredEmployees, employees, filters } = useAppSelector(
     (state: RootState) => state.dashboard
   );
 
@@ -24,32 +23,16 @@ export const EmployeeTable: React.FC = () => {
   }, [searchInput, dispatch]);
 
   const availableOptions = useMemo(() => {
-    if (filters.departments.length === 0) {
-      const allRoles = Object.values(DEPARTMENT_DEPENDENCIES).flatMap(
-        (department) => department.roles
-      );
-      const allSkills = Object.values(DEPARTMENT_DEPENDENCIES).flatMap(
-        (department) => department.skills
-      );
-
-      return {
-        roles: Array.from(new Set(allRoles)),
-        skills: Array.from(new Set(allSkills)),
-      };
-    }
-
-    const roles = filters.departments.flatMap(
-      (department) => DEPARTMENT_DEPENDENCIES[department]?.roles ?? []
-    );
-    const skills = filters.departments.flatMap(
-      (department) => DEPARTMENT_DEPENDENCIES[department]?.skills ?? []
-    );
-
+    const allDepartments = Array.from(new Set(employees.map(e => typeof e.department === 'object' ? e.department.name : e.department)));
+    const allRoles = Array.from(new Set(employees.map(e => e.role)));
+    const allSkills = Array.from(new Set(employees.flatMap(e => e.skills || [])));
+    
     return {
-      roles: Array.from(new Set(roles)),
-      skills: Array.from(new Set(skills)),
+      departments: allDepartments.filter(Boolean),
+      roles: allRoles.filter(Boolean),
+      skills: allSkills.filter(Boolean),
     };
-  }, [filters.departments]);
+  }, [employees]);
 
   const handleMultiSelectChange = (
     key: keyof typeof filters,
@@ -116,7 +99,7 @@ export const EmployeeTable: React.FC = () => {
               border: "1px solid #334155",
             }}
           >
-            {Object.keys(DEPARTMENT_DEPENDENCIES).map((department) => (
+            {availableOptions.departments.map((department) => (
               <label
                 key={department}
                 style={{
@@ -303,16 +286,16 @@ export const EmployeeTable: React.FC = () => {
 
           <tbody>
             {filteredEmployees.slice(0, 50).map((employee) => (
-              <tr key={employee.id} style={{ borderBottom: "1px solid #1e293b" }}>
+              <tr key={employee._id} style={{ borderBottom: "1px solid #1e293b" }}>
                 <td style={{ padding: "12px", fontWeight: "bold", color: "#38bdf8" }}>
-                  {employee.id}
+                  {employee.employeeId}
                 </td>
-                <td style={{ padding: "12px" }}>{employee.name}</td>
-                <td style={{ padding: "12px" }}>{employee.department}</td>
+                <td style={{ padding: "12px" }}>{employee.fullName || employee.name}</td>
+                <td style={{ padding: "12px" }}>{typeof employee.department === 'object' ? employee.department.name : employee.department}</td>
                 <td style={{ padding: "12px" }}>{employee.role}</td>
-                <td style={{ padding: "12px" }}>{employee.skills.join(", ")}</td>
-                <td style={{ padding: "12px" }}>{employee.location}</td>
-                <td style={{ padding: "12px" }}>{employee.hireDate}</td>
+                <td style={{ padding: "12px" }}>{(employee.skills || []).join(", ")}</td>
+                <td style={{ padding: "12px" }}>{typeof employee.location === 'object' ? employee.location.name : employee.location}</td>
+                <td style={{ padding: "12px" }}>{employee.joiningDate}</td>
                 <td style={{ padding: "12px" }}>{employee.risk}</td>
               </tr>
             ))}
