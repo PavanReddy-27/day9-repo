@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkIn, checkOut, startBreak, endBreak, fetchTodayRecord, queueOfflineAction, clearOfflineQueue } from '../../redux/attendanceSlice';
 import { Location, ShiftType } from '../../types/attendance';
 import { attendanceApi } from '../../services/attendanceApi';
-import { getDistanceMeters, getOfficeLocation, MAX_GPS_ACCURACY_METERS } from '../../config/attendance';
+import { getDistanceMeters, getOfficeLocation, MAX_GPS_ACCURACY_METERS, GEOFENCE_RADIUS_METERS } from '../../config/attendance';
 
 const AttendanceTracker = () => {
   const dispatch = useAppDispatch();
@@ -99,7 +99,7 @@ const AttendanceTracker = () => {
   };
 
   // Returns an error message if the reading fails geofence/accuracy checks, or null if it's valid.
-  const validateGeofenceAndAccuracy = (loc: Location, action?: 'Check-in' | 'Check-out'): string | null => {
+  const validateGeofenceAndAccuracy = (loc: Location): string | null => {
     // Work From Home or any Indian location is acceptable for check-in!
     if (workMode === "Work From Home" || isIndiaCoordinates(loc)) {
       return null;

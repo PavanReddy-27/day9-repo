@@ -3,7 +3,7 @@ import AttendanceEvent from "../models/AttendanceEvent.js";
 import BreakSession from "../models/BreakSession.js";
 import CorrectionRequest from "../models/CorrectionRequest.js";
 import ApprovalHistory from "../models/ApprovalHistory.js";
-import Location from "../models/Location.js";
+import LocationModel from "../models/Location.js";
 
 import IdempotencyRecord from "../models/IdempotencyRecord.js";
 
@@ -104,7 +104,7 @@ export const checkIn = async (req, res) => {
     }
 
     // Geofence & Location check
-    const location = await Location.findById(req.employee.locationId);
+    const location = await LocationModel.findById(req.employee.locationId);
     let distanceMeters = 0;
     let isGeofenced = true;
     let actualWorkMode = "Office";

@@ -121,9 +121,28 @@ const seedDB = async () => {
     console.log('Creating 5 development accounts...');
     const roles = ['Admin', 'HR', 'Manager', 'Team Lead', 'Employee'];
     
+    // Pick the first generated location and department
+    const devLocation = Object.values(locations)[0];
+    const devDepartment = Object.values(departments)[0];
+    
     for (const role of roles) {
+      const empIdStr = `DEV_${role.toUpperCase().replace(' ', '_')}`;
+      
+      const emp = await Employee.create({
+        employeeId: empIdStr,
+        companyId: company._id,
+        locationId: devLocation._id,
+        departmentId: devDepartment._id,
+        email: `${role.toLowerCase().replace(' ', '')}@thestackly.com`,
+        firstName: 'Dev',
+        lastName: role,
+        fullName: `Dev ${role}`,
+        role: role,
+      });
+
       await User.create({
-        employeeId: `DEV_${role.toUpperCase()}`,
+        employeeId: empIdStr,
+        companyId: company._id,
         email: `${role.toLowerCase().replace(' ', '')}@thestackly.com`,
         password: 'Password123!',
         role: role
