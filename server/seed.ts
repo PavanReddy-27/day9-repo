@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import { faker } from '@faker-js/faker';
-import { connectDB } from './config/db';
+import connectDB from './config/db';
 
 import Company from './models/Company';
 import Location from './models/Location';

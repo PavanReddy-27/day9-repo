@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
-import { connectDB, closeDB } from "./config/db.js";
+import connectDB, { closeDB } from "./config/db.js";
 import apiRoutes from "./routes/api.js";
 
 dotenv.config();
@@ -33,7 +33,6 @@ app.use("/api/v1", apiLimiter);
 app.use("/api/v1", apiRoutes);
 
 // Centralized Error Handler
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 app.use((err: any, req, res, next) => {
   console.error("[Backend Error]", err.message, err.stack);
   res.status(err.status || 500).json({
@@ -54,7 +53,7 @@ async function startServer() {
       .listen(portToTry, () => {
         console.log(`[Express Backend] Server running on http://localhost:${portToTry}`);
       })
-      .on("error", (err) => {
+      .on("error", (err: NodeJS.ErrnoException) => {
         if (err.code === "EADDRINUSE") {
           console.warn(`[Server] Port ${portToTry} in use, trying port ${portToTry + 1}...`);
           tryListen(portToTry + 1);

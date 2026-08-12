@@ -96,7 +96,8 @@ export const checkIn = async (req, res) => {
     // Geofence & Location check
     const location = await Location.findById(req.employee.locationId);
     let distanceMeters = 0;
-    const isGeofenced = true;
+    let isGeofenced = true;
+    let actualWorkMode = "Office";
 
     const isIndiaLocation = (lat, lng) => lat >= 6.0 && lat <= 37.5 && lng >= 68.0 && lng <= 97.5;
 
@@ -108,6 +109,7 @@ export const checkIn = async (req, res) => {
         location.coordinates.lng
       );
 
+<<<<<<< HEAD
       const requestedWorkMode = req.body.workMode;
       const isWFH = requestedWorkMode === "Work From Home" || requestedWorkMode === "Remote" || req.employee.workMode === "Remote" || req.employee.workMode === "Hybrid" || isIndiaLocation(coordinates.lat, coordinates.lng);
 
@@ -117,6 +119,12 @@ export const checkIn = async (req, res) => {
           message: `Check-in rejected: Outside office geofence (${Math.round(distanceMeters)}m from office, max allowed ${location.radiusMeters}m). Select 'Work From Home' to check in remotely.`,
         };
         return res.status(403).json(resp);
+=======
+      if (req.employee.workMode === "Office" && distanceMeters > location.radiusMeters) {
+        // User requested: bypass geofence block, instead mark them as WFH
+        actualWorkMode = "WFH";
+        isGeofenced = false;
+>>>>>>> d7e289f9116d864d3f4e1bbdc65002f9b86170c5
       }
     }
 
@@ -131,10 +139,12 @@ export const checkIn = async (req, res) => {
         checkInTime: now,
         status: "Working",
         shiftKind: "Regular",
+        workMode: actualWorkMode,
       });
     } else {
       record.checkInTime = now;
       record.status = "Working";
+      record.workMode = actualWorkMode;
     }
 
     await record.save();

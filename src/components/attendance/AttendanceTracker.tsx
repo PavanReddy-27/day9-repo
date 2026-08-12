@@ -101,6 +101,7 @@ const AttendanceTracker = () => {
       return `Your location signal is too weak (±${Math.round(loc.accuracy)}m accuracy). Move to an open area or wait for GPS to stabilize, then try again.`;
     }
 
+<<<<<<< HEAD
     const policyType = user?.workMode || "Office";
     if (policyType === "Office" && workMode === "Office") {
       const officeLocation = getOfficeLocation();
@@ -110,6 +111,9 @@ const AttendanceTracker = () => {
       }
     }
 
+=======
+    // Geofence checking is disabled per user request. We allow check-in from anywhere (marked as WFH on backend if outside office).
+>>>>>>> d7e289f9116d864d3f4e1bbdc65002f9b86170c5
     return null;
   };
 

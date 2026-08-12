@@ -42,7 +42,7 @@ export const AttendanceChart = ({ records }: AttendanceChartProps) => {
         break: Number(((record.totalBreakDuration || 0) / 60).toFixed(1))
       };
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [records, tick]); // tick forces the chart to update live!
 
   if (chartData.length === 0) return null;
