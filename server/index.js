@@ -46,9 +46,24 @@ let server;
 async function startServer() {
   await connectDB();
 
-  server = app.listen(PORT, () => {
-    console.log(`[Express Backend] Server running on http://localhost:${PORT}`);
-  });
+  let currentPort = parseInt(PORT, 10);
+
+  const tryListen = (portToTry) => {
+    server = app
+      .listen(portToTry, () => {
+        console.log(`[Express Backend] Server running on http://localhost:${portToTry}`);
+      })
+      .on("error", (err) => {
+        if (err.code === "EADDRINUSE") {
+          console.warn(`[Server] Port ${portToTry} in use, trying port ${portToTry + 1}...`);
+          tryListen(portToTry + 1);
+        } else {
+          console.error("[Server Error]", err);
+        }
+      });
+  };
+
+  tryListen(currentPort);
 
   // Graceful Shutdown
   const gracefulShutdown = async (signal) => {
