@@ -34,16 +34,26 @@ export const authenticateJWT = async (req, res, next) => {
     // Also set employee/company info for controllers
     const userDoc = await findUserById(decoded.id) as any;
     if (userDoc) {
-      const employeeDoc = await Employee.findOne({ employeeId: userDoc.employeeId });
+      let employeeDoc = await Employee.findOne({ employeeId: userDoc.employeeId });
+      
+      // Fallback for DEV accounts that don't have a matching Employee record
+      if (!employeeDoc && userDoc.employeeId.startsWith('DEV_')) {
+        employeeDoc = await Employee.findOne({});
+      }
+
       if (employeeDoc) {
-        req.employee = { 
-          _id: employeeDoc._id, 
-          locationId: employeeDoc.location 
+        req.employee = {
+          _id: employeeDoc._id,
+          locationId: employeeDoc.locationId,
+          departmentId: employeeDoc.departmentId,
+          teamId: employeeDoc.teamId,
+          workMode: employeeDoc.workMode,
         };
       } else {
-        req.employee = { _id: userDoc.employeeId };
+        // Just use a deterministic ObjectId so it doesn't crash on CastError
+        req.employee = { _id: new mongoose.Types.ObjectId("000000000000000000000000") };
       }
-      req.companyId = employeeDoc ? employeeDoc.company : userDoc.companyId;
+      req.companyId = employeeDoc ? employeeDoc.companyId : userDoc.companyId;
       req.role = userDoc.role;
     }
 
@@ -63,12 +73,39 @@ export const requireRole = (roles) => {
 };
 
 export const applyRoleDataScope = (req, res, next) => {
+  // Used by attendance history, where the self-scope field is `employeeId`
+  // (which stores the Employee ObjectId on attendancerecords).
   if (req.role === 'Employee') {
     req.scopeFilter = { employeeId: req.employee._id };
   } else {
     req.scopeFilter = {};
   }
   next();
+};
+
+/**
+ * Builds the authoritative Mongo filter that scopes a query against the
+ * `employees` collection to what the authenticated principal may see.
+ * Always company-isolated; Managers are pinned to their department, Team Leads
+ * to their team, and Employees to their own record. Admin/HR see the whole
+ * (authorized) company. This is a pure function so it can be unit-tested
+ * against the real production logic.
+ */
+export const buildEmployeeScopeFilter = (
+  role: string,
+  employee: { _id?: unknown; departmentId?: unknown; teamId?: unknown },
+  companyId: unknown
+): Record<string, unknown> => {
+  const filter: Record<string, unknown> = { companyId };
+  if (role === 'Manager') {
+    filter.departmentId = employee.departmentId;
+  } else if (role === 'Team Lead') {
+    filter.teamId = employee.teamId;
+  } else if (role === 'Employee') {
+    filter._id = employee._id;
+  }
+  // Admin / HR: company-wide, no further narrowing.
+  return filter;
 };
 
 export const validateObjectId = (param) => {

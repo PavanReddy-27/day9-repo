@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 
 const userSchema = new mongoose.Schema({
   employeeId: {
@@ -42,9 +43,13 @@ userSchema.pre('save', async function () {
 
 // Compare password method
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (this.password && this.password.startsWith('$argon2')) {
+    return await argon2.verify(this.password, enteredPassword);
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+export const User = mongoose.model('User', userSchema);
 export const AdminAuth = mongoose.model('AdminAuth', userSchema);
 export const HRAuth = mongoose.model('HRAuth', userSchema);
 export const ManagerAuth = mongoose.model('ManagerAuth', userSchema);

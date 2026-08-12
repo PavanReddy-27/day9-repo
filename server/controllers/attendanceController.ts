@@ -76,21 +76,31 @@ export const getAttendanceStatus = async (req, res) => {
 
 export const checkIn = async (req, res) => {
   try {
-    const { coordinates, gpsAccuracy, idempotencyKey } = req.body;
+    const { location: coordinates, source = "Web", shiftType = "Regular", idempotencyKey, isWFH } = req.body;
 
     const handled = await checkIdempotency(req, res, idempotencyKey);
     if (handled) return;
 
     const today = getTodayDateStr();
+    // Use sort to get the most recent record for today
     let record = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    });
+    }).sort({ createdAt: -1 });
 
     if (record && record.status !== "Not Checked In") {
-      const resp = { success: false, message: `Cannot check in: Current state is '${record.status}'.` };
+      const resp = { success: false, message: `Cannot check in: You have already checked in today (Status: ${record.status}).` };
       return res.status(400).json(resp);
+    }
+
+    // Reject GPS readings too imprecise to trust before doing anything else with them.
+    const MAX_GPS_ACCURACY_METERS = 500;
+    if (coordinates?.accuracy != null && coordinates.accuracy > MAX_GPS_ACCURACY_METERS) {
+      return res.status(400).json({
+        success: false,
+        message: `GPS reading is too inaccurate (±${Math.round(coordinates.accuracy)}m) to verify your location. Please try again with a stronger signal.`,
+      });
     }
 
     // Geofence & Location check
@@ -103,28 +113,31 @@ export const checkIn = async (req, res) => {
 
     if (location && coordinates && location.coordinates?.lat) {
       distanceMeters = calculateHaversineDistance(
-        coordinates.lat,
-        coordinates.lng,
+        coordinates.latitude || coordinates.lat,
+        coordinates.longitude || coordinates.lng,
         location.coordinates.lat,
         location.coordinates.lng
       );
 
-<<<<<<< HEAD
       const requestedWorkMode = req.body.workMode;
-      const isWFH = requestedWorkMode === "Work From Home" || requestedWorkMode === "Remote" || req.employee.workMode === "Remote" || req.employee.workMode === "Hybrid" || isIndiaLocation(coordinates.lat, coordinates.lng);
+      const isWFHRequest = requestedWorkMode === "Work From Home" || requestedWorkMode === "Remote" || isWFH;
+      const isWFHMode = isWFHRequest || req.employee.workMode === "Remote" || req.employee.workMode === "Hybrid" || isIndiaLocation(coordinates.latitude || coordinates.lat, coordinates.longitude || coordinates.lng);
 
-      if (!isWFH && req.employee.workMode === "Office" && distanceMeters > location.radiusMeters) {
-        const resp = {
-          success: false,
-          message: `Check-in rejected: Outside office geofence (${Math.round(distanceMeters)}m from office, max allowed ${location.radiusMeters}m). Select 'Work From Home' to check in remotely.`,
-        };
-        return res.status(403).json(resp);
-=======
-      if (req.employee.workMode === "Office" && distanceMeters > location.radiusMeters) {
-        // User requested: bypass geofence block, instead mark them as WFH
+      if (!isWFHMode && req.employee.workMode === "Office" && distanceMeters > (location.geofenceRadiusMeters || location.radiusMeters || 500)) {
+        if (isWFH) {
+           actualWorkMode = "WFH";
+           isGeofenced = false;
+        } else {
+           const resp = {
+             success: false,
+             message: `OUTSIDE_GEOFENCE`,
+             distance: Math.round(distanceMeters)
+           };
+           return res.status(403).json(resp);
+        }
+      } else if (isWFHMode) {
         actualWorkMode = "WFH";
         isGeofenced = false;
->>>>>>> d7e289f9116d864d3f4e1bbdc65002f9b86170c5
       }
     }
 
@@ -138,13 +151,18 @@ export const checkIn = async (req, res) => {
         date: today,
         checkInTime: now,
         status: "Working",
-        shiftKind: "Regular",
+        shiftKind: shiftType,
         workMode: actualWorkMode,
+        checkInCoordinates: coordinates ? { lat: coordinates.latitude || coordinates.lat, lng: coordinates.longitude || coordinates.lng } : undefined,
       });
     } else {
       record.checkInTime = now;
       record.status = "Working";
       record.workMode = actualWorkMode;
+      record.shiftKind = shiftType;
+      if (coordinates) {
+        record.checkInCoordinates = { lat: coordinates.latitude || coordinates.lat, lng: coordinates.longitude || coordinates.lng };
+      }
     }
 
     await record.save();
@@ -156,7 +174,7 @@ export const checkIn = async (req, res) => {
       eventType: "CHECK_IN",
       timestamp: now,
       locationCoordinates: coordinates,
-      gpsAccuracy: gpsAccuracy || 0,
+      gpsAccuracy: coordinates?.accuracy || 0,
       isGeofenced,
       distanceMeters,
       idempotencyKey,
@@ -261,7 +279,8 @@ export const resumeWork = async (req, res) => {
 
 export const checkOut = async (req, res) => {
   try {
-    const { idempotencyKey } = req.body;
+    const { location: coordinates, idempotencyKey } = req.body;
+
     const handled = await checkIdempotency(req, res, idempotencyKey);
     if (handled) return;
 
@@ -278,6 +297,23 @@ export const checkOut = async (req, res) => {
 
     if (record.status === "Checked Out") {
       return res.status(400).json({ success: false, message: "Cannot check out: Employee has already checked out." });
+    }
+
+    // WFH checkout validation
+    if (record.workMode === "WFH" && record.checkInCoordinates?.lat && (coordinates?.lat || coordinates?.latitude)) {
+      const distanceMeters = calculateHaversineDistance(
+        coordinates.latitude || coordinates.lat,
+        coordinates.longitude || coordinates.lng,
+        record.checkInCoordinates.lat,
+        record.checkInCoordinates.lng
+      );
+      // Ensure they check out within 200m of where they checked in for WFH
+      if (distanceMeters > 200) {
+        return res.status(403).json({
+          success: false,
+          message: `Check-out rejected: You must check out from your WFH location (currently ${Math.round(distanceMeters)}m away).`
+        });
+      }
     }
 
     const now = new Date();

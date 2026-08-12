@@ -22,12 +22,14 @@
   "scripts": {
     "dev": "vite",
     "server": "tsx server/index.ts",
+    "start": "tsx server/index.ts",
     "seed": "tsx server/seed.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -61,6 +63,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

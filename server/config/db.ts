@@ -40,8 +40,30 @@ const connectDB = async () => {
   }
 };
 
+const READY_STATES: Record<number, string> = {
+  0: "disconnected",
+  1: "connected",
+  2: "connecting",
+  3: "disconnecting",
+};
+
+export const getDBHealth = () => {
+  const readyState: number = mongoose.connection.readyState;
+  return {
+    status: readyState === 1 ? "healthy" : "unhealthy",
+    state: READY_STATES[readyState] ?? "unknown",
+    host: mongoose.connection.host,
+    name: mongoose.connection.name,
+    inMemory: mongoServer !== null,
+  };
+};
+
 export const closeDB = async () => {
   await mongoose.connection.close();
+  if (mongoServer) {
+    await mongoServer.stop();
+    mongoServer = null;
+  }
 };
 
 export default connectDB;

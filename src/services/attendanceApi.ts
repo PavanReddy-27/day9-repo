@@ -15,7 +15,9 @@ const getLocalState = (): Record<string, AttendanceRecord> => {
 const saveLocalState = (state: Record<string, AttendanceRecord>) => {
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-  } catch {}
+  } catch {
+    // localStorage may be unavailable (private mode / quota); ignore cache write failures
+  }
 };
 
 export const attendanceApi = {
@@ -36,12 +38,13 @@ export const attendanceApi = {
     source: AttendanceSource = "Web",
     shiftType: ShiftType = "Regular",
     idempotencyKey?: string,
-    department: string = "Unknown"
+    department: string = "Unknown",
+    isWFH?: boolean
   ): Promise<AttendanceRecord> => {
     try {
       return await apiClient<AttendanceRecord>("/attendance/check-in", {
         method: "POST",
-        body: JSON.stringify({ location, source, shiftType, idempotencyKey }),
+        body: JSON.stringify({ location, source, shiftType, idempotencyKey, isWFH }),
       });
     } catch {
       const today = new Date().toISOString().split("T")[0];
@@ -63,6 +66,7 @@ export const attendanceApi = {
         shiftType,
         source,
         location,
+        workMode: isWFH ? "WFH" : "Office",
       };
 
       const localState = getLocalState();
@@ -118,11 +122,11 @@ export const attendanceApi = {
     }
   },
 
-  checkOut: async (employeeId: string, location?: Location): Promise<AttendanceRecord> => {
+  checkOut: async (employeeId: string, location?: Location, idempotencyKey?: string): Promise<AttendanceRecord> => {
     try {
       return await apiClient<AttendanceRecord>("/attendance/check-out", {
         method: "POST",
-        body: JSON.stringify({ location }),
+        body: JSON.stringify({ location, idempotencyKey }),
       });
     } catch {
       const today = new Date().toISOString().split("T")[0];

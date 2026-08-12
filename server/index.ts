@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 import connectDB, { closeDB } from "./config/db.js";
 import apiRoutes from "./routes/api.js";
+import mongoose from "mongoose";
 
 dotenv.config();
 
@@ -45,6 +46,32 @@ let server;
 
 async function startServer() {
   await connectDB();
+
+  // Auto-migrate users for testing environments
+  try {
+    const usersCount = await mongoose.connection.collection('users').countDocuments();
+    if (usersCount > 0) {
+      console.log('Migrating users to role-based collections...');
+      const users = await mongoose.connection.collection('users').find({}).toArray();
+      for (const u of users) {
+        try {
+          if (u.role === 'Admin') await mongoose.connection.collection('adminauths').insertOne(u);
+          else if (u.role === 'HR') await mongoose.connection.collection('hrauths').insertOne(u);
+          else if (u.role === 'Manager') await mongoose.connection.collection('managerauths').insertOne(u);
+          else if (u.role === 'Team Lead') await mongoose.connection.collection('teamleadauths').insertOne(u);
+          else await mongoose.connection.collection('employeeauths').insertOne(u);
+        } catch (insertErr: any) {
+          if (insertErr.code !== 11000) {
+            console.error('Error inserting user:', insertErr);
+          }
+        }
+      }
+      await mongoose.connection.collection('users').drop();
+      console.log('Migration complete!');
+    }
+  } catch (err) {
+    console.error('Migration failed:', err);
+  }
 
   const currentPort = parseInt(PORT as string, 10);
 
