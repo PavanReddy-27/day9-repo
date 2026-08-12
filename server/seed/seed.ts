@@ -383,8 +383,12 @@ export async function runSeed(reset = false) {
   }
   await PerformanceRecord.insertMany(performanceRecordsBatch);
 
-  // Seed 30 days of recent attendance & productivity for all 250 employees in batches
-  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+  // Seed 30 days of recent HISTORICAL attendance & productivity for all 250
+  // employees in batches. We start at dayOffset = 1 (yesterday) and never write
+  // the current day: today must begin as "Not Checked In" so employees can
+  // actually check in / out through the app each day. Writing today here would
+  // leave every employee already "Checked Out" and block real check-ins.
+  for (let dayOffset = 1; dayOffset <= 30; dayOffset++) {
     const dateObj = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
     if (dateObj.getDay() === 0 || dateObj.getDay() === 6) continue; // Skip weekends
 
