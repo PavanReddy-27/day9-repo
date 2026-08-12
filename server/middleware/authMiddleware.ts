@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
-
 import mongoose from 'mongoose';
+import Employee from '../models/Employee.js';
 
 export const authenticateJWT = async (req, res, next) => {
   try {
@@ -23,6 +23,7 @@ export const authenticateJWT = async (req, res, next) => {
       req.companyId = userDoc.companyId;
       req.role = userDoc.role;
     }
+
     next();
   } catch {
     res.status(401).json({ success: false, message: 'Not authorized, token failed' });
@@ -31,8 +32,8 @@ export const authenticateJWT = async (req, res, next) => {
 
 export const requireRole = (roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ success: false, message: 'Forbidden' });
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: 'Forbidden: Insufficient permissions' });
     }
     next();
   };

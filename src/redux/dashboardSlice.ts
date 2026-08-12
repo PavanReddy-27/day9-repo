@@ -30,6 +30,7 @@ export interface FilterState {
   endDate: string;
 }
 
+
 const initialFilters: FilterState = {
   search: '',
   departments: [],
