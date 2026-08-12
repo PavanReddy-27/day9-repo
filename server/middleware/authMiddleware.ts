@@ -34,8 +34,16 @@ export const authenticateJWT = async (req, res, next) => {
     // Also set employee/company info for controllers
     const userDoc = await findUserById(decoded.id) as any;
     if (userDoc) {
-      req.employee = { _id: userDoc.employeeId };
-      req.companyId = userDoc.companyId;
+      const employeeDoc = await Employee.findOne({ employeeId: userDoc.employeeId });
+      if (employeeDoc) {
+        req.employee = { 
+          _id: employeeDoc._id, 
+          locationId: employeeDoc.location 
+        };
+      } else {
+        req.employee = { _id: userDoc.employeeId };
+      }
+      req.companyId = employeeDoc ? employeeDoc.company : userDoc.companyId;
       req.role = userDoc.role;
     }
 
