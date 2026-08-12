@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -62,18 +62,16 @@ const Employees = () => {
 
   const depts = ["All", ...Array.from(new Set(employees.map((e) => typeof e.department === 'object' ? e.department.name : e.department)))].sort();
 
-  const filtered = useMemo(() =>
-    employees.filter((e) => {
-      const q = search.toLowerCase();
-      const empName = e.fullName || e.name || '';
-      const empDept = typeof e.department === 'object' ? e.department.name : e.department;
-      return (
-        (empName.toLowerCase().includes(q) || e.employeeId.toLowerCase().includes(q)) &&
-        (deptFilter === "All" || empDept === deptFilter) &&
-        (riskFilter === "All" || e.risk === riskFilter)
-      );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [employees, search, deptFilter, riskFilter]);
+  const filtered = employees.filter((e) => {
+    const q = search.toLowerCase();
+    const empName = e.fullName || e.name || '';
+    const empDept = typeof e.department === 'object' ? e.department.name : e.department;
+    return (
+      (empName.toLowerCase().includes(q) || e.employeeId.toLowerCase().includes(q)) &&
+      (deptFilter === "All" || empDept === deptFilter) &&
+      (riskFilter === "All" || e.risk === riskFilter)
+    );
+  });
 
   const avatarColor = (name: string) => {
     const colors = ["#2563EB", "#7C3AED", "#DB2777", "#D97706", "#16A34A", "#0891B2"];
