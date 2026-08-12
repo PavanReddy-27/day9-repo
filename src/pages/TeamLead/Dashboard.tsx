@@ -1,5 +1,6 @@
 import React from "react";
 import { useAppSelector } from "../../hooks/redux";
+import AttendanceTracker from "../../components/Attendance/AttendanceTracker";
 
 const TeamLeadDashboard: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -15,6 +16,10 @@ const TeamLeadDashboard: React.FC = () => {
             Welcome back, {user?.fullName || "Team Lead"}! Managing team scope & assigned projects.
           </p>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <AttendanceTracker />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, Paper, CircularProgress,
-  Alert, Tooltip, Grow, Fade, FormControl, Select, MenuItem, InputLabel, IconButton
+  Alert, Tooltip, Grow, Fade, FormControl, Select, MenuItem, InputLabel, IconButton,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
 } from '@mui/material';
 import { PlayArrow, Pause, Stop, Sync, LocationOn, AccessTime, WbSunny, NightsStay } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkIn, checkOut, startBreak, endBreak, fetchTodayRecord, queueOfflineAction, clearOfflineQueue } from '../../redux/attendanceSlice';
 import { Location, ShiftType } from '../../types/attendance';
 import { attendanceApi } from '../../services/attendanceApi';
-import { getDistanceMeters, getOfficeLocation, GEOFENCE_RADIUS_METERS, MAX_GPS_ACCURACY_METERS } from '../../config/attendance';
+import { getDistanceMeters, getOfficeLocation, MAX_GPS_ACCURACY_METERS } from '../../config/attendance';
 
 const AttendanceTracker = () => {
   const dispatch = useAppDispatch();
@@ -21,6 +22,8 @@ const AttendanceTracker = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [shiftType, setShiftType] = useState<ShiftType>("Regular");
   const [workMode, setWorkMode] = useState<"Office" | "Work From Home">("Work From Home");
+  const [isLocating, setIsLocating] = useState(false);
+  const [wfhPrompt, setWfhPrompt] = useState<{ open: boolean, loc: Location | null }>({ open: false, loc: null });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -69,6 +72,10 @@ const AttendanceTracker = () => {
     }
   }, [isOnline, offlineQueue, user, dispatch]);
 
+  if (user?.role === 'Admin' || user?.role === 'Manager') {
+    return null;
+  }
+
   const getLocation = (): Promise<Location> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -80,7 +87,8 @@ const AttendanceTracker = () => {
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy
           }),
-          () => reject('Unable to retrieve your location. Permission denied.')
+          (err) => reject(err.code === err.TIMEOUT ? 'Location request timed out. Please try again.' : 'Unable to retrieve your location. Permission denied or unavailable.'),
+          { timeout: 5000, enableHighAccuracy: false }
         );
       }
     });
@@ -91,12 +99,11 @@ const AttendanceTracker = () => {
   };
 
   // Returns an error message if the reading fails geofence/accuracy checks, or null if it's valid.
-  const validateGeofenceAndAccuracy = (loc: Location, action: 'Check-in' | 'Check-out'): string | null => {
+  const validateGeofenceAndAccuracy = (loc: Location, action?: 'Check-in' | 'Check-out'): string | null => {
     // Work From Home or any Indian location is acceptable for check-in!
     if (workMode === "Work From Home" || isIndiaCoordinates(loc)) {
       return null;
     }
-
     if (loc.accuracy > MAX_GPS_ACCURACY_METERS) {
       return `Your location signal is too weak (±${Math.round(loc.accuracy)}m accuracy). Move to an open area or wait for GPS to stabilize, then try again.`;
     }
@@ -112,40 +119,56 @@ const AttendanceTracker = () => {
     return null;
   };
 
+  const executeCheckIn = async (loc: Location, isWFH: boolean = false) => {
+    const idempotencyKey = Math.random().toString(36).substr(2, 9);
+
+    if (!isOnline) {
+       dispatch(queueOfflineAction({ type: 'checkIn', location: loc, shiftType, idempotencyKey }));
+       setGeoError("You are offline. Check-in queued for sync.");
+       return;
+    }
+
+    if (user) {
+      const resultAction = await dispatch(checkIn({
+        employeeId: user.id,
+        employeeName: user.fullName,
+        location: loc,
+        shiftType,
+        department: user.department,
+        idempotencyKey,
+        isWFH
+      }));
+      
+      if (checkIn.rejected.match(resultAction)) {
+        if (resultAction.payload === "OUTSIDE_GEOFENCE" || resultAction.error.message?.includes("OUTSIDE_GEOFENCE")) {
+           setWfhPrompt({ open: true, loc });
+        } else {
+           setGeoError(resultAction.payload as string || resultAction.error.message || "Check-in failed");
+        }
+      }
+    }
+  };
+
   const handleCheckIn = async () => {
     try {
       setGeoError(null);
       let loc = currentLocation;
       if (!loc) {
+        setIsLocating(true);
         loc = await getLocation();
         setCurrentLocation(loc);
+        setIsLocating(false);
       }
 
-      const validationError = validateGeofenceAndAccuracy(loc, 'Check-in');
+      const validationError = validateGeofenceAndAccuracy(loc);
       if (validationError) {
         setGeoError(validationError);
         return;
       }
 
-      const idempotencyKey = Math.random().toString(36).substr(2, 9);
-
-      if (!isOnline) {
-         dispatch(queueOfflineAction({ type: 'checkIn', location: loc, shiftType, idempotencyKey }));
-         setGeoError("You are offline. Check-in queued for sync.");
-         return;
-      }
-
-      if (user) {
-        dispatch(checkIn({
-          employeeId: user.id,
-          employeeName: user.fullName,
-          location: loc,
-          shiftType,
-          department: user.department,
-          idempotencyKey
-        }));
-      }
+      await executeCheckIn(loc, false);
     } catch (err) {
+      setIsLocating(false);
       setGeoError(String(err));
     }
   };
@@ -154,10 +177,15 @@ const AttendanceTracker = () => {
     if (!user) return;
     try {
       setGeoError(null);
-      const loc = await getLocation();
-      setCurrentLocation(loc);
+      let loc = currentLocation;
+      if (!loc) {
+        setIsLocating(true);
+        loc = await getLocation();
+        setCurrentLocation(loc);
+        setIsLocating(false);
+      }
 
-      const validationError = validateGeofenceAndAccuracy(loc, 'Check-out');
+      const validationError = validateGeofenceAndAccuracy(loc);
       if (validationError) {
         setGeoError(validationError);
         return;
@@ -165,6 +193,7 @@ const AttendanceTracker = () => {
 
       dispatch(checkOut({ employeeId: user.id, location: loc }));
     } catch (err) {
+      setIsLocating(false);
       setGeoError(String(err));
     }
   };
@@ -185,12 +214,13 @@ const AttendanceTracker = () => {
 
   if (!user) return null;
 
-  const isCheckedIn = !!todayRecord && !todayRecord.checkOutTime;
-  const isOnBreak = isCheckedIn && !!todayRecord.breakStartTime;
-  const isCheckedOut = !!todayRecord && !!todayRecord.checkOutTime;
+  const isCheckedIn = !!todayRecord && todayRecord.status !== 'Not Checked In' && !todayRecord.checkOutTime;
+  const isOnBreak = !!todayRecord && todayRecord.status === 'On Break';
+  const isCheckedOut = !!todayRecord && todayRecord.status === 'Checked Out';
 
   return (
-    <Grow in={true} timeout={800}>
+    <>
+      <Grow in={true} timeout={800}>
       <Paper 
         elevation={0} 
         sx={{ 
@@ -336,9 +366,9 @@ const AttendanceTracker = () => {
                 <Button 
                   variant="contained" 
                   size="large" 
-                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                  startIcon={(loading || isLocating) ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
                   onClick={handleCheckIn}
-                  disabled={loading}
+                  disabled={loading || isLocating}
                   fullWidth
                   sx={{ 
                     py: 1.5, 
@@ -379,9 +409,9 @@ const AttendanceTracker = () => {
                 </Button>
                 <Button 
                   variant="contained" 
-                  startIcon={<Stop />}
+                  startIcon={(loading || isLocating) ? <CircularProgress size={20} color="inherit" /> : <Stop />}
                   onClick={handleCheckOut}
-                  disabled={loading}
+                  disabled={loading || isLocating}
                   sx={{ 
                     flex: 1, 
                     py: 1.5, 
@@ -430,7 +460,26 @@ const AttendanceTracker = () => {
           </Box>
         </Box>
       </Paper>
-    </Grow>
+      </Grow>
+
+      <Dialog open={wfhPrompt.open} onClose={() => setWfhPrompt({ open: false, loc: null })}>
+        <DialogTitle>Outside Office Geofence</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You are currently outside the required radius of the office location. Would you like to check in as "Work From Home" (WFH)?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setWfhPrompt({ open: false, loc: null })} color="inherit">Cancel</Button>
+          <Button onClick={() => {
+            if (wfhPrompt.loc) executeCheckIn(wfhPrompt.loc, true);
+            setWfhPrompt({ open: false, loc: null });
+          }} variant="contained" color="primary">
+            Check In as WFH
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

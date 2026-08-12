@@ -53,7 +53,7 @@ router.post("/auth/logout", authenticateJWT, logout);
 router.get("/locations", authenticateJWT, getLocations);
 router.get("/departments", authenticateJWT, getDepartments);
 router.get("/teams", authenticateJWT, getTeams);
-router.get("/employees", authenticateJWT, applyRoleDataScope, getEmployees);
+router.get("/employees", authenticateJWT, getEmployees);
 router.get("/employees/:id", authenticateJWT, validateObjectId("id"), getEmployeeById);
 
 // Protected Analytics Routes

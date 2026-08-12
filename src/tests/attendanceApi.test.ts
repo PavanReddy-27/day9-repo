@@ -1,374 +1,162 @@
 /**
  * @vitest-environment jsdom
+ *
+ * Frontend attendance service contract tests.
+ *
+ * As of Task 14 the attendance service is a THIN CLIENT over the backend state
+ * machine: all authorization, geofence validation, shift/working-hour maths and
+ * duplicate-prevention are enforced SERVER-SIDE (see
+ * server/controllers/attendanceController.ts and the backend test suite). The
+ * frontend must therefore not re-implement those rules; it must faithfully
+ * delegate to the correct API endpoints and degrade to a local cache when the
+ * network is unavailable. These tests assert exactly that contract.
  */
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { attendanceApi } from '../services/attendanceApi';
-import { saveSession } from '../utils/authStorage';
-import type { AuthSession, User } from '../types/auth';
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-// Mock localStorage
+// Mock the API transport so we can assert the endpoints/payloads the service
+// sends, and simulate the backend being reachable / unreachable.
+const apiClientMock = vi.fn();
+vi.mock("../services/apiClient", () => ({
+  apiClient: (endpoint: string, options?: RequestInit) => apiClientMock(endpoint, options),
+  ApiError: class ApiError extends Error {},
+}));
+
+import { attendanceApi } from "../services/attendanceApi";
+
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
+    getItem: (k: string) => store[k] ?? null,
+    setItem: (k: string, v: string) => {
+      store[k] = String(v);
     },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    }
-  };
-})();
-const sessionStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
-    },
-    removeItem: (key: string) => {
-      delete store[key];
+    removeItem: (k: string) => {
+      delete store[k];
     },
     clear: () => {
       store = {};
-    }
+    },
   };
 })();
+Object.defineProperty(window, "localStorage", { value: localStorageMock, configurable: true });
+Object.defineProperty(globalThis, "localStorage", { value: localStorageMock, configurable: true });
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock, configurable: true });
-Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock, configurable: true });
-Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock, configurable: true });
-Object.defineProperty(globalThis, 'sessionStorage', { value: sessionStorageMock, configurable: true });
-
-// Builds a full auth session for a given user, so tests can switch identity
-// (Employee / Manager, different departments) the same way the real app does.
-const loginAs = (overrides: Partial<User> & Pick<User, 'id' | 'role' | 'department'>): void => {
-  const user: User = {
-    id: overrides.id,
-    employeeId: overrides.employeeId ?? `EMP-${overrides.id}`,
-    firstName: overrides.firstName ?? 'Test',
-    lastName: overrides.lastName ?? 'User',
-    fullName: overrides.fullName ?? 'Test User',
-    username: overrides.username ?? `user-${overrides.id}`,
-    email: overrides.email ?? `${overrides.id}@example.com`,
-    role: overrides.role,
-    department: overrides.department,
-    designation: overrides.designation ?? 'Engineer',
-    location: overrides.location ?? 'Austin',
-    workMode: overrides.workMode,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  const session: AuthSession = {
-    user,
-    accessToken: 'token',
-    refreshToken: 'refresh',
-    expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 365,
-    rememberMe: false,
-  };
-
-  saveSession(session);
+const parseBody = (call: unknown[]): Record<string, unknown> => {
+  const opts = call[1] as RequestInit | undefined;
+  return opts?.body ? JSON.parse(opts.body as string) : {};
 };
 
-describe('Attendance API', () => {
+describe("attendanceApi — backend delegation (online)", () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.useFakeTimers();
-    loginAs({ id: 'user-1', role: 'Employee', department: 'Engineering' });
+    apiClientMock.mockReset();
   });
+  afterEach(() => vi.restoreAllMocks());
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-  });
+  it("checkIn POSTs to /attendance/check-in and forwards location, source, shift and idempotency key", async () => {
+    const backendRecord = { id: "srv1", employeeId: "e1", status: "Present" };
+    apiClientMock.mockResolvedValueOnce(backendRecord);
 
-  it('should successfully check in an employee', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-    const record = await attendanceApi.checkIn('user-1', 'John Doe');
-    expect(record.employeeId).toBe('user-1');
-    expect(record.status).toBe('Present');
-    expect(record.lateArrival).toBe(false);
-  });
+    const loc = { latitude: 17.385, longitude: 78.4867, accuracy: 20 };
+    const result = await attendanceApi.checkIn("e1", "Jane", loc, "Web", "Night", "idem-123", "Engineering", true);
 
-  it('should flag late arrival if checking in after 09:15', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 9, 30, 0));
-    const record = await attendanceApi.checkIn('user-1', 'John Doe');
-    expect(record.lateArrival).toBe(true);
-  });
-
-  it('should prevent duplicate check-ins on the same day without checking out', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-    await attendanceApi.checkIn('user-1', 'John Doe');
-    await expect(attendanceApi.checkIn('user-1', 'John Doe')).rejects.toThrow(/Already checked in or active session exists/);
-  });
-
-  it('should prevent check out before check in', async () => {
-    await expect(attendanceApi.checkOut('user-1')).rejects.toThrow(/No active check-in found to check out/);
-  });
-
-  it('should successfully check out and calculate working hours', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-    await attendanceApi.checkIn('user-1', 'John Doe');
-
-    vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0)); // 9 hours later
-    const record = await attendanceApi.checkOut('user-1');
-    expect(record.workingHours).toBe(9);
-    expect(record.isOvertime).toBe(false);
-  });
-
-  it('should correctly flag overtime', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-    await attendanceApi.checkIn('user-1', 'John Doe');
-
-    vi.setSystemTime(new Date(2026, 7, 6, 18, 30, 0)); // 10.5 hours later
-    const record = await attendanceApi.checkOut('user-1');
-    expect(record.workingHours).toBe(10.5);
-    expect(record.isOvertime).toBe(true);
-  });
-
-  it('should correctly account for break durations in working hours', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-    await attendanceApi.checkIn('user-1', 'John Doe');
-
-    // Break 12:00 -> 13:00 (1 hour = 60 mins)
-    vi.setSystemTime(new Date(2026, 7, 6, 12, 0, 0));
-    await attendanceApi.startBreak('user-1');
-
-    vi.setSystemTime(new Date(2026, 7, 6, 13, 0, 0));
-    await attendanceApi.endBreak('user-1');
-
-    // Checkout at 17:00 (Total 9 hours - 1 hour break = 8 hours)
-    vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0));
-    const record = await attendanceApi.checkOut('user-1');
-
-    expect(record.totalBreakDuration).toBe(60);
-    expect(record.workingHours).toBe(8);
-  });
-
-  it('should use idempotency key to prevent duplicate check-ins via network retry', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-    const idempotencyKey = 'some-unique-key';
-    const firstCheckIn = await attendanceApi.checkIn('user-1', 'John Doe', undefined, 'Web', 'Regular', idempotencyKey);
-
-    // Simulate network retry with same key
-    const secondCheckIn = await attendanceApi.checkIn('user-1', 'John Doe', undefined, 'Web', 'Regular', idempotencyKey);
-
-    expect(firstCheckIn.id).toBe(secondCheckIn.id);
-  });
-
-  it('should use configured server time offset for attendance timestamps', async () => {
-    vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-    localStorage.setItem('workforce_server_time_offset_ms', '-3600000');
-
-    const record = await attendanceApi.checkIn('user-1', 'Alice Doe');
-
-    expect(record.checkInTime).toBe(new Date(2026, 7, 6, 7, 0, 0).toISOString());
-  });
-
-  describe('Geofence and GPS accuracy validation', () => {
-    // Office defaults to San Francisco (37.7749, -122.4194) with a 500m radius,
-    // see src/config/attendance.ts.
-    const onSiteLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 20 };
-    const farAwayLocation = { latitude: 40.7128, longitude: -74.006, accuracy: 20 }; // New York
-
-    it('allows an Office check-in from inside the configured geofence', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const record = await attendanceApi.checkIn('user-1', 'John Doe', onSiteLocation, 'Web', 'Regular', undefined, 'Engineering');
-      expect(record.status).toBe('Present');
-    });
-
-    it('blocks an Office check-in from outside the configured geofence', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      await expect(
-        attendanceApi.checkIn('user-1', 'John Doe', farAwayLocation, 'Web', 'Regular', undefined, 'Engineering')
-      ).rejects.toThrow(/outside the .*allowed range/i);
-    });
-
-    it('rejects a GPS reading with poor accuracy even when near the office', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const inaccurateLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 1000 };
-      await expect(
-        attendanceApi.checkIn('user-1', 'John Doe', inaccurateLocation, 'Web', 'Regular', undefined, 'Engineering')
-      ).rejects.toThrow(/too inaccurate/i);
-    });
-
-    it('does not apply the office geofence to Remote employees', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const record = await attendanceApi.checkIn('user-1', 'John Doe', farAwayLocation, 'Web', 'Regular', undefined, 'Remote Engineering');
-      expect(record.status).toBe('Present');
-    });
-
-    it('throws a typed GeofenceError with reason "outside_geofence" for a check-in outside the radius', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      expect.assertions(2);
-      try {
-        await attendanceApi.checkIn('user-1', 'John Doe', farAwayLocation, 'Web', 'Regular', undefined, 'Engineering');
-      } catch (err) {
-        expect(err).toBeInstanceOf(GeofenceError);
-        expect((err as GeofenceError).reason).toBe('outside_geofence');
-      }
-    });
-
-    it('throws a typed GeofenceError with reason "inaccurate_gps" for a poor GPS reading', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const inaccurateLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 1000 };
-      expect.assertions(2);
-      try {
-        await attendanceApi.checkIn('user-1', 'John Doe', inaccurateLocation, 'Web', 'Regular', undefined, 'Engineering');
-      } catch (err) {
-        expect(err).toBeInstanceOf(GeofenceError);
-        expect((err as GeofenceError).reason).toBe('inaccurate_gps');
-      }
-    });
-
-    it('exempts a work-from-home employee from the office geofence via their profile workMode, even when their department name gives no hint', async () => {
-      // "Engineering" doesn't mention "remote", but the employee's own profile
-      // marks them as WFH, which should take priority over the department heuristic.
-      loginAs({ id: 'user-1', role: 'Employee', department: 'Engineering', workMode: 'Remote' });
-
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const record = await attendanceApi.checkIn('user-1', 'John Doe', farAwayLocation, 'Web', 'Regular', undefined, 'Engineering');
-      expect(record.status).toBe('Present');
-      expect(record.policyType).toBe('Remote');
-
-      vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0));
-      const checkedOut = await attendanceApi.checkOut('user-1', farAwayLocation);
-      expect(checkedOut.checkOutTime).not.toBeNull();
-      expect(checkedOut.checkOutLocation).toEqual(farAwayLocation);
-    });
-
-    it('stores the check-in location on the record for later display', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const record = await attendanceApi.checkIn('user-1', 'John Doe', onSiteLocation, 'Web', 'Regular', undefined, 'Engineering');
-      expect(record.location).toEqual(onSiteLocation);
-    });
-
-    it('allows an Office check-out from inside the configured geofence and stores the location', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      await attendanceApi.checkIn('user-1', 'John Doe', onSiteLocation, 'Web', 'Regular', undefined, 'Engineering');
-
-      vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0));
-      const record = await attendanceApi.checkOut('user-1', onSiteLocation);
-      expect(record.checkOutTime).not.toBeNull();
-      expect(record.checkOutLocation).toEqual(onSiteLocation);
-    });
-
-    it('blocks an Office check-out from outside the configured geofence', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      await attendanceApi.checkIn('user-1', 'John Doe', onSiteLocation, 'Web', 'Regular', undefined, 'Engineering');
-
-      vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0));
-      await expect(attendanceApi.checkOut('user-1', farAwayLocation)).rejects.toThrow(/outside the .*allowed range/i);
-
-      // The active session should remain open since the check-out was rejected.
-      const stillOpen = await attendanceApi.getTodayRecord('user-1');
-      expect(stillOpen?.checkOutTime).toBeNull();
-    });
-
-    it('rejects an Office check-out with a poor-accuracy GPS reading', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      await attendanceApi.checkIn('user-1', 'John Doe', onSiteLocation, 'Web', 'Regular', undefined, 'Engineering');
-
-      vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0));
-      const inaccurateLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 1000 };
-      await expect(attendanceApi.checkOut('user-1', inaccurateLocation)).rejects.toThrow(/too inaccurate/i);
-    });
-
-    it('allows a Remote employee to check out without geofence restrictions', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      await attendanceApi.checkIn('user-1', 'John Doe', undefined, 'Web', 'Regular', undefined, 'Remote Engineering');
-
-      vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0));
-      const record = await attendanceApi.checkOut('user-1', farAwayLocation);
-      expect(record.checkOutTime).not.toBeNull();
-      expect(record.checkOutLocation).toEqual(farAwayLocation);
+    expect(result).toEqual(backendRecord);
+    const [endpoint, options] = apiClientMock.mock.calls[0];
+    expect(endpoint).toBe("/attendance/check-in");
+    expect(options.method).toBe("POST");
+    expect(parseBody(apiClientMock.mock.calls[0])).toEqual({
+      location: loc,
+      source: "Web",
+      shiftType: "Night",
+      idempotencyKey: "idem-123",
+      isWFH: true,
     });
   });
 
-  describe('Employee self-access', () => {
-    it('prevents an employee from checking in as a different employee', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      await expect(attendanceApi.checkIn('some-other-user', 'Someone Else')).rejects.toThrow(/only access their own/i);
-    });
-
-    it("prevents an employee from reading another employee's today record", async () => {
-      await expect(attendanceApi.getTodayRecord('some-other-user')).rejects.toThrow(/only access their own/i);
-    });
-
-    it('prevents an employee from checking out on behalf of another employee', async () => {
-      await expect(attendanceApi.checkOut('some-other-user')).rejects.toThrow(/only access their own/i);
-    });
-
-    it('allows an employee to check in and read back their own record', async () => {
-      vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      await attendanceApi.checkIn('user-1', 'John Doe');
-      const record = await attendanceApi.getTodayRecord('user-1');
-      expect(record?.employeeId).toBe('user-1');
-    });
+  it("startBreak POSTs to /attendance/break", async () => {
+    apiClientMock.mockResolvedValueOnce({ id: "s", status: "On Break" });
+    await attendanceApi.startBreak("e1");
+    expect(apiClientMock.mock.calls[0][0]).toBe("/attendance/break");
+    expect((apiClientMock.mock.calls[0][1] as RequestInit).method).toBe("POST");
   });
 
-  describe('Manager department restriction on corrections', () => {
-    it('only returns pending corrections submitted by the manager\'s own department', async () => {
-      loginAs({ id: 'user-1', role: 'Employee', department: 'Engineering' });
-      await attendanceApi.submitCorrection({
-        recordId: 'rec-eng',
-        employeeId: 'user-1',
-        employeeName: 'Engineering Employee',
-        requestedCheckIn: null,
-        requestedCheckOut: null,
-        reason: 'Forgot to check in',
-      });
+  it("endBreak POSTs to /attendance/resume", async () => {
+    apiClientMock.mockResolvedValueOnce({ id: "s", status: "Present" });
+    await attendanceApi.endBreak("e1");
+    expect(apiClientMock.mock.calls[0][0]).toBe("/attendance/resume");
+  });
 
-      loginAs({ id: 'user-2', role: 'Employee', department: 'Sales' });
-      await attendanceApi.submitCorrection({
-        recordId: 'rec-sales',
-        employeeId: 'user-2',
-        employeeName: 'Sales Employee',
-        requestedCheckIn: null,
-        requestedCheckOut: null,
-        reason: 'Forgot to check out',
-      });
+  it("checkOut POSTs to /attendance/check-out and forwards checkout location + idempotency key", async () => {
+    apiClientMock.mockResolvedValueOnce({ id: "s", status: "Checked Out" });
+    const loc = { latitude: 17.385, longitude: 78.4867, accuracy: 15 };
+    await attendanceApi.checkOut("e1", loc, "idem-out");
+    expect(apiClientMock.mock.calls[0][0]).toBe("/attendance/check-out");
+    expect(parseBody(apiClientMock.mock.calls[0])).toEqual({ location: loc, idempotencyKey: "idem-out" });
+  });
 
-      loginAs({ id: 'mgr-eng', role: 'Manager', department: 'Engineering' });
-      const pending = await attendanceApi.getPendingCorrections('Engineering');
+  it("getTodayRecord reads status from /attendance/status", async () => {
+    apiClientMock.mockResolvedValueOnce({ id: "s", employeeId: "e1" });
+    const rec = await attendanceApi.getTodayRecord("e1");
+    expect(apiClientMock.mock.calls[0][0]).toBe("/attendance/status");
+    expect(rec?.employeeId).toBe("e1");
+  });
 
-      expect(pending).toHaveLength(1);
-      expect(pending[0].employeeId).toBe('user-1');
+  it("getAllRecords reads from /attendance/history", async () => {
+    apiClientMock.mockResolvedValueOnce([{ id: "a" }, { id: "b" }]);
+    const recs = await attendanceApi.getAllRecords();
+    expect(apiClientMock.mock.calls[0][0]).toBe("/attendance/history");
+    expect(recs).toHaveLength(2);
+  });
+
+  it("submitCorrection POSTs to /attendance/corrections", async () => {
+    apiClientMock.mockResolvedValueOnce({ id: "c1", status: "Pending" });
+    await attendanceApi.submitCorrection({
+      recordId: "r1",
+      employeeId: "e1",
+      employeeName: "Jane",
+      requestedCheckIn: null,
+      requestedCheckOut: null,
+      reason: "Forgot to check in",
     });
+    expect(apiClientMock.mock.calls[0][0]).toBe("/attendance/corrections");
+    expect((apiClientMock.mock.calls[0][1] as RequestInit).method).toBe("POST");
+  });
 
-    it('prevents a manager from reviewing a correction outside their department', async () => {
-      loginAs({ id: 'user-2', role: 'Employee', department: 'Sales' });
-      const correction = await attendanceApi.submitCorrection({
-        recordId: 'rec-sales',
-        employeeId: 'user-2',
-        employeeName: 'Sales Employee',
-        requestedCheckIn: null,
-        requestedCheckOut: null,
-        reason: 'Forgot to check out',
-      });
+  it("reviewCorrection routes Approved -> approve endpoint and Rejected -> reject endpoint via PATCH", async () => {
+    apiClientMock.mockResolvedValue(undefined);
 
-      loginAs({ id: 'mgr-eng', role: 'Manager', department: 'Engineering' });
-      await expect(attendanceApi.reviewCorrection(correction.id, 'Approved')).rejects.toThrow(/Department Scope Check Failed/i);
-    });
+    await attendanceApi.reviewCorrection("c1", "Approved");
+    expect(apiClientMock.mock.calls[0][0]).toBe("/attendance/corrections/c1/approve");
+    expect((apiClientMock.mock.calls[0][1] as RequestInit).method).toBe("PATCH");
 
-    it('allows a manager to review a correction from their own department', async () => {
-      loginAs({ id: 'user-1', role: 'Employee', department: 'Engineering' });
-      const correction = await attendanceApi.submitCorrection({
-        recordId: 'rec-eng',
-        employeeId: 'user-1',
-        employeeName: 'Engineering Employee',
-        requestedCheckIn: null,
-        requestedCheckOut: null,
-        reason: 'Forgot to check in',
-      });
+    await attendanceApi.reviewCorrection("c2", "Rejected", "not valid");
+    expect(apiClientMock.mock.calls[1][0]).toBe("/attendance/corrections/c2/reject");
+    expect(parseBody(apiClientMock.mock.calls[1])).toEqual({ managerComment: "not valid" });
+  });
+});
 
-      loginAs({ id: 'mgr-eng', role: 'Manager', department: 'Engineering' });
-      await expect(attendanceApi.reviewCorrection(correction.id, 'Rejected', 'Not approved')).resolves.toBeUndefined();
-    });
+describe("attendanceApi — offline resilience (backend unreachable)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    apiClientMock.mockReset();
+  });
+
+  it("caches a provisional check-in locally when the network fails, and reads it back", async () => {
+    apiClientMock.mockRejectedValue(new Error("Network error"));
+
+    const provisional = await attendanceApi.checkIn("e1", "Jane");
+    expect(provisional.employeeId).toBe("e1");
+    expect(provisional.status).toBe("Present");
+    // The provisional id is clearly marked as a local/offline record, never a server id.
+    expect(provisional.id).toMatch(/^local_/);
+
+    const readBack = await attendanceApi.getTodayRecord("e1");
+    expect(readBack?.employeeId).toBe("e1");
+  });
+
+  it("returns an empty correction list rather than throwing when offline (server is source of truth)", async () => {
+    apiClientMock.mockRejectedValue(new Error("Network error"));
+    const pending = await attendanceApi.getPendingCorrections("Engineering");
+    expect(pending).toEqual([]);
   });
 });

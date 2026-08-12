@@ -9,7 +9,6 @@ import CorrectionRequests from "../../components/Attendance/CorrectionRequests";
 import AttendanceChart from "../../components/Attendance/AttendanceChart";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
-import TimeClock from "../../components/attendance/TimeClock";
 
 const EmployeeAttendance = () => {
   const { user } = useAppSelector((state) => state.auth);

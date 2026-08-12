@@ -1,44 +1,44 @@
 import { describe, it, expect } from "vitest";
+import { buildEmployeeScopeFilter } from "../../server/middleware/authMiddleware.ts";
 
-describe("RBAC & Multi-Tenant Data Isolation Scoping", () => {
-  const mockCompanyId = "60d0fe4f5311236168a109ca";
-  const mockDeptId = "60d0fe4f5311236168a109cb";
-  const mockTeamId = "60d0fe4f5311236168a109cc";
-  const mockEmpId = "60d0fe4f5311236168a109cd";
+// These tests exercise the REAL production scope-builder used by
+// GET /api/v1/employees, so a regression that widens a role's data scope
+// (e.g. dropping the companyId isolation) fails here.
+describe("RBAC & Multi-Tenant Data Isolation Scoping (production buildEmployeeScopeFilter)", () => {
+  const companyId = "60d0fe4f5311236168a109ca";
+  const departmentId = "60d0fe4f5311236168a109cb";
+  const teamId = "60d0fe4f5311236168a109cc";
+  const empId = "60d0fe4f5311236168a109cd";
 
-  function getScopeFilter(employee) {
-    const filter = { companyId: mockCompanyId };
-    if (employee.role === "Manager") {
-      filter.departmentId = employee.departmentId;
-    } else if (employee.role === "Team Lead") {
-      filter.teamId = employee.teamId;
-    } else if (employee.role === "Employee") {
-      filter._id = employee._id;
+  it("scopes Admin to the whole (authorized) company only", () => {
+    const filter = buildEmployeeScopeFilter("Admin", { departmentId, teamId, _id: empId }, companyId);
+    expect(filter).toEqual({ companyId });
+  });
+
+  it("scopes HR to the whole (authorized) company only", () => {
+    const filter = buildEmployeeScopeFilter("HR", { departmentId, teamId, _id: empId }, companyId);
+    expect(filter).toEqual({ companyId });
+  });
+
+  it("pins a Manager to their own department within the company", () => {
+    const filter = buildEmployeeScopeFilter("Manager", { departmentId, teamId, _id: empId }, companyId);
+    expect(filter).toEqual({ companyId, departmentId });
+  });
+
+  it("pins a Team Lead to their own team within the company", () => {
+    const filter = buildEmployeeScopeFilter("Team Lead", { departmentId, teamId, _id: empId }, companyId);
+    expect(filter).toEqual({ companyId, teamId });
+  });
+
+  it("pins an Employee to their own record within the company", () => {
+    const filter = buildEmployeeScopeFilter("Employee", { departmentId, teamId, _id: empId }, companyId);
+    expect(filter).toEqual({ companyId, _id: empId });
+  });
+
+  it("always includes companyId so no role can read across organizations", () => {
+    for (const role of ["Admin", "HR", "Manager", "Team Lead", "Employee"]) {
+      const filter = buildEmployeeScopeFilter(role, { departmentId, teamId, _id: empId }, companyId);
+      expect(filter.companyId).toBe(companyId);
     }
-    return filter;
-  }
-
-  it("applies global company filter for Admin role", () => {
-    const admin = { role: "Admin", companyId: mockCompanyId };
-    const filter = getScopeFilter(admin);
-    expect(filter).toEqual({ companyId: mockCompanyId });
-  });
-
-  it("applies department-scoped filter for Manager role", () => {
-    const manager = { role: "Manager", companyId: mockCompanyId, departmentId: mockDeptId };
-    const filter = getScopeFilter(manager);
-    expect(filter).toEqual({ companyId: mockCompanyId, departmentId: mockDeptId });
-  });
-
-  it("applies team-scoped filter for Team Lead role", () => {
-    const teamLead = { role: "Team Lead", companyId: mockCompanyId, teamId: mockTeamId };
-    const filter = getScopeFilter(teamLead);
-    expect(filter).toEqual({ companyId: mockCompanyId, teamId: mockTeamId });
-  });
-
-  it("applies self-only filter for Employee role", () => {
-    const emp = { role: "Employee", companyId: mockCompanyId, _id: mockEmpId };
-    const filter = getScopeFilter(emp);
-    expect(filter).toEqual({ companyId: mockCompanyId, _id: mockEmpId });
   });
 });
