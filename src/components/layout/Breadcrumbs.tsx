@@ -39,7 +39,7 @@ const Breadcrumbs = () => {
               </span>
             ) : (
               <Link
-                to={['hr', 'manager', 'admin', 'employee'].includes(value.toLowerCase()) && index === 0 ? `${to}/dashboard` : to}
+                to={(["hr", "manager", "admin", "employee"] as string[]).includes(value.toLowerCase()) && index === 0 ? `${to}/dashboard` : to}
                 className="breadcrumb-link"
               >
                 {formatLabel(value)}
