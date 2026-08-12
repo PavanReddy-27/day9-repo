@@ -275,8 +275,6 @@ This project is intended for educational and organizational use.
 
 ---
 
----
-
 ## 🚀 Task 14: Production Database Integration & Workforce Analytics System
 
 ### 📌 Architecture Summary
@@ -303,3 +301,9 @@ npm run typecheck
 npm run build
 npm test -- --run
 ```
+
+---
+
+## 🙏 Acknowledgements
+
+Developed collaboratively by **Team 2** through coordinated planning, feature development, integration, testing, and quality review to deliver a scalable and production-ready Workforce Analytics Dashboard.
