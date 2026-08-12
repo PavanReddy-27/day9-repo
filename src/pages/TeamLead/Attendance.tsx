@@ -35,7 +35,7 @@ const TeamLeadAttendance = () => {
     return records.filter((r) => {
       const q = search.toLowerCase();
       return (
-        (r.employeeName.toLowerCase().includes(q) || r.employeeId.toLowerCase().includes(q)) &&
+        ((r.employeeName ?? "").toLowerCase().includes(q) || String(r.employeeId ?? "").toLowerCase().includes(q)) &&
         (statusFilter === "All" || r.status === statusFilter) &&
         (dateFilter === "" || r.date === dateFilter)
       );

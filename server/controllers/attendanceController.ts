@@ -378,7 +378,44 @@ export const getAttendanceHistory = async (req, res) => {
       .limit(100)
       .lean();
 
-    return res.status(200).json({ success: true, data: records });
+    // Flatten to the shape the attendance UI consumes. The raw documents store
+    // employeeId as an ObjectId (populated here to an Employee doc) and use the
+    // state-machine status enum; the tables expect string ids/names and a
+    // display status, so map it here rather than leaking Mongo internals to the
+    // client (and to avoid `.toLowerCase()` crashes on non-string fields).
+    const toDisplayStatus = (s: string): string => {
+      if (s === "Not Checked In") return "Absent";
+      return "Present"; // Working / On Break / Checked Out all count as present
+    };
+
+    const data = records.map((r: any) => {
+      const emp = r.employeeId && typeof r.employeeId === "object" ? r.employeeId : null;
+      const coords = r.checkInCoordinates;
+      const location =
+        coords && coords.lat != null && coords.lng != null
+          ? { latitude: coords.lat, longitude: coords.lng }
+          : undefined;
+      return {
+        id: r._id?.toString(),
+        employeeId: emp?.employeeId ?? (r.employeeId ? String(r.employeeId) : ""),
+        employeeName: emp?.fullName ?? "Unknown",
+        department: emp?.departmentName ?? "",
+        date: r.date,
+        checkInTime: r.checkInTime ?? null,
+        checkOutTime: r.checkOutTime ?? null,
+        workingHours: r.workingHours ?? 0,
+        totalBreakDuration: r.breakDurationMinutes ?? 0,
+        status: toDisplayStatus(r.status),
+        shiftType: r.shiftKind ?? "Regular",
+        workMode: r.workMode ?? "Office",
+        lateArrival: (r.lateMinutes ?? 0) > 0,
+        isOvertime: (r.overtimeMinutes ?? 0) > 0,
+        source: r.workMode === "WFH" ? "WFH" : "Web",
+        location,
+      };
+    });
+
+    return res.status(200).json({ success: true, data });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
