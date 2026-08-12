@@ -28,6 +28,7 @@ const attendanceRecordSchema = new mongoose.Schema(
     
     shiftKind: { type: String, enum: ["Regular", "Flexible", "Night", "CrossMidnight"], default: "Regular" },
     isNightShift: { type: Boolean, default: false },
+    workMode: { type: String, enum: ["Office", "WFH"], default: "Office" },
   },
   { timestamps: true }
 );

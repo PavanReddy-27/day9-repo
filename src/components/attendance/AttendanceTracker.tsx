@@ -91,15 +91,7 @@ const AttendanceTracker = () => {
       return `Your location signal is too weak (±${Math.round(loc.accuracy)}m accuracy). Move to an open area or wait for GPS to stabilize, then try again.`;
     }
 
-    const policyType = user?.workMode || "Office";
-    if (policyType === "Office") {
-      const officeLocation = getOfficeLocation();
-      const distance = getDistanceMeters(loc, officeLocation);
-      if (distance > GEOFENCE_RADIUS_METERS) {
-        return `You are ${Math.round(distance)}m away from ${officeLocation.name}. ${action} requires being within ${GEOFENCE_RADIUS_METERS}m of the office.`;
-      }
-    }
-
+    // Geofence checking is disabled per user request. We allow check-in from anywhere (marked as WFH on backend if outside office).
     return null;
   };
 
