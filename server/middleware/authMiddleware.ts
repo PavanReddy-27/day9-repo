@@ -2,6 +2,21 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import Employee from '../models/Employee.js';
 
+import { AdminAuth, HRAuth, ManagerAuth, TeamLeadAuth, EmployeeAuth } from '../models/User.js';
+
+const findUserById = async (id: string) => {
+  let user = await AdminAuth.findById(id);
+  if (user) return user;
+  user = await HRAuth.findById(id);
+  if (user) return user;
+  user = await ManagerAuth.findById(id);
+  if (user) return user;
+  user = await TeamLeadAuth.findById(id);
+  if (user) return user;
+  user = await EmployeeAuth.findById(id);
+  return user;
+};
+
 export const authenticateJWT = async (req, res, next) => {
   try {
     let token;
@@ -13,11 +28,11 @@ export const authenticateJWT = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Not authorized, no token' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
     req.user = decoded; // { id, role }
     
     // Also set employee/company info for controllers
-    const userDoc = await mongoose.model('User').findById(decoded.id);
+    const userDoc = await findUserById(decoded.id) as any;
     if (userDoc) {
       req.employee = { _id: userDoc.employeeId };
       req.companyId = userDoc.companyId;
