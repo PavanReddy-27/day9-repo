@@ -68,9 +68,13 @@ router.get("/analytics/productivity", authenticateJWT, getProductivityAnalytics)
 // Protected Attendance Routes
 router.get("/attendance/status", authenticateJWT, getAttendanceStatus);
 router.post("/attendance/check-in", authenticateJWT, checkIn);
+router.post("/check-in", authenticateJWT, checkIn);
 router.post("/attendance/break", authenticateJWT, startBreak);
+router.post("/break", authenticateJWT, startBreak);
 router.post("/attendance/resume", authenticateJWT, resumeWork);
+router.post("/resume", authenticateJWT, resumeWork);
 router.post("/attendance/check-out", authenticateJWT, checkOut);
+router.post("/check-out", authenticateJWT, checkOut);
 router.get("/attendance/history", authenticateJWT, applyRoleDataScope, getAttendanceHistory);
 
 // Attendance Corrections Routes

@@ -8,12 +8,10 @@ export const HRDashboard: React.FC = () => {
   const openPositions = useAppSelector(selectRestrictedHROpenPositions) || [];
   const leaveRequests = useAppSelector(selectRestrictedHRLeaveRequests) || [];
 
-
-
   return (
     <div style={{ padding: '32px', backgroundColor: 'var(--bg)', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       {/* Header Banner */}
-      <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ color: 'var(--text-h)', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
             HR Management Overview
@@ -21,9 +19,6 @@ export const HRDashboard: React.FC = () => {
           <p style={{ color: 'var(--text-light)', margin: '6px 0 0', fontSize: '15px' }}>
             Monitor key workforce metrics, active recruitment, and pending employee requests in real time.
           </p>
-        </div>
-        <div style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '8px 16px', borderRadius: '20px', fontWeight: 'bold', fontSize: '14px' }}>
-          Live Analytics
         </div>
       </div>
 

@@ -15,7 +15,6 @@ import StatusChart from "../../features/charts/components/StatusChart";
 import RiskChart from "../../features/charts/components/RiskChart";
 import DepartmentChart from "../../features/charts/components/DepartmentChart";
 import type { TrendChartData, DepartmentChartData, StatusChartData, RiskChartData } from "../../types/chart";
-
 import "./ManagerDashboard.css";
 
 const kpiData: KPIItem[] = [

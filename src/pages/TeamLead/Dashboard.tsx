@@ -15,9 +15,6 @@ const TeamLeadDashboard: React.FC = () => {
             Welcome back, {user?.fullName || "Team Lead"}! Managing team scope & assigned projects.
           </p>
         </div>
-        <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-full">
-          Assigned Team Scope
-        </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

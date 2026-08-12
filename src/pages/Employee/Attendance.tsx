@@ -9,6 +9,7 @@ import CorrectionRequests from "../../components/Attendance/CorrectionRequests";
 import AttendanceChart from "../../components/Attendance/AttendanceChart";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import TimeClock from "../../components/attendance/TimeClock";
 
 const EmployeeAttendance = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -45,13 +46,16 @@ const EmployeeAttendance = () => {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-          <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> My Attendance & Shifts
-        </Typography>
-        <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
-          Track your daily check-ins, manage your shifts, and submit correction requests.
-        </Typography>
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+        <Box>
+          <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> My Attendance & Shifts
+          </Typography>
+          <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+            Track your daily check-ins, manage your shifts, and submit correction requests.
+          </Typography>
+        </Box>
+        <TimeClock />
       </Box>
 
       <Box sx={{ mb: 4, width: '100%' }}>

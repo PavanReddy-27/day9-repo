@@ -173,7 +173,7 @@ describe('Attendance API', () => {
   describe('Geofence and GPS accuracy validation', () => {
     // Office defaults to San Francisco (37.7749, -122.4194) with a 500m radius,
     // see src/config/attendance.ts.
-    const onSiteLocation = { latitude: 37.7749, longitude: -122.4194, accuracy: 20 };
+    const onSiteLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 20 };
     const farAwayLocation = { latitude: 40.7128, longitude: -74.006, accuracy: 20 }; // New York
 
     it('allows an Office check-in from inside the configured geofence', async () => {
@@ -191,7 +191,7 @@ describe('Attendance API', () => {
 
     it('rejects a GPS reading with poor accuracy even when near the office', async () => {
       vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const inaccurateLocation = { latitude: 37.7749, longitude: -122.4194, accuracy: 1000 };
+      const inaccurateLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 1000 };
       await expect(
         attendanceApi.checkIn('user-1', 'John Doe', inaccurateLocation, 'Web', 'Regular', undefined, 'Engineering')
       ).rejects.toThrow(/too inaccurate/i);
@@ -216,7 +216,7 @@ describe('Attendance API', () => {
 
     it('throws a typed GeofenceError with reason "inaccurate_gps" for a poor GPS reading', async () => {
       vi.setSystemTime(new Date(2026, 7, 6, 8, 0, 0));
-      const inaccurateLocation = { latitude: 37.7749, longitude: -122.4194, accuracy: 1000 };
+      const inaccurateLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 1000 };
       expect.assertions(2);
       try {
         await attendanceApi.checkIn('user-1', 'John Doe', inaccurateLocation, 'Web', 'Regular', undefined, 'Engineering');
@@ -275,7 +275,7 @@ describe('Attendance API', () => {
       await attendanceApi.checkIn('user-1', 'John Doe', onSiteLocation, 'Web', 'Regular', undefined, 'Engineering');
 
       vi.setSystemTime(new Date(2026, 7, 6, 17, 0, 0));
-      const inaccurateLocation = { latitude: 37.7749, longitude: -122.4194, accuracy: 1000 };
+      const inaccurateLocation = { latitude: 17.3850, longitude: 78.4867, accuracy: 1000 };
       await expect(attendanceApi.checkOut('user-1', inaccurateLocation)).rejects.toThrow(/too inaccurate/i);
     });
 

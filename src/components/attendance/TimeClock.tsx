@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
-import { Box, Button, Typography, Paper, CircularProgress, Snackbar, Alert } from "@mui/material";
+import { useState, useEffect, useCallback } from "react";
+import { Box, Button, Typography, Paper, CircularProgress, Snackbar, Alert, Chip } from "@mui/material";
 import { attendanceApi } from "../../services/attendanceApi";
 import type { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
 import StopIcon from "@mui/icons-material/Stop";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
@@ -11,99 +12,203 @@ const TimeClock = () => {
   const { user } = useAppSelector((state) => state.auth);
   const [record, setRecord] = useState<AttendanceRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  const [toastMsg, setToastMsg] = useState({ open: false, message: "", severity: "success" as "success" | "error" });
+  const [actionLoading, setActionLoading] = useState(false);
+  const [toastMsg, setToastMsg] = useState({ open: false, message: "", severity: "success" as "success" | "error" | "info" });
+
+  const fetchTodayRecord = useCallback(async () => {
+    if (user) {
+      try {
+        const todayRecord = await attendanceApi.getTodayRecord(user.id);
+        setRecord(todayRecord);
+      } catch (error) {
+        console.error("Error fetching record", error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
-    const fetchTodayRecord = async () => {
-      if (user) {
-        try {
-          const todayRecord = await attendanceApi.getTodayRecord(user.id);
-          setRecord(todayRecord);
-        } catch (error) {
-          console.error("Error fetching record", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
     fetchTodayRecord();
-  }, [user]);
+
+    const handleUpdate = () => {
+      fetchTodayRecord();
+    };
+
+    window.addEventListener("attendance_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("attendance_updated", handleUpdate);
+    };
+  }, [fetchTodayRecord]);
 
   const handleCheckIn = async () => {
     if (!user) return;
+    setActionLoading(true);
     try {
-      const newRecord = await attendanceApi.checkIn(user.id, user.fullName);
+      const newRecord = await attendanceApi.checkIn(user.id, user.fullName, undefined, "Web", "Regular", undefined, user.department);
       setRecord(newRecord);
-      setToastMsg({ open: true, message: "Successfully checked in for today!", severity: "success" });
+      setToastMsg({ open: true, message: "Successfully checked in!", severity: "success" });
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Failed to check in";
       setToastMsg({ open: true, message: msg, severity: "error" });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleStartBreak = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    try {
+      const updatedRecord = await attendanceApi.startBreak(user.id);
+      setRecord(updatedRecord);
+      setToastMsg({ open: true, message: "Break started.", severity: "info" });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Failed to start break";
+      setToastMsg({ open: true, message: msg, severity: "error" });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResumeWork = async () => {
+    if (!user) return;
+    setActionLoading(true);
+    try {
+      const updatedRecord = await attendanceApi.endBreak(user.id);
+      setRecord(updatedRecord);
+      setToastMsg({ open: true, message: "Resumed work.", severity: "success" });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Failed to resume work";
+      setToastMsg({ open: true, message: msg, severity: "error" });
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleCheckOut = async () => {
     if (!user) return;
+    setActionLoading(true);
     try {
       const updatedRecord = await attendanceApi.checkOut(user.id);
       setRecord(updatedRecord);
-      setToastMsg({ open: true, message: `Checked out successfully. Hours logged: ${updatedRecord.workingHours}`, severity: "success" });
+      setToastMsg({ open: true, message: `Checked out successfully! Total worked hours: ${updatedRecord.workingHours ?? 0} hrs`, severity: "success" });
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Failed to check out";
       setToastMsg({ open: true, message: msg, severity: "error" });
+    } finally {
+      setActionLoading(false);
     }
   };
 
   if (loading) {
-    return <CircularProgress size={24} />;
+    return (
+      <Paper elevation={2} sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2 }}>
+        <CircularProgress size={24} />
+      </Paper>
+    );
   }
 
+  const isCheckedIn = !!record && !record.checkOutTime;
+  const isOnBreak = isCheckedIn && !!record.breakStartTime;
+  const isCheckedOut = !!record && !!record.checkOutTime;
+
   return (
-    <Paper elevation={2} sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 2, minWidth: 300, justifyContent: 'space-between' }}>
+    <Paper elevation={2} sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 2, minWidth: 320, justifyContent: 'space-between', flexWrap: 'wrap' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <AccessTimeIcon color="primary" />
-        <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-          Today's Shift
-        </Typography>
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold", lineHeight: 1.2 }}>
+            Time Clock
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {user?.role || "Employee"} • {user?.department || "General"}
+          </Typography>
+        </Box>
       </Box>
 
       {!record ? (
         <Button
           variant="contained"
           color="success"
-          startIcon={<PlayArrowIcon />}
+          startIcon={actionLoading ? <CircularProgress size={16} color="inherit" /> : <PlayArrowIcon />}
           onClick={handleCheckIn}
+          disabled={actionLoading}
           disableElevation
-          sx={{
-            '&:hover': {
-              color: '#111827'
-            }
-          }}
         >
           Check In
         </Button>
-      ) : !record.checkOutTime ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" color="success.main" sx={{ fontWeight: "bold" }}>
-            🟢 Checked In
-          </Typography>
+      ) : isCheckedIn ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Chip 
+            label={isOnBreak ? "On Break" : "Checked In"} 
+            color={isOnBreak ? "warning" : "success"} 
+            size="small" 
+            variant="outlined" 
+            sx={{ fontWeight: "bold" }}
+          />
+
+          {!isOnBreak ? (
+            <Button
+              variant="outlined"
+              color="warning"
+              size="small"
+              startIcon={actionLoading ? <CircularProgress size={14} color="inherit" /> : <PauseIcon />}
+              onClick={handleStartBreak}
+              disabled={actionLoading}
+            >
+              Break
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              startIcon={actionLoading ? <CircularProgress size={14} color="inherit" /> : <PlayArrowIcon />}
+              onClick={handleResumeWork}
+              disabled={actionLoading}
+            >
+              Resume
+            </Button>
+          )}
+
           <Button
             variant="contained"
             color="error"
-            startIcon={<StopIcon />}
+            size="small"
+            startIcon={actionLoading ? <CircularProgress size={14} color="inherit" /> : <StopIcon />}
             onClick={handleCheckOut}
+            disabled={actionLoading}
             disableElevation
           >
             Check Out
           </Button>
         </Box>
+      ) : isCheckedOut ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip label="Shift Complete" color="default" size="small" />
+          <Typography variant="body2" color="text.primary" sx={{ fontWeight: "bold" }}>
+            {record.workingHours ?? 0} hrs
+          </Typography>
+        </Box>
       ) : (
-        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: "bold" }}>
-          Shift Complete ({record.workingHours} hrs)
-        </Typography>
+        <Button
+          variant="contained"
+          color="success"
+          startIcon={actionLoading ? <CircularProgress size={16} color="inherit" /> : <PlayArrowIcon />}
+          onClick={handleCheckIn}
+          disabled={actionLoading}
+          disableElevation
+        >
+          Check In
+        </Button>
       )}
+
       <Snackbar 
         open={toastMsg.open} 
-        autoHideDuration={6000} 
+        autoHideDuration={5000} 
         onClose={() => setToastMsg({ ...toastMsg, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >

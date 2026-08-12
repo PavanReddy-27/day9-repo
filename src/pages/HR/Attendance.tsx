@@ -6,6 +6,7 @@ import { AttendanceRecord } from "../../types/attendance";
 import CorrectionRequests from "../../components/Attendance/CorrectionRequests";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import TimeClock from "../../components/attendance/TimeClock";
 
 const statusColors: Record<string, { bg: string; color: string }> = {
   Present: { bg: "#16A34A22", color: "#16A34A" },
@@ -84,9 +85,12 @@ const Attendance = () => {
             Monitor daily check-ins, tardiness, absence trends, and manage corrections across all departments.
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={exportCSV} sx={{ borderRadius: 2 }}>
-          Export CSV
-        </Button>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <TimeClock />
+          <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={exportCSV} sx={{ borderRadius: 2 }}>
+            Export CSV
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 2, mb: 4 }}>

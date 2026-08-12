@@ -11,7 +11,9 @@ const attendanceRecordSchema = new mongoose.Schema(
     checkOutTime: { type: Date, default: null },
     
     workDurationMinutes: { type: Number, default: 0 },
+    workingHours: { type: Number, default: 0 },
     breakDurationMinutes: { type: Number, default: 0 },
+    breakStartTime: { type: Date, default: null },
     overtimeMinutes: { type: Number, default: 0 },
     lateMinutes: { type: Number, default: 0 },
     earlyDepartureMinutes: { type: Number, default: 0 },

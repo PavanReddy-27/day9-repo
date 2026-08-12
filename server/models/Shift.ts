@@ -14,6 +14,8 @@ const shiftSchema = new mongoose.Schema(
     startTime: { type: String, required: true }, // Format "HH:mm" e.g., "09:00"
     endTime: { type: String, required: true },   // Format "HH:mm" e.g., "17:00"
     breakDurationMinutes: { type: Number, default: 60 },
+    workDurationMinutes: { type: Number, default: 480 },
+    workingHours: { type: Number, default: 8 },
   },
   { timestamps: true }
 );

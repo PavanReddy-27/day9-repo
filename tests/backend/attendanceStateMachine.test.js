@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateHaversineDistance } from "../../server/controllers/attendanceController.js";
+import { calculateHaversineDistance } from "../../server/controllers/attendanceController.ts";
 
 describe("Attendance State Machine & Geofence Logic", () => {
   it("calculates Haversine distance correctly between two GPS coordinates", () => {
@@ -33,5 +33,19 @@ describe("Attendance State Machine & Geofence Logic", () => {
     expect(validTransitions["Not Checked In"]).not.toContain("On Break");
     expect(validTransitions["Working"]).toContain("On Break");
     expect(validTransitions["Working"]).toContain("Checked Out");
+  });
+
+  it("accurately computes worked hours subtracting break duration", () => {
+    const checkIn = new Date("2026-08-12T09:00:00Z");
+    const checkOut = new Date("2026-08-12T18:00:00Z"); // 9 hours elapsed (540 mins)
+    const breakDurationMinutes = 60; // 1 hour break
+
+    const totalElapsedMinutes = Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60));
+    const netWorkMinutes = Math.max(0, totalElapsedMinutes - breakDurationMinutes);
+    const workingHours = Number((netWorkMinutes / 60).toFixed(2));
+
+    expect(totalElapsedMinutes).toBe(540);
+    expect(netWorkMinutes).toBe(480);
+    expect(workingHours).toBe(8);
   });
 });

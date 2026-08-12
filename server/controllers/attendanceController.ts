@@ -168,12 +168,21 @@ export const startBreak = async (req, res) => {
       date: today,
     });
 
-    if (!record || record.status !== "Working") {
-      return res.status(400).json({ success: false, message: "Must be in 'Working' state to start break." });
+    if (!record || record.status === "Not Checked In") {
+      return res.status(400).json({ success: false, message: "Cannot start break: Employee has not checked in yet." });
+    }
+
+    if (record.status === "On Break") {
+      return res.status(400).json({ success: false, message: "Already on break." });
+    }
+
+    if (record.status === "Checked Out") {
+      return res.status(400).json({ success: false, message: "Cannot start break: Shift has already ended." });
     }
 
     const now = new Date();
     record.status = "On Break";
+    record.breakStartTime = now;
     await record.save();
 
     await BreakSession.create({
@@ -224,6 +233,7 @@ export const resumeWork = async (req, res) => {
     }
 
     record.status = "Working";
+    record.breakStartTime = null;
     await record.save();
 
     const responseBody = { success: true, message: "Resumed work.", data: record };
@@ -247,16 +257,39 @@ export const checkOut = async (req, res) => {
       date: today,
     });
 
-    if (!record || (record.status !== "Working" && record.status !== "On Break")) {
-      return res.status(400).json({ success: false, message: "Cannot check out: Invalid current state." });
+    if (!record || record.status === "Not Checked In") {
+      return res.status(400).json({ success: false, message: "Cannot check out: Employee has not checked in yet." });
+    }
+
+    if (record.status === "Checked Out") {
+      return res.status(400).json({ success: false, message: "Cannot check out: Employee has already checked out." });
     }
 
     const now = new Date();
+
+    // If checked out while on break, finalize break session
+    if (record.status === "On Break") {
+      const activeBreak = await BreakSession.findOne({
+        companyId: req.companyId,
+        attendanceRecordId: record._id,
+        endTime: null,
+      });
+      if (activeBreak) {
+        activeBreak.endTime = now;
+        activeBreak.durationMinutes = Math.round((now - activeBreak.startTime) / (1000 * 60));
+        await activeBreak.save();
+        record.breakDurationMinutes = (record.breakDurationMinutes || 0) + activeBreak.durationMinutes;
+      }
+    }
+
     record.checkOutTime = now;
     record.status = "Checked Out";
+    record.breakStartTime = null;
 
     const totalElapsedMinutes = Math.round((now - record.checkInTime) / (1000 * 60));
-    record.workDurationMinutes = Math.max(0, totalElapsedMinutes - (record.breakDurationMinutes || 0));
+    const netWorkMinutes = Math.max(0, totalElapsedMinutes - (record.breakDurationMinutes || 0));
+    record.workDurationMinutes = netWorkMinutes;
+    record.workingHours = Number((netWorkMinutes / 60).toFixed(2));
 
     await record.save();
 
@@ -269,7 +302,11 @@ export const checkOut = async (req, res) => {
       idempotencyKey,
     });
 
-    const responseBody = { success: true, message: "Check-out successful.", data: record };
+    const responseBody = {
+      success: true,
+      message: `Check-out successful. Total worked hours: ${record.workingHours} hrs.`,
+      data: record,
+    };
     await saveIdempotency(req, idempotencyKey, 200, responseBody);
     return res.status(200).json(responseBody);
   } catch (error) {

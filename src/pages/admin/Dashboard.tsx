@@ -47,7 +47,7 @@ const Dashboard = () => {
   return (
       <main className="admin-dashboard-container">
         <div className="dashboard-page">
-          <div className="dashboard-header">
+          <div className="dashboard-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
             <div className="dashboard-title-section">
               <h1>Dashboard</h1>
               <p>Overview of your employee performance and analytics.</p>

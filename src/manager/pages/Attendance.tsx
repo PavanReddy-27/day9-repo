@@ -74,9 +74,11 @@ const Attendance = () => {
         <Typography variant="h4" className="attendance-title" sx={{ fontWeight: 700 }}>
           👥 Team Attendance Overview
         </Typography>
-        <Button variant="outlined" onClick={exportCSV} sx={{ borderRadius: 2 }}>
-          Export CSV
-        </Button>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <Button variant="outlined" onClick={exportCSV} sx={{ borderRadius: 2 }}>
+            Export CSV
+          </Button>
+        </Box>
       </Box>
 
       <div className="attendance-summary">
