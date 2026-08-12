@@ -29,10 +29,34 @@ const envNumber = (value: string | undefined, fallback: number): number => {
  */
 export const OFFICE_LOCATIONS: OfficeLocation[] = [
   {
-    id: "hq",
-    name: (import.meta.env.VITE_OFFICE_NAME as string | undefined) || "Headquarters",
-    latitude: envNumber(import.meta.env.VITE_OFFICE_LATITUDE as string | undefined, 37.7749),
-    longitude: envNumber(import.meta.env.VITE_OFFICE_LONGITUDE as string | undefined, -122.4194),
+    id: "HYD",
+    name: "Hyderabad",
+    latitude: envNumber(import.meta.env.VITE_OFFICE_LATITUDE as string | undefined, 17.3850),
+    longitude: envNumber(import.meta.env.VITE_OFFICE_LONGITUDE as string | undefined, 78.4867),
+  },
+  {
+    id: "VSP",
+    name: "Visakhapatnam",
+    latitude: 17.6868,
+    longitude: 83.2185,
+  },
+  {
+    id: "CHN",
+    name: "Chennai",
+    latitude: 13.0827,
+    longitude: 80.2707,
+  },
+  {
+    id: "BLR",
+    name: "Bengaluru",
+    latitude: 12.9716,
+    longitude: 77.5946,
+  },
+  {
+    id: "KOC",
+    name: "Kochi",
+    latitude: 9.9312,
+    longitude: 76.2673,
   },
 ];
 
