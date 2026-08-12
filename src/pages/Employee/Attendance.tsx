@@ -55,7 +55,6 @@ const EmployeeAttendance = () => {
             Track your daily check-ins, manage your shifts, and submit correction requests.
           </Typography>
         </Box>
-        <TimeClock />
       </Box>
 
       <Box sx={{ mb: 4, width: '100%' }}>

@@ -45,6 +45,7 @@ import ManagerAnalytics from "../manager/pages/Analytics";
 import EmployeeDashboard from "../pages/Employee/Dashboard";
 import EmployeeAttendance from "../pages/Employee/Attendance";
 import TeamLeadDashboard from "../pages/TeamLead/Dashboard";
+import TeamLeadAttendance from "../pages/TeamLead/Attendance";
 
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import SessionExpired from "../pages/SessionExpired/SessionExpired";
@@ -354,7 +355,7 @@ const AppRoutes = () => {
           />
           <Route
             path="/teamlead/attendance"
-            element={<ManagerAttendance />}
+            element={<TeamLeadAttendance />}
           />
           <Route
             path="/teamlead/leave-requests"

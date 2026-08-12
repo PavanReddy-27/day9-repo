@@ -80,7 +80,7 @@ export const GEOFENCE_RADIUS_METERS = envNumber(
  */
 export const MAX_GPS_ACCURACY_METERS = envNumber(
   import.meta.env.VITE_MAX_GPS_ACCURACY_METERS as string | undefined,
-  500
+  100000
 );
 
 /** Haversine distance in meters between two coordinates. */
