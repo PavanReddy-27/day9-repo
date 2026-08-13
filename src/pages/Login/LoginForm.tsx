@@ -242,16 +242,16 @@ const LoginForm = () => {
             
             // Auto-fill logic based on selected role
             if (selectedRole === "Admin") {
-              setEmail("admin@company.com");
+              setEmail("admin@thestackly.com");
               setPassword("Password123!");
             } else if (selectedRole === "HR") {
-              setEmail("hr@company.com");
+              setEmail("hr@thestackly.com");
               setPassword("Password123!");
             } else if (selectedRole === "Manager") {
-              setEmail("manager@company.com");
+              setEmail("manager@thestackly.com");
               setPassword("Password123!");
             } else if (selectedRole === "Employee") {
-              setEmail("employee@company.com");
+              setEmail("employee@thestackly.com");
               setPassword("Password123!");
             }
           }}

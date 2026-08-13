@@ -38,7 +38,7 @@ export const navigationItems: NavigationItem[] = [
 
   // Shared by All
   { name: "Attendance", icon: FiFileText, route: "attendance", roles: ["HR", "Manager", "Admin", "Employee"] },
-  { name: "Leave Requests", icon: FiFileText, route: "leave-requests", roles: ["HR", "Manager", "Admin"] },
+  { name: "Leave Requests", icon: FiFileText, route: "leave-requests", roles: ["HR", "Manager", "Admin", "Employee"] },
   { name: "Performance", icon: FiBarChart2, route: "performance", roles: ["HR", "Manager", "Admin"] },
 
   // HR Only
