@@ -51,10 +51,7 @@ const Sidebar = ({
       <div className="sidebar-top">
         <div className="logo-section" style={{ padding: sidebarOpen ? "0 8px" : "0", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", overflow: "hidden" }}>
           {sidebarOpen ? (
-            <>
-              <img src={companyLogo} alt={`${APP_CONFIG.companyName} Logo`} style={{ height: "44px", width: "auto", objectFit: "contain" }} />
-              <span style={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--text-h)", whiteSpace: "nowrap" }}>{APP_CONFIG.companyName}</span>
-            </>
+            <img src={companyLogo} alt={`${APP_CONFIG.companyName} Logo`} style={{ height: "44px", width: "auto", objectFit: "contain" }} />
           ) : (
             <img src={companyLogo} alt={`${APP_CONFIG.companyName} Logo`} style={{ height: "38px", width: "38px", objectFit: "cover", objectPosition: "left" }} />
           )}

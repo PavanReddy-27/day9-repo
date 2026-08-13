@@ -20,8 +20,14 @@ export const AttendanceChart = ({ records }: AttendanceChartProps) => {
     // Sort records by date ascending
     const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
-    // Take the last 7 days
-    const recent = sorted.slice(-7);
+    // Filter out weekends (0 = Sunday, 6 = Saturday)
+    const weekdaysOnly = sorted.filter(record => {
+      const day = new Date(record.date).getDay();
+      return day !== 0 && day !== 6;
+    });
+    
+    // Take the last 7 weekdays
+    const recent = weekdaysOnly.slice(-7);
     
     return recent.map(record => {
       // Calculate working hours if checkOutTime exists, else use static workingHours

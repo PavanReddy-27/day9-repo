@@ -7,7 +7,7 @@ import Company from "../models/Company.js";
 import Location from "../models/Location.js";
 import Department from "../models/Department.js";
 import Team from "../models/Team.js";
-import { User } from "../models/User.js";
+import { User, AdminAuth, HRAuth, ManagerAuth, EmployeeAuth } from "../models/User.js";
 import Employee from "../models/Employee.js";
 import Shift from "../models/Shift.js";
 import ShiftAssignment from "../models/ShiftAssignment.js";
@@ -93,6 +93,10 @@ export async function runSeed(reset = false) {
       Team.deleteMany({}),
       User.deleteMany({}),
       Employee.deleteMany({}),
+      AdminAuth.deleteMany({}),
+      HRAuth.deleteMany({}),
+      ManagerAuth.deleteMany({}),
+      EmployeeAuth.deleteMany({}),
       Shift.deleteMany({}),
       ShiftAssignment.deleteMany({}),
       AttendanceRecord.deleteMany({}),
@@ -110,6 +114,7 @@ export async function runSeed(reset = false) {
       AuditLog.deleteMany({}),
       IdempotencyRecord.deleteMany({}),
     ]);
+    await PerformanceRecord.collection.dropIndexes().catch(() => {});
   }
 
   // Check if company already exists to prevent duplicate runs without reset
@@ -169,7 +174,7 @@ export async function runSeed(reset = false) {
       name: locDef.name,
       city: locDef.city,
       address: locDef.address,
-      coordinates: { lat: locDef.lat, lng: locDef.lng },
+      coordinates: { latitude: locDef.lat, longitude: locDef.lng },
       radiusMeters: 500,
       targetEmployeeCount: locDef.count,
     });
@@ -184,21 +189,17 @@ export async function runSeed(reset = false) {
     const loc = locationDocs[locDef.code];
     for (const deptDef of DEPARTMENTS_DEF) {
       const dept = await Department.create({
-        companyId: company._id,
-        locationId: loc._id,
-        name: deptDef.name,
+        company: company._id,
+        name: `${deptDef.name} - ${locDef.code}`,
         code: `${deptDef.code}-${locDef.code}`,
-        description: `${deptDef.name} department at ${locDef.name}`,
       });
       deptDocs.push(dept);
 
       // Create 2 Teams per department
       for (let t = 1; t <= 2; t++) {
         const team = await Team.create({
-          companyId: company._id,
-          departmentId: dept._id,
-          name: `${deptDef.name} Team ${t}`,
-          code: `${deptDef.code}-${locDef.code}-T${t}`,
+          department: dept._id,
+          name: `${deptDef.name} Team ${t} (${locDef.code})`,
         });
         teamDocs.push(team);
       }
@@ -249,12 +250,12 @@ export async function runSeed(reset = false) {
 
   for (const locDef of LOCATION_DEFS) {
     const loc = locationDocs[locDef.code];
-    const locDepts = deptDocs.filter((d) => d.locationId.toString() === loc._id.toString());
+    const locDepts = deptDocs.filter((d) => d.code.endsWith(`-${locDef.code}`));
 
     for (let i = 0; i < locDef.count; i++) {
       const empIdNumber = globalEmpIndex;
       const empIdStr = `EMP-${String(empIdNumber).padStart(3, "0")}`;
-      
+
       const devCfg = devAccountsConfig.find((d) => d.empId === empIdStr);
 
       let role = "Employee";
@@ -278,16 +279,15 @@ export async function runSeed(reset = false) {
         : defaultPasswordHash;
 
       const user = await User.create({
-        companyId: company._id,
         employeeId: empIdStr,
         email: email.toLowerCase(),
-        passwordHash: passHash,
+        password: passHash,
         role: role,
         isActive: true,
       });
 
       const assignedDept = locDepts[i % locDepts.length];
-      const assignedTeams = teamDocs.filter((t) => t.departmentId.toString() === assignedDept._id.toString());
+      const assignedTeams = teamDocs.filter((t) => t.department.toString() === assignedDept._id.toString());
       const assignedTeam = assignedTeams[i % assignedTeams.length];
 
       const workMode = prng.choice(["Office", "Office", "Office", "Hybrid", "Remote"]);
@@ -310,7 +310,7 @@ export async function runSeed(reset = false) {
         designation: `${role === 'Employee' ? 'Software Engineer' : role}`,
         workMode: workMode,
         shiftId: shift._id,
-        joinDate: new Date(Date.now() - prng.range(30, 365) * 24 * 60 * 60 * 1000),
+        joiningDate: new Date(Date.now() - prng.range(30, 365) * 24 * 60 * 60 * 1000),
         employmentStatus: "Active",
         riskLevel: riskLevel,
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${empIdStr}`,
@@ -326,8 +326,8 @@ export async function runSeed(reset = false) {
   for (const emp of createdEmployees) {
     if (emp.role !== "Admin" && managerEmployees.length > 0) {
       const mgr = managerEmployees.find((m) => m.departmentId.toString() === emp.departmentId.toString()) || managerEmployees[0];
+      await Employee.updateOne({ _id: emp._id }, { managerId: mgr._id });
       emp.managerId = mgr._id;
-      await emp.save();
     }
   }
 
@@ -361,7 +361,7 @@ export async function runSeed(reset = false) {
   const tasksBatch = [];
 
   const now = new Date();
-  
+
   // Seed performance records for 4 quarters
   for (const emp of createdEmployees) {
     for (let q = 1; q <= 4; q++) {
@@ -369,6 +369,7 @@ export async function runSeed(reset = false) {
         companyId: company._id,
         employeeId: emp._id,
         period: `2025-Q${q}`,
+        month: `2025-Q${q}`,
         rating: prng.range(3, 5),
         goalsCompleted: prng.range(4, 10),
         goalsAssigned: 10,
@@ -377,7 +378,7 @@ export async function runSeed(reset = false) {
       });
     }
   }
-  await PerformanceRecord.insertMany(performanceRecordsBatch);
+  await PerformanceRecord.insertMany(performanceRecordsBatch, { ordered: false });
 
   // Seed 30 days of recent HISTORICAL attendance & productivity for all 250
   // employees in batches. We start at dayOffset = 1 (yesterday) and never write
@@ -403,6 +404,10 @@ export async function runSeed(reset = false) {
       const breakDurationMinutes = isAbsent ? 0 : 60;
       const lateMinutes = checkInHour >= 10 ? 30 : 0;
 
+      const locDoc = locationDocs[LOCATION_DEFS.find(l => l.code === emp.locationCode)?.code || "HYD"];
+      const baseLat = locDoc?.coordinates?.latitude || 17.3850;
+      const baseLng = locDoc?.coordinates?.longitude || 78.4867;
+
       attendanceRecordsBatch.push({
         companyId: company._id,
         employeeId: emp._id,
@@ -411,12 +416,15 @@ export async function runSeed(reset = false) {
         checkInTime,
         checkOutTime,
         workDurationMinutes,
+        workingHours: Number((workDurationMinutes / 60).toFixed(2)),
         breakDurationMinutes,
         overtimeMinutes: 0,
         lateMinutes,
         earlyDepartureMinutes: 0,
         status,
         shiftKind: "Regular",
+        checkInCoordinates: isAbsent ? undefined : { lat: baseLat + (prng.range(-20, 20) / 10000), lng: baseLng + (prng.range(-20, 20) / 10000) },
+        checkOutCoordinates: isAbsent ? undefined : { lat: baseLat + (prng.range(-20, 20) / 10000), lng: baseLng + (prng.range(-20, 20) / 10000) },
       });
 
       productivityRecordsBatch.push({

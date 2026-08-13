@@ -199,7 +199,7 @@ const LoginForm = () => {
     }
   };
 
-    return (
+  return (
     <Box
       component="form"
       onSubmit={handleSubmit}
@@ -239,19 +239,22 @@ const LoginForm = () => {
             const selectedRole = e.target.value;
             setRole(selectedRole);
             if (error) dispatch(clearError());
-            
-            // Auto-fill logic based on selected role
+
+            // Auto-fill the REAL seeded dev accounts (these exist in MongoDB).
+            // Using non-existent @thestackly.com demo emails caused the backend
+            // login to 401, fall back to a fake client token, and get the user
+            // instantly logged out on the first authenticated request.
             if (selectedRole === "Admin") {
-              setEmail("admin@thestackly.com");
+              setEmail("admin@company.com");
               setPassword("Password123!");
             } else if (selectedRole === "HR") {
-              setEmail("hr@thestackly.com");
+              setEmail("hr@company.com");
               setPassword("Password123!");
             } else if (selectedRole === "Manager") {
-              setEmail("manager@thestackly.com");
+              setEmail("manager@company.com");
               setPassword("Password123!");
             } else if (selectedRole === "Employee") {
-              setEmail("employee@thestackly.com");
+              setEmail("employee@company.com");
               setPassword("Password123!");
             }
           }}
@@ -345,7 +348,7 @@ const LoginForm = () => {
         }
         label="Remember Me"
       />
-      
+
 
       <Button
         type="submit"

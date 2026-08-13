@@ -32,6 +32,13 @@ const attendanceRecordSchema = new mongoose.Schema(
     checkInCoordinates: {
       lat: { type: Number, default: null },
       lng: { type: Number, default: null }
+    },
+    // Persist the check-OUT GPS reading too, so history can show both the
+    // check-in and check-out locations. Without this field Mongoose strict mode
+    // silently drops the checkOutCoordinates the controller sets.
+    checkOutCoordinates: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null }
     }
   },
   { timestamps: true }

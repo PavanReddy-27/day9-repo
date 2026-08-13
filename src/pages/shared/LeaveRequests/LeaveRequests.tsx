@@ -24,11 +24,10 @@ import "./LeaveRequests.css";
 
 const SharedLeaveRequests = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const isManager = user?.role === "Manager";
+  const canApprove = user?.role === "Manager";
 
   const [search, setSearch] = useState("");
-  // Admin/HR can only see Approved/Rejected, so default their view to Approved. Manager defaults to All.
-  const [statusFilter, setStatusFilter] = useState(isManager ? "All" : "Approved");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const [rows, setRows] = useState<LeaveRequestData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,34 +68,32 @@ const SharedLeaveRequests = () => {
 
   const filteredRows = useMemo(() => {
     return rows.filter((item) => {
-      // For Admin and HR, filter out Pending leaves completely even if statusFilter is 'All'
-      if (!isManager && item.status === "Pending") return false;
-
-      const empName = `${item.employeeId.firstName} ${item.employeeId.lastName}`.toLowerCase();
+      const empName = item.employeeId ? `${item.employeeId.firstName || ''} ${item.employeeId.lastName || ''}`.toLowerCase() : '';
+      const empIdStr = item.employeeId?.employeeId ? String(item.employeeId.employeeId).toLowerCase() : '';
       const matchesSearch =
         empName.includes(search.toLowerCase()) ||
-        item.employeeId.employeeId.toLowerCase().includes(search.toLowerCase());
+        empIdStr.includes(search.toLowerCase());
 
       const matchesStatus =
         statusFilter === "All" ? true : item.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
-  }, [rows, search, statusFilter, isManager]);
+  }, [rows, search, statusFilter]);
 
   const columns: GridColDef<LeaveRequestData>[] = [
     {
       field: "empId",
       headerName: "Emp ID",
       width: 120,
-      valueGetter: (_, row) => row.employeeId.employeeId,
+      valueGetter: (_, row) => row.employeeId?.employeeId || "--",
     },
     {
       field: "employeeName",
       headerName: "Employee",
       flex: 1,
       minWidth: 160,
-      valueGetter: (_, row) => `${row.employeeId.firstName} ${row.employeeId.lastName}`,
+      valueGetter: (_, row) => row.employeeId ? `${row.employeeId.firstName} ${row.employeeId.lastName}` : "Employee",
     },
     {
       field: "type",
@@ -131,7 +128,7 @@ const SharedLeaveRequests = () => {
       headerName: "Status",
       width: 130,
       renderCell: (params) => {
-        const value = params.value as "Pending" | "Approved" | "Rejected";
+        const value = (params.value || "Pending") as "Pending" | "Approved" | "Rejected";
         return (
           <Chip
             label={value}
@@ -143,7 +140,7 @@ const SharedLeaveRequests = () => {
     },
   ];
 
-  if (isManager) {
+  if (canApprove) {
     columns.push({
       field: "actions",
       headerName: "Actions",
@@ -187,12 +184,12 @@ const SharedLeaveRequests = () => {
     <Box className="shared-leave-page">
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h4" className="leave-title">
-          {isManager ? "Leave Approvals" : "Leave Records"}
+          {canApprove ? "Leave Approvals & Management" : "Leave Records"}
         </Typography>
       </Box>
 
       <div className="leave-summary-grid">
-        {isManager && (
+        {canApprove && (
           <Paper elevation={3} className="summary-card pending-card">
             <Typography variant="h5" className="summary-count">
               {pendingCount}
@@ -244,11 +241,10 @@ const SharedLeaveRequests = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="leave-status-filter"
           >
-            {isManager && <MenuItem value="All">All Status</MenuItem>}
-            {isManager && <MenuItem value="Pending">Pending</MenuItem>}
+            <MenuItem value="All">All Status</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
             <MenuItem value="Approved">Approved</MenuItem>
             <MenuItem value="Rejected">Rejected</MenuItem>
-            {!isManager && <MenuItem value="All">All (App & Rej)</MenuItem>}
           </TextField>
         </Stack>
       </Paper>

@@ -32,13 +32,26 @@ export const authenticateJWT = async (req, res, next) => {
     // Also set employee/company info for controllers
     const userDoc = await findUserById(decoded.id) as any;
     if (userDoc) {
-      let employeeDoc = await Employee.findOne({ employeeId: userDoc.employeeId });
+      let employeeDoc: any = null;
       
-      // Fallback for DEV accounts that don't have a matching Employee record
-      if (!employeeDoc && userDoc.employeeId.startsWith('DEV_')) {
-        employeeDoc = await Employee.findOne({});
-      }
+      // Try matching by employeeId, userId (_id), or email
+      employeeDoc = await Employee.findOne({
+        $or: [
+          { employeeId: userDoc.employeeId },
+          { userId: userDoc._id },
+          { email: userDoc.email }
+        ]
+      } as any);
 
+      if (!employeeDoc && userDoc.email) {
+        employeeDoc = await Employee.findOne({ email: userDoc.email } as any);
+      }
+      if (!employeeDoc && mongoose.Types.ObjectId.isValid(decoded.id)) {
+        employeeDoc = await Employee.findById(decoded.id as any);
+      }
+      
+      // If no employee record is found, we fall through. 
+      // The else block below will assign a safe dummy ID.
       if (employeeDoc) {
         req.employee = {
           _id: employeeDoc._id,
@@ -48,7 +61,6 @@ export const authenticateJWT = async (req, res, next) => {
           workMode: employeeDoc.workMode,
         };
       } else {
-        // Just use a deterministic ObjectId so it doesn't crash on CastError
         req.employee = { _id: new mongoose.Types.ObjectId("000000000000000000000000") };
       }
       req.companyId = employeeDoc ? employeeDoc.companyId : userDoc.companyId;
@@ -56,7 +68,8 @@ export const authenticateJWT = async (req, res, next) => {
     }
 
     next();
-  } catch {
+  } catch (error) {
+    console.error('[AuthMiddleware] Token verification failed:', error);
     res.status(401).json({ success: false, message: 'Not authorized, token failed' });
   }
 };

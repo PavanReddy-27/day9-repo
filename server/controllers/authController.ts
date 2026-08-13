@@ -1,44 +1,44 @@
-import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User';
-import Employee from '../models/Employee';
+import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User.js';
+import Employee from '../models/Employee.js';
 import jwt from 'jsonwebtoken';
 
 // Helper to generate tokens
-const generateTokens = (id, role) => {
-  const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+const generateTokens = (id: any, role: any) => {
+  const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET!, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: '7d' });
   return { accessToken, refreshToken };
 };
 
 const findUserByEmail = async (email: string) => {
-  let user = await AdminAuth.findOne({ email }).select('+password');
+  let user: any = await AdminAuth.findOne({ email } as any).select('+password');
   if (user) return user;
-  user = await HRAuth.findOne({ email }).select('+password');
+  user = await HRAuth.findOne({ email } as any).select('+password');
   if (user) return user;
-  user = await ManagerAuth.findOne({ email }).select('+password');
+  user = await ManagerAuth.findOne({ email } as any).select('+password');
   if (user) return user;
 
-  user = await EmployeeAuth.findOne({ email }).select('+password');
+  user = await EmployeeAuth.findOne({ email } as any).select('+password');
   if (user) return user;
   // Legacy fallback for tests that insert directly into users collection
-  user = await User.findOne({ email }).select('+password');
+  user = await User.findOne({ email } as any).select('+password');
   return user;
 };
 
 const findUserById = async (id: string) => {
-  let user = await AdminAuth.findById(id);
+  let user: any = await AdminAuth.findById(id as any);
   if (user) return user;
-  user = await HRAuth.findById(id);
+  user = await HRAuth.findById(id as any);
   if (user) return user;
-  user = await ManagerAuth.findById(id);
+  user = await ManagerAuth.findById(id as any);
   if (user) return user;
 
-  user = await EmployeeAuth.findById(id);
+  user = await EmployeeAuth.findById(id as any);
   if (user) return user;
-  user = await User.findById(id);
+  user = await User.findById(id as any);
   return user;
 };
 
-export const login = async (req, res, next) => {
+export const login = async (req: any, res: any, next: any) => {
   try {
     const { email, password } = req.body;
     
@@ -46,7 +46,7 @@ export const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    const user = await findUserByEmail(email);
+    const user: any = await findUserByEmail(email);
     
     if (!user || !(await (user as any).matchPassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -56,7 +56,7 @@ export const login = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Account is deactivated' });
     }
 
-    const employee = await Employee.findOne({ email });
+    const employee: any = await Employee.findOne({ email } as any);
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
 
     res.status(200).json({
@@ -71,9 +71,10 @@ export const login = async (req, res, next) => {
         firstName: employee?.firstName || 'System',
         lastName: employee?.lastName || 'User',
         fullName: employee?.fullName || 'System User',
-        department: employee?.department || 'IT',
+        department: employee?.departmentName || employee?.department || 'General',
+        departmentId: employee?.departmentId,
         designation: employee?.designation || user.role,
-        location: employee?.location || 'HQ',
+        location: employee?.locationCode || employee?.location || 'HQ',
         avatar: employee?.avatar || '',
         isActive: user.isActive,
         createdAt: (user as any).createdAt,

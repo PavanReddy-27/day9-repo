@@ -123,9 +123,9 @@ export const mockUsers: MockUser[] = [
     employeeId: "DEV_EMPLOYEE",
     username: "employee@thestackly.com",
     password: "Password123!",
-    firstName: "John",
-    lastName: "Doe",
-    fullName: "John Doe",
+    firstName: "Pavan",
+    lastName: "Reddy",
+    fullName: "Pavan Reddy",
     email: "employee@thestackly.com",
     role: "Employee",
     department: "Engineering",
@@ -221,7 +221,7 @@ class AuthApi {
       fetch(`${this.ApiBase}/auth/logout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
+      }).catch(() => { });
     }
     localStorage.removeItem("accessToken");
     clearSession();

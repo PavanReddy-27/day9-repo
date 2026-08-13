@@ -35,7 +35,6 @@ import HRAnalytics from "../pages/HR/Analytics";
 // Manager Pages
 import ManagerDashboard from "../manager/pages/ManagerDashboard";
 import ManagerTeam from "../manager/pages/Team";
-import ManagerAttendance from "../manager/pages/Attendance";
 import ManagerPerformance from "../manager/pages/Performance";
 import ManagerAnalytics from "../manager/pages/Analytics";
 
@@ -307,7 +306,7 @@ const AppRoutes = () => {
 
           <Route
             path="/manager/attendance"
-            element={<ManagerAttendance />}
+            element={<HRAttendance />}
           />
 
           <Route

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Box, Chip, IconButton, Tooltip } from '@mui/material';
 import { LocationOn } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { AttendanceRecord, Location } from '../../types/attendance';
+import { AttendanceRecord } from '../../types/attendance';
 
 interface SmartAttendanceTableProps {
   records: AttendanceRecord[];
@@ -15,6 +15,7 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   Absent: { bg: "#DC262622", color: "#DC2626" },
   Leave: { bg: "#9333EA22", color: "#9333EA" },
   "Half Day": { bg: "#2563EB22", color: "#2563EB" },
+  "Half Leave": { bg: "#2563EB22", color: "#2563EB" },
 };
 
 const formatTimeOnly = (isoStr: string | null | undefined) => {
@@ -22,33 +23,53 @@ const formatTimeOnly = (isoStr: string | null | undefined) => {
   return new Date(isoStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-const openInMaps = (location: Location) => {
-  window.open(`https://www.google.com/maps?q=${location.latitude},${location.longitude}`, '_blank', 'noopener,noreferrer');
+const getLat = (loc?: any) => loc?.latitude ?? loc?.lat ?? null;
+const getLng = (loc?: any) => loc?.longitude ?? loc?.lng ?? null;
+
+const openInMaps = (location: any) => {
+  const lat = getLat(location);
+  const lng = getLng(location);
+  if (lat != null && lng != null) {
+    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank', 'noopener,noreferrer');
+  }
 };
 
 // Renders a time cell as a clickable location pin + timestamp (blue when a
-// GPS reading is attached), matching the check-in/out pattern from payroll's
-// attendance table. Clicking the pin opens the reading in Google Maps.
-const LocationTimeCell = ({ time, location }: { time: string | null | undefined; location?: Location }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, height: '100%' }}>
-    {location ? (
-      <>
-        <Tooltip title={`${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)} — View on map`}>
-          <IconButton
-            size="small"
-            onClick={(e) => { e.stopPropagation(); openInMaps(location); }}
-            sx={{ p: 0.25, color: '#2563EB' }}
-          >
-            <LocationOn fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Box component="span" sx={{ color: '#2563EB', fontWeight: 600 }}>{formatTimeOnly(time)}</Box>
-      </>
-    ) : (
-      <Box component="span" sx={{ pl: '30px' }}>{formatTimeOnly(time)}</Box>
-    )}
-  </Box>
-);
+// GPS reading is attached). Clicking the pin opens the reading in Google Maps.
+const LocationTimeCell = ({ time, location, label }: { time: string | null | undefined; location?: any; label?: string }) => {
+  const lat = getLat(location);
+  const lng = getLng(location);
+  const hasGeo = lat != null && lng != null;
+  const locationText = location?.name || (hasGeo ? `${lat.toFixed(2)}, ${lng.toFixed(2)}` : null);
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', py: 0.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        {hasGeo || locationText ? (
+          <>
+            <Tooltip title={`${label ? label + ': ' : ''}${locationText || 'Location'}${hasGeo ? ` (${lat.toFixed(4)}, ${lng.toFixed(4)})` : ''} — Click to view on map`}>
+              <IconButton
+                size="small"
+                onClick={(e) => { e.stopPropagation(); openInMaps(location); }}
+                sx={{ p: 0.25, color: '#2563EB' }}
+              >
+                <LocationOn fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Box component="span" sx={{ color: '#2563EB', fontWeight: 700 }}>{formatTimeOnly(time)}</Box>
+          </>
+        ) : (
+          <Box component="span" sx={{ pl: '28px', color: 'var(--text-h)' }}>{formatTimeOnly(time)}</Box>
+        )}
+      </Box>
+      {locationText && (
+        <Box component="span" sx={{ fontSize: '0.72rem', color: 'var(--text-light)', pl: '28px', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>
+          📍 {locationText}
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ records, role }) => {
   const columns = useMemo(() => {
@@ -71,14 +92,14 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
         headerName: "Check In",
         flex: 1.2,
         minWidth: 110,
-        renderCell: (params) => <LocationTimeCell time={params.value} location={params.row.location} />
+        renderCell: (params) => <LocationTimeCell time={params.value} location={params.row.location} label="Check In Location" />
       },
       {
         field: "checkOutTime",
         headerName: "Check Out",
         flex: 1.2,
         minWidth: 110,
-        renderCell: (params) => <LocationTimeCell time={params.value} location={params.row.checkOutLocation} />
+        renderCell: (params) => <LocationTimeCell time={params.value} location={params.row.checkOutLocation} label="Check Out Location" />
       },
       { field: "workingHours", headerName: "Hours", flex: 0.8, minWidth: 50, valueFormatter: (value: unknown) => {
         return (value !== null && value !== undefined) ? `${value}h` : "--";

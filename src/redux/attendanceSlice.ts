@@ -86,6 +86,9 @@ const attendanceSlice = createSlice({
       .addCase(checkIn.fulfilled, (state, action) => {
         state.loading = false;
         state.todayRecord = action.payload;
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('attendance_updated'));
+        }
       })
       .addCase(checkIn.rejected, (state, action) => {
         state.loading = false;
@@ -93,12 +96,31 @@ const attendanceSlice = createSlice({
       })
       .addCase(startBreak.fulfilled, (state, action) => {
         state.todayRecord = action.payload;
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('attendance_updated'));
+        }
       })
       .addCase(endBreak.fulfilled, (state, action) => {
         state.todayRecord = action.payload;
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('attendance_updated'));
+        }
+      })
+      .addCase(checkOut.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(checkOut.fulfilled, (state, action) => {
+        state.loading = false;
         state.todayRecord = action.payload;
+        state.error = null;
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('attendance_updated'));
+        }
+      })
+      .addCase(checkOut.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Check out failed';
       });
   },
 });

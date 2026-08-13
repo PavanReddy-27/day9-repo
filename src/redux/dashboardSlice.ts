@@ -62,7 +62,7 @@ const initialState: DashboardState = {
 export const fetchEmployees = createAsyncThunk(
   'dashboard/fetchEmployees',
   async () => {
-    return await apiClient<Employee[]>('/employees');
+    return await apiClient<Employee[]>('/employees?limit=500');
   }
 );
 
@@ -149,7 +149,11 @@ export const selectRestrictedDashboardEmployees = (state: RootState) => {
   // Managers can only see their own department's employees
   if (user.role === 'Manager') {
     return filteredEmployees.filter((emp) => {
-      const empDept = typeof emp.department === 'object' ? emp.department.name : emp.department;
+      const e = emp as Record<string, any>;
+      const empDept =
+        e.departmentName ||
+        (e.departmentId && typeof e.departmentId === 'object' ? e.departmentId.name : undefined) ||
+        (typeof e.department === 'object' ? e.department?.name : e.department);
       return empDept === user.department;
     });
   }

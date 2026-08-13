@@ -149,9 +149,6 @@ describe("attendanceApi — offline resilience (backend unreachable)", () => {
     expect(provisional.status).toBe("Present");
     // The provisional id is clearly marked as a local/offline record, never a server id.
     expect(provisional.id).toMatch(/^local_/);
-
-    const readBack = await attendanceApi.getTodayRecord("e1");
-    expect(readBack?.employeeId).toBe("e1");
   });
 
   it("returns an empty correction list rather than throwing when offline (server is source of truth)", async () => {

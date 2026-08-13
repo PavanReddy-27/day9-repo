@@ -3,7 +3,7 @@ import "./RecentActivities.css";
 const activities = [
   {
     id: 1,
-    title: "New employee John Doe joined.",
+    title: "New employee Pavan Reddy joined.",
     time: "2 mins ago",
   },
   {

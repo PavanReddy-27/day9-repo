@@ -5,7 +5,6 @@ import { attendanceApi } from "../../services/attendanceApi";
 import type { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
 import AttendanceTracker from "../../components/Attendance/AttendanceTracker";
-import CorrectionRequests from "../../components/Attendance/CorrectionRequests";
 import AttendanceChart from "../../components/Attendance/AttendanceChart";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
@@ -20,7 +19,8 @@ const EmployeeAttendance = () => {
   useEffect(() => {
     const fetchRecords = async () => {
       if (user) {
-        const history = await attendanceApi.getEmployeeRecords(user.id);
+        // We let the backend securely scope to the logged-in employee automatically
+        const history = await attendanceApi.getEmployeeRecords();
         setRecords(history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       }
     };
@@ -32,14 +32,18 @@ const EmployeeAttendance = () => {
     return () => window.removeEventListener('attendance_updated', handleUpdate);
   }, [user]);
 
-
-
   const filteredRecords = useMemo(() => {
     return records.filter(r => {
-      return (
-        (statusFilter === "All" || r.status === statusFilter) &&
-        (dateFilter === "" || r.date === dateFilter)
-      );
+      const matchesDate = (dateFilter === "" || r.date === dateFilter);
+      let matchesStatus = true;
+      if (statusFilter === "Present") {
+        matchesStatus = r.status === "Present" || ["Working", "On Break", "Checked Out"].includes(r.attendanceState ?? "");
+      } else if (statusFilter === "Absent") {
+        matchesStatus = r.status === "Absent" || r.attendanceState === "Not Checked In";
+      } else if (statusFilter === "Leave" || statusFilter === "Half Day" || statusFilter === "Half Leave") {
+        matchesStatus = r.status === "Leave" || r.status === "Half Day" || r.status === "Half-Day" || r.status === "Half Leave" || ((r.workingHours ?? 0) > 0 && (r.workingHours ?? 0) < 5);
+      }
+      return matchesStatus && matchesDate;
     });
   }, [records, statusFilter, dateFilter]);
 
@@ -104,8 +108,6 @@ const EmployeeAttendance = () => {
           <SmartAttendanceTable records={filteredRecords} role="Employee" />
         </Box>
       </Box>
-
-      <CorrectionRequests />
     </Box>
   );
 };

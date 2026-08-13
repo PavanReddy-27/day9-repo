@@ -28,21 +28,30 @@ const Team = () => {
   const [selected, setSelected] = useState<TeamMember | null>(null);
 
   const teamData: TeamMember[] = useMemo(() => {
-    return rawEmployees.map((emp, i) => ({
-      id: i + 1,
-      employeeId: emp.employeeId,
-      name: emp.fullName || emp.name || 'Unknown',
-      designation: emp.role,
-      department: typeof emp.department === 'object' ? emp.department.name : emp.department,
-      email: emp.email,
-      phone: "+1 555-0100", // Placeholder
-      attendance: "Present", // Placeholder
-      performance: "Good", // Placeholder
-      risk: (emp.risk as any) || "Low",
-      experience: emp.experience || 0,
-      productivity: 85, // Placeholder
-      avatar: (emp.fullName || emp.name || 'A')[0].toUpperCase(),
-    }));
+    return rawEmployees.map((emp, i) => {
+      const e = emp as Record<string, any>;
+      const deptName =
+        e.departmentName ||
+        (e.departmentId && typeof e.departmentId === "object" ? e.departmentId.name : undefined) ||
+        (typeof e.department === "object" ? e.department?.name : e.department) ||
+        "Unknown";
+      const name = e.fullName || e.name || "Unknown";
+      return {
+        id: i + 1,
+        employeeId: e.employeeId,
+        name,
+        designation: e.designation || e.role,
+        department: deptName,
+        email: e.email,
+        phone: e.phone || "—",
+        attendance: e.attendance || "Present",
+        performance: e.performance || "Good",
+        risk: e.riskLevel || e.risk || "Low",
+        experience: e.experience || 0,
+        productivity: e.productivity ?? 0,
+        avatar: name[0].toUpperCase(),
+      };
+    });
   }, [rawEmployees]);
 
   const rows = useMemo(() => {

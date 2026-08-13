@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { apiClient } from "../../services/apiClient";
 import "./Users.css";
 
 type User = {
@@ -9,37 +10,6 @@ type User = {
   status: "Active" | "Inactive";
 };
 
-const initialUsers: User[] = [
-  {
-    id: "EMP001",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    id: "EMP002",
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    role: "Manager",
-    status: "Active",
-  },
-  {
-    id: "EMP003",
-    name: "Robert Wilson",
-    email: "robert.wilson@example.com",
-    role: "Employee",
-    status: "Inactive",
-  },
-  {
-    id: "EMP004",
-    name: "David Kim",
-    email: "david.kim@example.com",
-    role: "Employee",
-    status: "Active",
-  },
-];
-
 const defaultUser: User = {
   id: "",
   name: "",
@@ -49,11 +19,32 @@ const defaultUser: User = {
 };
 
 const Users = () => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formValues, setFormValues] = useState<User>(defaultUser);
+
+  useEffect(() => {
+    const loadRealUsers = async () => {
+      try {
+        const empData = await apiClient('/employees');
+        if (Array.isArray(empData)) {
+          const mapped = empData.map((emp: any) => ({
+            id: emp.employeeId || emp._id,
+            name: emp.fullName || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Employee',
+            email: emp.email || '',
+            role: emp.role || 'Employee',
+            status: emp.employmentStatus === 'Inactive' ? ('Inactive' as const) : ('Active' as const),
+          }));
+          setUsers(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load real employees:", err);
+      }
+    };
+    loadRealUsers();
+  }, []);
 
   const filteredUsers = useMemo(
     () =>

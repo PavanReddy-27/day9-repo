@@ -1,7 +1,8 @@
 export interface Location {
   latitude: number;
   longitude: number;
-  accuracy: number;
+  accuracy?: number;
+  name?: string;
 }
 
 export type ShiftType = "Regular" | "Flexible" | "Night" | "CrossMidnight";
@@ -18,7 +19,8 @@ export interface AttendanceRecord {
   workingHours: number;
   workDurationMinutes?: number;
   breakDurationMinutes?: number;
-  status: "Present" | "Half-Day" | "Late" | "Absent" | "Leave" | "Suspicious" | "Working" | "On Break" | "Checked Out" | "Not Checked In";
+  status: "Present" | "Half-Day" | "Half Day" | "Half Leave" | "Late" | "Absent" | "Leave" | "Suspicious" | "Working" | "On Break" | "Checked Out" | "Not Checked In" | string;
+  attendanceState?: string;
 
   shiftType?: ShiftType;
   policyType?: AttendancePolicyType;

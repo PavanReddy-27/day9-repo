@@ -24,6 +24,7 @@ import {
   resumeWork,
   checkOut,
   getAttendanceHistory,
+  getGlobalAttendance,
   createCorrection,
   getCorrections,
   approveCorrection,
@@ -81,6 +82,7 @@ router.post("/resume", authenticateJWT, resumeWork);
 router.post("/attendance/check-out", authenticateJWT, checkOut);
 router.post("/check-out", authenticateJWT, checkOut);
 router.get("/attendance/history", authenticateJWT, applyRoleDataScope, getAttendanceHistory);
+router.get("/attendance/global", authenticateJWT, getGlobalAttendance);
 
 // Attendance Corrections Routes
 router.post("/attendance/corrections", authenticateJWT, createCorrection);

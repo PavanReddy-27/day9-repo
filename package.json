@@ -27,6 +27,7 @@
     "seed:full": "tsx server/seed/seed.ts",
     "attendance:open-today": "tsx server/scripts/openAttendanceDay.ts",
     "fix:indexes": "tsx server/scripts/repairIndexes.ts",
+    "reset:passwords": "tsx server/scripts/resetPasswords.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

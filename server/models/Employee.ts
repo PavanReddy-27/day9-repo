@@ -35,4 +35,5 @@ const employeeSchema = new mongoose.Schema({
 employeeSchema.index({ companyId: 1, locationId: 1 });
 employeeSchema.index({ companyId: 1, departmentId: 1 });
 
-export default mongoose.models.Employee || mongoose.model('Employee', employeeSchema);
+const Employee = mongoose.models.Employee || mongoose.model('Employee', employeeSchema);
+export default Employee as typeof mongoose.Model;

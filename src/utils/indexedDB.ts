@@ -137,6 +137,9 @@ export async function syncOfflineQueue(): Promise<number> {
     }
   }
 
+  if (syncedCount > 0 && typeof window !== "undefined") {
+    window.dispatchEvent(new Event("offline_sync_complete"));
+  }
   return syncedCount;
 }
 

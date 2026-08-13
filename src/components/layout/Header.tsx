@@ -92,7 +92,7 @@ const Header = ({
           />
 
           <div className="profile-info">
-            <h4>{user.username}</h4>
+            <h4>{user.fullName || user.username}</h4>
             <p>{user.role}</p>
           </div>
 
