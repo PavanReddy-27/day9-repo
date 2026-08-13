@@ -6,7 +6,7 @@ import { AttendanceRecord, Location } from '../../types/attendance';
 
 interface SmartAttendanceTableProps {
   records: AttendanceRecord[];
-  role: 'HR' | 'Manager' | 'Team Lead' | 'Employee';
+  role: 'HR' | 'Manager' | 'Employee';
 }
 
 const statusColors: Record<string, { bg: string; color: string }> = {

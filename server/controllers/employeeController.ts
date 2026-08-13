@@ -75,8 +75,8 @@ export const getEmployees = async (req, res) => {
 
     // ...then the authoritative RBAC scope is applied LAST so it always wins.
     // This enforces company isolation and pins Manager->department,
-    // Team Lead->team, Employee->self even if the client passes conflicting
-    // locationId/departmentId/teamId query params.
+    // Employee->self even if the client passes conflicting
+    // locationId/departmentId query params.
     Object.assign(query, buildEmployeeScopeFilter(req.role, req.employee, req.companyId));
 
     const skip = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
@@ -122,9 +122,7 @@ export const getEmployeeById = async (req, res) => {
     if (req.role === "Manager" && employee.departmentId._id.toString() !== req.employee.departmentId.toString()) {
       return res.status(403).json({ success: false, message: "Forbidden: Cannot access employee outside your department." });
     }
-    if (req.role === "Team Lead" && employee.teamId._id.toString() !== req.employee.teamId.toString()) {
-      return res.status(403).json({ success: false, message: "Forbidden: Cannot access employee outside your team." });
-    }
+
     if (req.role === "Employee" && employee._id.toString() !== req.employee._id.toString()) {
       return res.status(403).json({ success: false, message: "Forbidden: Cannot access another employee's record." });
     }

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import Employee from '../models/Employee.js';
 
-import { AdminAuth, HRAuth, ManagerAuth, TeamLeadAuth, EmployeeAuth } from '../models/User.js';
+import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth } from '../models/User.js';
 
 const findUserById = async (id: string) => {
   let user = await AdminAuth.findById(id);
@@ -10,8 +10,6 @@ const findUserById = async (id: string) => {
   user = await HRAuth.findById(id);
   if (user) return user;
   user = await ManagerAuth.findById(id);
-  if (user) return user;
-  user = await TeamLeadAuth.findById(id);
   if (user) return user;
   user = await EmployeeAuth.findById(id);
   return user;
@@ -86,8 +84,8 @@ export const applyRoleDataScope = (req, res, next) => {
 /**
  * Builds the authoritative Mongo filter that scopes a query against the
  * `employees` collection to what the authenticated principal may see.
- * Always company-isolated; Managers are pinned to their department, Team Leads
- * to their team, and Employees to their own record. Admin/HR see the whole
+ * Always company-isolated; Managers are pinned to their department,
+ * and Employees to their own record. Admin/HR see the whole
  * (authorized) company. This is a pure function so it can be unit-tested
  * against the real production logic.
  */
@@ -99,8 +97,6 @@ export const buildEmployeeScopeFilter = (
   const filter: Record<string, unknown> = { companyId };
   if (role === 'Manager') {
     filter.departmentId = employee.departmentId;
-  } else if (role === 'Team Lead') {
-    filter.teamId = employee.teamId;
   } else if (role === 'Employee') {
     filter._id = employee._id;
   }

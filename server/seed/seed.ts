@@ -1,13 +1,13 @@
 
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import { connectDB, closeDB } from "../config/db.js";
+import connectDB, { closeDB } from "../config/db.js";
 
 import Company from "../models/Company.js";
 import Location from "../models/Location.js";
 import Department from "../models/Department.js";
 import Team from "../models/Team.js";
-import User from "../models/User.js";
+import { User } from "../models/User.js";
 import Employee from "../models/Employee.js";
 import Shift from "../models/Shift.js";
 import ShiftAssignment from "../models/ShiftAssignment.js";
@@ -234,7 +234,6 @@ export async function runSeed(reset = false) {
     Admin: await bcrypt.hash("admin123", 10),
     HR: await bcrypt.hash("hr123", 10),
     Manager: await bcrypt.hash("manager123", 10),
-    "Team Lead": await bcrypt.hash("teamlead123", 10),
     Employee: await bcrypt.hash("employee123", 10),
   };
 
@@ -242,8 +241,7 @@ export async function runSeed(reset = false) {
     { role: "Admin", email: "admin@company.com", empId: "EMP-001", firstName: "System", lastName: "Admin", locCode: "HYD", deptIndex: 0 },
     { role: "HR", email: "hr@company.com", empId: "EMP-002", firstName: "David", lastName: "Miller", locCode: "HYD", deptIndex: 1 },
     { role: "Manager", email: "manager@company.com", empId: "EMP-003", firstName: "Robert", lastName: "King", locCode: "HYD", deptIndex: 0 },
-    { role: "Team Lead", email: "teamlead@company.com", empId: "EMP-004", firstName: "Sarah", lastName: "Connor", locCode: "HYD", deptIndex: 0 },
-    { role: "Employee", email: "employee@company.com", empId: "EMP-005", firstName: "Pavan", lastName: "Reddy", locCode: "HYD", deptIndex: 0 },
+    { role: "Employee", email: "employee@company.com", empId: "EMP-004", firstName: "Pavan", lastName: "Reddy", locCode: "HYD", deptIndex: 0 },
   ];
 
   const createdEmployees = [];
@@ -269,10 +267,8 @@ export async function runSeed(reset = false) {
         email = devCfg.email;
         firstName = devCfg.firstName;
         lastName = devCfg.lastName;
-      } else if (empIdNumber <= 15) {
+      } else if (empIdNumber <= 25) {
         role = "Manager";
-      } else if (empIdNumber <= 35) {
-        role = "Team Lead";
       } else if (empIdNumber <= 45) {
         role = "HR";
       }

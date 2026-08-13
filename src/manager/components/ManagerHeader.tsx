@@ -84,7 +84,7 @@ import {
               variant="caption"
               className="manager-header-profile-role"
             >
-              Team Lead
+              Manager
             </Typography>
           </Box>
         </Toolbar>
