@@ -62,7 +62,7 @@ const createLoginResponse = (
   return response;
 };
 
-const mockUsers: MockUser[] = [
+export const mockUsers: MockUser[] = [
   {
     id: "1",
     employeeId: "DEV_ADMIN",
@@ -117,24 +117,7 @@ const mockUsers: MockUser[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-  {
-    id: "4",
-    employeeId: "DEV_TEAMLEAD",
-    username: "teamlead@thestackly.com",
-    password: "Password123!",
-    firstName: "Team",
-    lastName: "Lead",
-    fullName: "Team Lead",
-    email: "teamlead@thestackly.com",
-    role: "Team Lead",
-    department: "Engineering",
-    designation: "Tech Lead",
-    location: "Hyderabad",
-    avatar: "",
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
+
   {
     id: "5",
     employeeId: "DEV_EMPLOYEE",

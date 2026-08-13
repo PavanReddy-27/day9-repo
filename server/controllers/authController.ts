@@ -1,4 +1,4 @@
-import { AdminAuth, HRAuth, ManagerAuth, TeamLeadAuth, EmployeeAuth, User } from '../models/User';
+import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User';
 import Employee from '../models/Employee';
 import jwt from 'jsonwebtoken';
 
@@ -16,8 +16,7 @@ const findUserByEmail = async (email: string) => {
   if (user) return user;
   user = await ManagerAuth.findOne({ email }).select('+password');
   if (user) return user;
-  user = await TeamLeadAuth.findOne({ email }).select('+password');
-  if (user) return user;
+
   user = await EmployeeAuth.findOne({ email }).select('+password');
   if (user) return user;
   // Legacy fallback for tests that insert directly into users collection
@@ -32,8 +31,7 @@ const findUserById = async (id: string) => {
   if (user) return user;
   user = await ManagerAuth.findById(id);
   if (user) return user;
-  user = await TeamLeadAuth.findById(id);
-  if (user) return user;
+
   user = await EmployeeAuth.findById(id);
   if (user) return user;
   user = await User.findById(id);

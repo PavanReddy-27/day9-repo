@@ -1,16 +1,82 @@
 import type { AttendanceRecord, CorrectionRequest, AttendanceAuditLog, Location, ShiftType, AttendanceSource } from "../types/attendance";
 import { apiClient } from "./apiClient";
+import { mockUsers } from "./authApi";
 
-const LOCAL_STORAGE_KEY = "attendance_local_state_v1";
+const LOCAL_STORAGE_KEY = "attendance_local_state_v2";
 
 const getLocalState = (): Record<string, AttendanceRecord> => {
+  let state: Record<string, AttendanceRecord> = {};
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Object.keys(parsed).length > 0) {
+        state = parsed;
+      }
+    }
   } catch {
-    return {};
+    // Ignore parse error
   }
+  // Seed mock history if empty
+  if (Object.keys(state).length === 0) {
+    const today = new Date();
+    for (let i = 1; i <= 5; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      
+      state[`5_${dateStr}`] = {
+        id: `mock_rec_emp_${i}`,
+        employeeId: "5",
+        employeeName: "John Doe",
+        date: dateStr,
+        checkInTime: `${dateStr}T09:30:00Z`,
+        checkOutTime: `${dateStr}T18:00:00Z`,
+        status: "Present",
+        workingHours: 8.5,
+        workDurationMinutes: 510,
+        shiftType: "Regular",
+        location: { latitude: 12.9716, longitude: 77.5946, accuracy: 10 },
+        checkOutLocation: { latitude: 12.9716, longitude: 77.5946, accuracy: 10 },
+        department: "Engineering",
+        source: "Web",
+        workMode: "Office",
+      };
+    }
+  }
+
+  // Common logic: Reset/ensure attendance for today for ALL accounts (including future added ones)
+  const todayStr = new Date().toISOString().split("T")[0];
+  let stateModified = false;
+
+  mockUsers.forEach(user => {
+    const key = `${user.id}_${todayStr}`;
+    if (!state[key]) {
+      state[key] = {
+        id: `local_rec_reset_${user.id}_${Date.now()}`,
+        employeeId: user.id,
+        employeeName: user.fullName || "Employee",
+        date: todayStr,
+        checkInTime: null,
+        checkOutTime: null,
+        status: "Not Checked In",
+        workingHours: 0,
+        workDurationMinutes: 0,
+        department: user.department || "Unknown",
+        workMode: user.workMode || "Office",
+      };
+      stateModified = true;
+    }
+  });
+
+  if (stateModified || Object.keys(state).length <= mockUsers.length) {
+    saveLocalState(state);
+  }
+
+  return state;
 };
+  
+
 
 const saveLocalState = (state: Record<string, AttendanceRecord>) => {
   try {
@@ -22,12 +88,22 @@ const saveLocalState = (state: Record<string, AttendanceRecord>) => {
 
 export const attendanceApi = {
   getTodayRecord: async (employeeId: string): Promise<AttendanceRecord | null> => {
+    const todayStr = new Date().toISOString().split("T")[0];
     try {
-      return await apiClient<AttendanceRecord | null>("/attendance/status");
+      const record = await apiClient<AttendanceRecord | null>("/attendance/status");
+      
+      // If the backend returns a record, verify it belongs to today. 
+      // Sometimes APIs return the "latest" record which might be from yesterday.
+      if (record && record.date) {
+        const recordDateStr = record.date.split("T")[0];
+        if (recordDateStr !== todayStr) {
+          return null;
+        }
+      }
+      return record;
     } catch {
-      const today = new Date().toISOString().split("T")[0];
       const localState = getLocalState();
-      return localState[`${employeeId}_${today}`] || null;
+      return localState[`${employeeId}_${todayStr}`] || null;
     }
   },
 

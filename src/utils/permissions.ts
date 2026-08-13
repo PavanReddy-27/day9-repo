@@ -24,11 +24,7 @@ export function hasPermission(
       "employees:view",
       "reports:view",
     ],
-    "Team Lead": [
-      "dashboard:view",
-      "workforce:view",
-      "employees:view",
-    ],
+
     Employee: [
       "dashboard:view",
     ],

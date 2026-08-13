@@ -72,7 +72,6 @@ async function startServer() {
           if (u.role === 'Admin') await mongoose.connection.collection('adminauths').insertOne(u);
           else if (u.role === 'HR') await mongoose.connection.collection('hrauths').insertOne(u);
           else if (u.role === 'Manager') await mongoose.connection.collection('managerauths').insertOne(u);
-          else if (u.role === 'Team Lead') await mongoose.connection.collection('teamleadauths').insertOne(u);
           else await mongoose.connection.collection('employeeauths').insertOne(u);
         } catch (insertErr: any) {
           if (insertErr.code !== 11000) {

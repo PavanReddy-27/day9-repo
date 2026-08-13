@@ -119,7 +119,7 @@ const seedDB = async () => {
 
     // 6. Create Development Users
     console.log('Creating 5 development accounts...');
-    const roles = ['Admin', 'HR', 'Manager', 'Team Lead', 'Employee'];
+    const roles = ['Admin', 'HR', 'Manager', 'Employee'];
     
     // Pick the first generated location and department
     const devLocation = Object.values(locations)[0];

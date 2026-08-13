@@ -1,6 +1,6 @@
 import type { AttendancePolicyType } from "./attendance";
 
-export type UserRole = "Admin" | "HR" | "Manager" | "Team Lead" | "Employee";
+export type UserRole = "Admin" | "HR" | "Manager" | "Employee";
 
 export interface User {
   id: string;

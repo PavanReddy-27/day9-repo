@@ -191,6 +191,14 @@ const AttendanceTracker = () => {
         return;
       }
 
+      if (todayRecord?.location) {
+        const distanceToStart = getDistanceMeters(loc, todayRecord.location);
+        if (distanceToStart > 500) {
+          setGeoError(`Check-out failed: You are ${Math.round(distanceToStart)}m away from your check-in location (maximum 500m allowed).`);
+          return;
+        }
+      }
+
       dispatch(checkOut({ employeeId: user.id, location: loc }));
     } catch (err) {
       setIsLocating(false);
@@ -307,6 +315,11 @@ const AttendanceTracker = () => {
                     )}
                     <Typography variant="h6" sx={{ fontWeight: 700, color: todayRecord?.location ? '#2563EB' : "var(--text-h)" }}>{formatTime(todayRecord?.checkInTime || null)}</Typography>
                   </Box>
+                  {todayRecord?.location && (
+                    <Typography variant="caption" sx={{ color: "var(--text-light)", display: 'block', fontSize: '0.7rem', mt: 0.25 }}>
+                      {todayRecord.location.latitude.toFixed(4)}, {todayRecord.location.longitude.toFixed(4)}
+                    </Typography>
+                  )}
                </Box>
                <Box sx={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--border)' }}>
                   <Typography variant="caption" sx={{ color: "var(--text-light)" }}>Check Out</Typography>
@@ -324,6 +337,11 @@ const AttendanceTracker = () => {
                     )}
                     <Typography variant="h6" sx={{ fontWeight: 700, color: todayRecord?.checkOutLocation ? '#2563EB' : "var(--text-h)" }}>{formatTime(todayRecord?.checkOutTime || null)}</Typography>
                   </Box>
+                  {todayRecord?.checkOutLocation && (
+                    <Typography variant="caption" sx={{ color: "var(--text-light)", display: 'block', fontSize: '0.7rem', mt: 0.25 }}>
+                      {todayRecord.checkOutLocation.latitude.toFixed(4)}, {todayRecord.checkOutLocation.longitude.toFixed(4)}
+                    </Typography>
+                  )}
                </Box>
                <Box sx={{ flex: 1, textAlign: 'center' }}>
                   <Typography variant="caption" sx={{ color: "var(--text-light)" }}>Total Break</Typography>
@@ -333,7 +351,7 @@ const AttendanceTracker = () => {
           </Box>
 
           <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
-            {!isCheckedIn && !isCheckedOut && (
+            {!isCheckedIn && (
               <>
                 <FormControl size="small" fullWidth sx={{ mb: 1 }}>
                   <InputLabel id="workmode-select-label" sx={{ color: "var(--text-light)" }}>Work Mode / Location</InputLabel>

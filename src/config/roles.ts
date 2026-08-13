@@ -13,7 +13,7 @@ export const USER_ROLES = {
   ADMIN: "Admin",
   HR: "HR",
   MANAGER: "Manager",
-  TEAM_LEAD: "Team Lead",
+
   EMPLOYEE: "Employee",
 } as const;
 
@@ -26,7 +26,7 @@ export const ROLE_DASHBOARD: Record<UserRole, string> = {
   Admin: "/admin/dashboard",
   HR: "/hr/dashboard",
   Manager: "/manager/dashboard",
-  "Team Lead": "/teamlead/dashboard",
+
   Employee: "/employee/dashboard",
 };
 
@@ -45,7 +45,7 @@ export const ROLE_PRIORITY: Record<UserRole, number> = {
   Admin: 5,
   HR: 4,
   Manager: 3,
-  "Team Lead": 2,
+
   Employee: 1,
 };
 
@@ -166,12 +166,7 @@ export const ROLE_ROUTES: Record<UserRole, string[]> = {
     APP_ROUTES.MANAGER.ANALYTICS,
   ],
 
-  "Team Lead": [
-    "/teamlead",
-    "/teamlead/dashboard",
-    "/teamlead/team",
-    "/teamlead/attendance",
-  ],
+
 
   Employee: [
     APP_ROUTES.EMPLOYEE.ROOT,
