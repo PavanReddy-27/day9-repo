@@ -29,6 +29,11 @@ import {
   approveCorrection,
   rejectCorrection,
 } from "../controllers/attendanceController.js";
+import {
+  getLeaveRequests,
+  createLeaveRequest,
+  updateLeaveStatus,
+} from "../controllers/leaveController.js";
 import { authenticateJWT, requireRole, applyRoleDataScope, validateObjectId } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -82,5 +87,10 @@ router.post("/attendance/corrections", authenticateJWT, createCorrection);
 router.get("/attendance/corrections", authenticateJWT, getCorrections);
 router.patch("/attendance/corrections/:id/approve", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), approveCorrection);
 router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), rejectCorrection);
+
+// Leave Requests Routes
+router.get("/leaves", authenticateJWT, getLeaveRequests);
+router.post("/leaves", authenticateJWT, requireRole(["Employee"]), createLeaveRequest);
+router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), updateLeaveStatus);
 
 export default router;
