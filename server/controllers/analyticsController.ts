@@ -3,10 +3,10 @@ import Employee from "../models/Employee.js";
 import AttendanceRecord from "../models/AttendanceRecord.js";
 import PerformanceRecord from "../models/PerformanceRecord.js";
 import ProductivityRecord from "../models/ProductivityRecord.js";
-import Skill from "../models/Skill.js";
+
 import EmployeeSkill from "../models/EmployeeSkill.js";
-import Location from "../models/Location.js";
-import Department from "../models/Department.js";
+
+
 
 export const getWorkforceAnalytics = async (req, res) => {
   try {

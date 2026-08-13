@@ -11,6 +11,14 @@ export default defineConfig({
     baseURL: "http://localhost:5173",
     trace: "on-first-retry",
   },
+  // Auto-start the Vite dev server so `npx playwright test` is self-contained.
+  // Reuses an already-running server locally; starts a fresh one in CI.
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:5173",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
   projects: [
     {
       name: "chromium",

@@ -29,7 +29,6 @@ import HRDashboard from "../pages/HR/Dashboard";
 import HREmployees from "../pages/HR/Employees";
 import HRRecruitment from "../pages/HR/Recruitment";
 import HRAttendance from "../pages/HR/Attendance";
-import HRLeave from "../pages/HR/LeaveRequests";
 import HRPerformance from "../pages/HR/Performance";
 import HRAnalytics from "../pages/HR/Analytics";
 
@@ -37,14 +36,16 @@ import HRAnalytics from "../pages/HR/Analytics";
 import ManagerDashboard from "../manager/pages/ManagerDashboard";
 import ManagerTeam from "../manager/pages/Team";
 import ManagerAttendance from "../manager/pages/Attendance";
-import ManagerLeaveRequests from "../manager/pages/LeaveRequests";
 import ManagerPerformance from "../manager/pages/Performance";
 import ManagerAnalytics from "../manager/pages/Analytics";
+
+import SharedLeaveRequests from "../pages/shared/LeaveRequests/LeaveRequests";
 
 // Employee Pages
 import EmployeeDashboard from "../pages/Employee/Dashboard";
 import EmployeeAttendance from "../pages/Employee/Attendance";
-import TeamLeadDashboard from "../pages/TeamLead/Dashboard";
+import EmployeeLeaveRequests from "../pages/Employee/LeaveRequests";
+
 
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
 import SessionExpired from "../pages/SessionExpired/SessionExpired";
@@ -73,8 +74,7 @@ const AppRoutes = () => {
       case "Manager":
         return "/manager/dashboard";
 
-      case "Team Lead":
-        return "/teamlead/dashboard";
+
 
       case "Employee":
         return "/employee/dashboard";
@@ -208,7 +208,7 @@ const AppRoutes = () => {
 
           <Route
             path="/admin/leave-requests"
-            element={<HRLeave />}
+            element={<SharedLeaveRequests />}
           />
 
           <Route
@@ -263,7 +263,7 @@ const AppRoutes = () => {
 
           <Route
             path="/hr/leave-requests"
-            element={<HRLeave />}
+            element={<SharedLeaveRequests />}
           />
 
           <Route
@@ -312,7 +312,7 @@ const AppRoutes = () => {
 
           <Route
             path="/manager/leave-requests"
-            element={<ManagerLeaveRequests />}
+            element={<SharedLeaveRequests />}
           />
 
           <Route
@@ -327,49 +327,7 @@ const AppRoutes = () => {
         </Route>
       </Route>
 
-      {/* ===========================
-          TEAM LEAD
-      ============================ */}
 
-      <Route
-        element={
-          <ProtectedRoute
-            allowedRoles={[
-              "Team Lead",
-              "Admin",
-            ]}
-          />
-        }
-      >
-        <Route
-          element={<DashboardLayout />}
-        >
-          <Route
-            path="/teamlead/dashboard"
-            element={<TeamLeadDashboard />}
-          />
-          <Route
-            path="/teamlead/team"
-            element={<ManagerTeam />}
-          />
-          <Route
-            path="/teamlead/attendance"
-            element={<ManagerAttendance />}
-          />
-          <Route
-            path="/teamlead/leave-requests"
-            element={<ManagerLeaveRequests />}
-          />
-          <Route
-            path="/teamlead/performance"
-            element={<ManagerPerformance />}
-          />
-          <Route
-            path="/teamlead/analytics"
-            element={<ManagerAnalytics />}
-          />
-        </Route>
-      </Route>
 
       {/* ===========================
           EMPLOYEE
@@ -395,6 +353,10 @@ const AppRoutes = () => {
           <Route
             path="/employee/attendance"
             element={<EmployeeAttendance />}
+          />
+          <Route
+            path="/employee/leave-requests"
+            element={<EmployeeLeaveRequests />}
           />
         </Route>
       </Route>

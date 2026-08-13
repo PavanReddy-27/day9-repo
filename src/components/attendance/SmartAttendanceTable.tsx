@@ -150,6 +150,7 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
       <DataGrid
         sx={{ flex: 1 }}
         rows={records}
+        getRowId={(row) => row.id || row._id || Math.random().toString()}
         columns={columns}
         pageSizeOptions={[5, 10, 20, 50]}
         initialState={{

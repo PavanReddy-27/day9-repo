@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
   Box, Typography, Button, Paper, CircularProgress,
-  Alert, Tooltip, Grow, Fade, FormControl, Select, MenuItem, InputLabel, IconButton
+  Alert, Tooltip, Grow, Fade, FormControl, Select, MenuItem, InputLabel, IconButton,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
 } from '@mui/material';
 import { PlayArrow, Pause, Stop, Sync, LocationOn, AccessTime, WbSunny, NightsStay } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkIn, checkOut, startBreak, endBreak, fetchTodayRecord, queueOfflineAction, clearOfflineQueue } from '../../redux/attendanceSlice';
 import { Location, ShiftType } from '../../types/attendance';
-import { attendanceApi, getAttendancePolicy } from '../../services/attendanceApi';
-import { getDistanceMeters, getOfficeLocation, GEOFENCE_RADIUS_METERS, MAX_GPS_ACCURACY_METERS } from '../../config/attendance';
+import { attendanceApi } from '../../services/attendanceApi';
+import { getDistanceMeters, getOfficeLocation, MAX_GPS_ACCURACY_METERS, GEOFENCE_RADIUS_METERS } from '../../config/attendance';
 
 const AttendanceTracker = () => {
   const dispatch = useAppDispatch();
@@ -20,6 +21,9 @@ const AttendanceTracker = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [shiftType, setShiftType] = useState<ShiftType>("Regular");
+  const [workMode, setWorkMode] = useState<"Office" | "Work From Home">("Work From Home");
+  const [isLocating, setIsLocating] = useState(false);
+  const [wfhPrompt, setWfhPrompt] = useState<{ open: boolean, loc: Location | null }>({ open: false, loc: null });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -68,6 +72,10 @@ const AttendanceTracker = () => {
     }
   }, [isOnline, offlineQueue, user, dispatch]);
 
+  if (user?.role === 'Admin' || user?.role === 'Manager') {
+    return null;
+  }
+
   const getLocation = (): Promise<Location> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -79,28 +87,66 @@ const AttendanceTracker = () => {
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy
           }),
-          () => reject('Unable to retrieve your location. Permission denied.')
+          (err) => reject(err.code === err.TIMEOUT ? 'Location request timed out. Please try again.' : 'Unable to retrieve your location. Permission denied or unavailable.'),
+          { timeout: 5000, enableHighAccuracy: false }
         );
       }
     });
   };
 
+  const isIndiaCoordinates = (loc: Location): boolean => {
+    return loc.latitude >= 6.0 && loc.latitude <= 37.5 && loc.longitude >= 68.0 && loc.longitude <= 97.5;
+  };
+
   // Returns an error message if the reading fails geofence/accuracy checks, or null if it's valid.
-  const validateGeofenceAndAccuracy = (loc: Location, action: 'Check-in' | 'Check-out'): string | null => {
+  const validateGeofenceAndAccuracy = (loc: Location): string | null => {
+    // Work From Home or any Indian location is acceptable for check-in!
+    if (workMode === "Work From Home" || isIndiaCoordinates(loc)) {
+      return null;
+    }
     if (loc.accuracy > MAX_GPS_ACCURACY_METERS) {
       return `Your location signal is too weak (±${Math.round(loc.accuracy)}m accuracy). Move to an open area or wait for GPS to stabilize, then try again.`;
     }
 
-    const policyType = user ? getAttendancePolicy(user.department, user.workMode) : "Office";
-    if (policyType === "Office") {
+    const policyType = user?.workMode || "Office";
+    if (policyType === "Office" && workMode === "Office") {
       const officeLocation = getOfficeLocation();
       const distance = getDistanceMeters(loc, officeLocation);
       if (distance > GEOFENCE_RADIUS_METERS) {
-        return `You are ${Math.round(distance)}m away from ${officeLocation.name}. ${action} requires being within ${GEOFENCE_RADIUS_METERS}m of the office.`;
+        return `You are ${Math.round(distance)}m away from ${officeLocation.name}. Select 'Work From Home' if checking in remotely within India.`;
       }
     }
-
     return null;
+  };
+
+  const executeCheckIn = async (loc: Location, isWFH: boolean = false) => {
+    const idempotencyKey = Math.random().toString(36).substr(2, 9);
+
+    if (!isOnline) {
+       dispatch(queueOfflineAction({ type: 'checkIn', location: loc, shiftType, idempotencyKey }));
+       setGeoError("You are offline. Check-in queued for sync.");
+       return;
+    }
+
+    if (user) {
+      const resultAction = await dispatch(checkIn({
+        employeeId: user.id,
+        employeeName: user.fullName,
+        location: loc,
+        shiftType,
+        department: user.department,
+        idempotencyKey,
+        isWFH
+      }));
+      
+      if (checkIn.rejected.match(resultAction)) {
+        if (resultAction.payload === "OUTSIDE_GEOFENCE" || resultAction.error.message?.includes("OUTSIDE_GEOFENCE")) {
+           setWfhPrompt({ open: true, loc });
+        } else {
+           setGeoError(resultAction.payload as string || resultAction.error.message || "Check-in failed");
+        }
+      }
+    }
   };
 
   const handleCheckIn = async () => {
@@ -108,35 +154,21 @@ const AttendanceTracker = () => {
       setGeoError(null);
       let loc = currentLocation;
       if (!loc) {
+        setIsLocating(true);
         loc = await getLocation();
         setCurrentLocation(loc);
+        setIsLocating(false);
       }
 
-      const validationError = validateGeofenceAndAccuracy(loc, 'Check-in');
+      const validationError = validateGeofenceAndAccuracy(loc);
       if (validationError) {
         setGeoError(validationError);
         return;
       }
 
-      const idempotencyKey = Math.random().toString(36).substr(2, 9);
-
-      if (!isOnline) {
-         dispatch(queueOfflineAction({ type: 'checkIn', location: loc, shiftType, idempotencyKey }));
-         setGeoError("You are offline. Check-in queued for sync.");
-         return;
-      }
-
-      if (user) {
-        dispatch(checkIn({
-          employeeId: user.id,
-          employeeName: user.fullName,
-          location: loc,
-          shiftType,
-          department: user.department,
-          idempotencyKey
-        }));
-      }
+      await executeCheckIn(loc, false);
     } catch (err) {
+      setIsLocating(false);
       setGeoError(String(err));
     }
   };
@@ -145,17 +177,31 @@ const AttendanceTracker = () => {
     if (!user) return;
     try {
       setGeoError(null);
-      const loc = await getLocation();
-      setCurrentLocation(loc);
+      let loc = currentLocation;
+      if (!loc) {
+        setIsLocating(true);
+        loc = await getLocation();
+        setCurrentLocation(loc);
+        setIsLocating(false);
+      }
 
-      const validationError = validateGeofenceAndAccuracy(loc, 'Check-out');
+      const validationError = validateGeofenceAndAccuracy(loc);
       if (validationError) {
         setGeoError(validationError);
         return;
       }
 
+      if (todayRecord?.location) {
+        const distanceToStart = getDistanceMeters(loc, todayRecord.location);
+        if (distanceToStart > 500) {
+          setGeoError(`Check-out failed: You are ${Math.round(distanceToStart)}m away from your check-in location (maximum 500m allowed).`);
+          return;
+        }
+      }
+
       dispatch(checkOut({ employeeId: user.id, location: loc }));
     } catch (err) {
+      setIsLocating(false);
       setGeoError(String(err));
     }
   };
@@ -176,12 +222,13 @@ const AttendanceTracker = () => {
 
   if (!user) return null;
 
-  const isCheckedIn = !!todayRecord && !todayRecord.checkOutTime;
-  const isOnBreak = isCheckedIn && !!todayRecord.breakStartTime;
-  const isCheckedOut = !!todayRecord && !!todayRecord.checkOutTime;
+  const isCheckedIn = !!todayRecord && todayRecord.status !== 'Not Checked In' && !todayRecord.checkOutTime;
+  const isOnBreak = !!todayRecord && todayRecord.status === 'On Break';
+  const isCheckedOut = !!todayRecord && todayRecord.status === 'Checked Out';
 
   return (
-    <Grow in={true} timeout={800}>
+    <>
+      <Grow in={true} timeout={800}>
       <Paper 
         elevation={0} 
         sx={{ 
@@ -234,12 +281,14 @@ const AttendanceTracker = () => {
         </Box>
 
         <Box sx={{ display: 'flex', flex: '2 1 auto', flexDirection: { xs: 'column', md: 'row' }, gap: 3, position: 'relative', zIndex: 1, width: '100%' }}>
-          {(error || geoError) ? (
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {error && <Alert severity="error">{error}</Alert>}
-              {geoError && <Alert severity="warning">{geoError}</Alert>}
-            </Box>
-          ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 1 }}>
+            {(error || geoError) && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+                {error && <Alert severity="error">{error}</Alert>}
+                {geoError && <Alert severity="warning">{geoError}</Alert>}
+              </Box>
+            )}
+
             <Box sx={{ 
               display: 'flex', 
               flex: 1,
@@ -266,6 +315,11 @@ const AttendanceTracker = () => {
                     )}
                     <Typography variant="h6" sx={{ fontWeight: 700, color: todayRecord?.location ? '#2563EB' : "var(--text-h)" }}>{formatTime(todayRecord?.checkInTime || null)}</Typography>
                   </Box>
+                  {todayRecord?.location && (
+                    <Typography variant="caption" sx={{ color: "var(--text-light)", display: 'block', fontSize: '0.7rem', mt: 0.25 }}>
+                      {todayRecord.location.latitude.toFixed(4)}, {todayRecord.location.longitude.toFixed(4)}
+                    </Typography>
+                  )}
                </Box>
                <Box sx={{ flex: 1, textAlign: 'center', borderRight: '1px solid var(--border)' }}>
                   <Typography variant="caption" sx={{ color: "var(--text-light)" }}>Check Out</Typography>
@@ -283,17 +337,35 @@ const AttendanceTracker = () => {
                     )}
                     <Typography variant="h6" sx={{ fontWeight: 700, color: todayRecord?.checkOutLocation ? '#2563EB' : "var(--text-h)" }}>{formatTime(todayRecord?.checkOutTime || null)}</Typography>
                   </Box>
+                  {todayRecord?.checkOutLocation && (
+                    <Typography variant="caption" sx={{ color: "var(--text-light)", display: 'block', fontSize: '0.7rem', mt: 0.25 }}>
+                      {todayRecord.checkOutLocation.latitude.toFixed(4)}, {todayRecord.checkOutLocation.longitude.toFixed(4)}
+                    </Typography>
+                  )}
                </Box>
                <Box sx={{ flex: 1, textAlign: 'center' }}>
                   <Typography variant="caption" sx={{ color: "var(--text-light)" }}>Total Break</Typography>
                   <Typography variant="h6" sx={{ fontWeight: 700, mt: 0.5, color: "var(--text-h)" }}>{todayRecord?.totalBreakDuration || 0}m</Typography>
                </Box>
             </Box>
-          )}
+          </Box>
 
           <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
-            {!isCheckedIn && !isCheckedOut && (
+            {!isCheckedIn && (
               <>
+                <FormControl size="small" fullWidth sx={{ mb: 1 }}>
+                  <InputLabel id="workmode-select-label" sx={{ color: "var(--text-light)" }}>Work Mode / Location</InputLabel>
+                  <Select
+                    labelId="workmode-select-label"
+                    value={workMode}
+                    label="Work Mode / Location"
+                    onChange={(e) => setWorkMode(e.target.value as "Office" | "Work From Home")}
+                    sx={{ color: "var(--text-h)", bgcolor: "var(--bg)", '& .MuiOutlinedInput-notchedOutline': { borderColor: "var(--border)" } }}
+                  >
+                    <MenuItem value="Work From Home">🏠 Work From Home (All India Locations)</MenuItem>
+                    <MenuItem value="Office">🏢 Office Location (Geofenced)</MenuItem>
+                  </Select>
+                </FormControl>
                 <FormControl size="small" fullWidth sx={{ mb: 1 }}>
                   <InputLabel id="shift-select-label" sx={{ color: "var(--text-light)" }}>Select Shift</InputLabel>
                   <Select
@@ -312,9 +384,9 @@ const AttendanceTracker = () => {
                 <Button 
                   variant="contained" 
                   size="large" 
-                  startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
+                  startIcon={(loading || isLocating) ? <CircularProgress size={20} color="inherit" /> : <PlayArrow />}
                   onClick={handleCheckIn}
-                  disabled={loading}
+                  disabled={loading || isLocating}
                   fullWidth
                   sx={{ 
                     py: 1.5, 
@@ -355,9 +427,9 @@ const AttendanceTracker = () => {
                 </Button>
                 <Button 
                   variant="contained" 
-                  startIcon={<Stop />}
+                  startIcon={(loading || isLocating) ? <CircularProgress size={20} color="inherit" /> : <Stop />}
                   onClick={handleCheckOut}
-                  disabled={loading}
+                  disabled={loading || isLocating}
                   sx={{ 
                     flex: 1, 
                     py: 1.5, 
@@ -406,7 +478,26 @@ const AttendanceTracker = () => {
           </Box>
         </Box>
       </Paper>
-    </Grow>
+      </Grow>
+
+      <Dialog open={wfhPrompt.open} onClose={() => setWfhPrompt({ open: false, loc: null })}>
+        <DialogTitle>Outside Office Geofence</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You are currently outside the required radius of the office location. Would you like to check in as "Work From Home" (WFH)?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setWfhPrompt({ open: false, loc: null })} color="inherit">Cancel</Button>
+          <Button onClick={() => {
+            if (wfhPrompt.loc) executeCheckIn(wfhPrompt.loc, true);
+            setWfhPrompt({ open: false, loc: null });
+          }} variant="contained" color="primary">
+            Check In as WFH
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

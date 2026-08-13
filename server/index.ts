@@ -3,8 +3,9 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
-import { connectDB, closeDB } from "./config/db.js";
+import connectDB, { closeDB } from "./config/db.js";
 import apiRoutes from "./routes/api.js";
+import mongoose from "mongoose";
 
 dotenv.config();
 
@@ -29,11 +30,25 @@ const apiLimiter = rateLimit({
 });
 app.use("/api/v1", apiLimiter);
 
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // API Routes
 app.use("/api/v1", apiRoutes);
 
+// Serve static frontend in production
+app.use(express.static(path.join(__dirname, "../dist")));
+
+app.get(/.*/, (req, res, next) => {
+  if (req.path.startsWith("/api/")) return next();
+  res.sendFile(path.join(__dirname, "../dist/index.html"));
+});
+
 // Centralized Error Handler
-app.use((err, req, res, next) => {
+app.use((err: any, req, res, next) => {
   console.error("[Backend Error]", err.message, err.stack);
   res.status(err.status || 500).json({
     success: false,
@@ -46,14 +61,39 @@ let server;
 async function startServer() {
   await connectDB();
 
-  let currentPort = parseInt(PORT, 10);
+  // Auto-migrate users for testing environments
+  try {
+    const usersCount = await mongoose.connection.collection('users').countDocuments();
+    if (usersCount > 0) {
+      console.log('Migrating users to role-based collections...');
+      const users = await mongoose.connection.collection('users').find({}).toArray();
+      for (const u of users) {
+        try {
+          if (u.role === 'Admin') await mongoose.connection.collection('adminauths').insertOne(u);
+          else if (u.role === 'HR') await mongoose.connection.collection('hrauths').insertOne(u);
+          else if (u.role === 'Manager') await mongoose.connection.collection('managerauths').insertOne(u);
+          else await mongoose.connection.collection('employeeauths').insertOne(u);
+        } catch (insertErr: any) {
+          if (insertErr.code !== 11000) {
+            console.error('Error inserting user:', insertErr);
+          }
+        }
+      }
+      await mongoose.connection.collection('users').drop();
+      console.log('Migration complete!');
+    }
+  } catch (err) {
+    console.error('Migration failed:', err);
+  }
+
+  const currentPort = parseInt(PORT as string, 10);
 
   const tryListen = (portToTry) => {
     server = app
       .listen(portToTry, () => {
         console.log(`[Express Backend] Server running on http://localhost:${portToTry}`);
       })
-      .on("error", (err) => {
+      .on("error", (err: NodeJS.ErrnoException) => {
         if (err.code === "EADDRINUSE") {
           console.warn(`[Server] Port ${portToTry} in use, trying port ${portToTry + 1}...`);
           tryListen(portToTry + 1);
@@ -84,7 +124,7 @@ async function startServer() {
   process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 }
 
-if (process.argv[1]?.includes("index.js")) {
+if (process.argv[1]?.includes("index.ts")) {
   startServer();
 }
 

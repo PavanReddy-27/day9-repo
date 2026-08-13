@@ -122,9 +122,7 @@ const LoginForm = () => {
         navigate("/manager/dashboard", { replace: true });
         break;
 
-      case "Team Lead":
-        navigate("/teamlead/dashboard", { replace: true });
-        break;
+
 
       case "Employee":
         navigate("/employee/dashboard", { replace: true });
@@ -252,9 +250,6 @@ const LoginForm = () => {
             } else if (selectedRole === "Manager") {
               setEmail("manager@thestackly.com");
               setPassword("Password123!");
-            } else if (selectedRole === "Team Lead") {
-              setEmail("teamlead@thestackly.com");
-              setPassword("Password123!");
             } else if (selectedRole === "Employee") {
               setEmail("employee@thestackly.com");
               setPassword("Password123!");
@@ -264,7 +259,7 @@ const LoginForm = () => {
           <MenuItem value="Admin">Admin</MenuItem>
           <MenuItem value="HR">HR</MenuItem>
           <MenuItem value="Manager">Manager</MenuItem>
-          <MenuItem value="Team Lead">Team Lead</MenuItem>
+
           <MenuItem value="Employee">Employee</MenuItem>
         </Select>
       </FormControl>

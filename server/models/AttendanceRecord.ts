@@ -11,7 +11,9 @@ const attendanceRecordSchema = new mongoose.Schema(
     checkOutTime: { type: Date, default: null },
     
     workDurationMinutes: { type: Number, default: 0 },
+    workingHours: { type: Number, default: 0 },
     breakDurationMinutes: { type: Number, default: 0 },
+    breakStartTime: { type: Date, default: null },
     overtimeMinutes: { type: Number, default: 0 },
     lateMinutes: { type: Number, default: 0 },
     earlyDepartureMinutes: { type: Number, default: 0 },
@@ -26,6 +28,11 @@ const attendanceRecordSchema = new mongoose.Schema(
     
     shiftKind: { type: String, enum: ["Regular", "Flexible", "Night", "CrossMidnight"], default: "Regular" },
     isNightShift: { type: Boolean, default: false },
+    workMode: { type: String, enum: ["Office", "WFH"], default: "Office" },
+    checkInCoordinates: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null }
+    }
   },
   { timestamps: true }
 );

@@ -2,6 +2,7 @@ import Location from "../models/Location.js";
 import Department from "../models/Department.js";
 import Team from "../models/Team.js";
 import Employee from "../models/Employee.js";
+import { buildEmployeeScopeFilter } from "../middleware/authMiddleware.js";
 
 export const getLocations = async (req, res) => {
   try {
@@ -50,7 +51,7 @@ export const getEmployees = async (req, res) => {
       sortOrder = "desc",
     } = req.query;
 
-    const query = { ...req.scopeFilter };
+    const query: Record<string, any> = {};
 
     if (search) {
       const searchRegex = new RegExp(search.trim(), "i");
@@ -64,12 +65,19 @@ export const getEmployees = async (req, res) => {
       ];
     }
 
+    // User-supplied narrowing filters first...
     if (locationId) query.locationId = locationId;
     if (departmentId) query.departmentId = departmentId;
     if (teamId) query.teamId = teamId;
     if (role) query.role = role;
     if (employmentStatus) query.employmentStatus = employmentStatus;
     if (riskLevel) query.riskLevel = riskLevel;
+
+    // ...then the authoritative RBAC scope is applied LAST so it always wins.
+    // This enforces company isolation and pins Manager->department,
+    // Employee->self even if the client passes conflicting
+    // locationId/departmentId query params.
+    Object.assign(query, buildEmployeeScopeFilter(req.role, req.employee, req.companyId));
 
     const skip = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
     const sortOptions = { [sortBy]: sortOrder === "asc" ? 1 : -1 };
@@ -114,9 +122,7 @@ export const getEmployeeById = async (req, res) => {
     if (req.role === "Manager" && employee.departmentId._id.toString() !== req.employee.departmentId.toString()) {
       return res.status(403).json({ success: false, message: "Forbidden: Cannot access employee outside your department." });
     }
-    if (req.role === "Team Lead" && employee.teamId._id.toString() !== req.employee.teamId.toString()) {
-      return res.status(403).json({ success: false, message: "Forbidden: Cannot access employee outside your team." });
-    }
+
     if (req.role === "Employee" && employee._id.toString() !== req.employee._id.toString()) {
       return res.status(403).json({ success: false, message: "Forbidden: Cannot access another employee's record." });
     }

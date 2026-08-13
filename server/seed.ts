@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import mongoose from 'mongoose';
+
 import { faker } from '@faker-js/faker';
 import connectDB from './config/db';
 
@@ -8,7 +8,7 @@ import Location from './models/Location';
 import Department from './models/Department';
 import Team from './models/Team';
 import Employee from './models/Employee';
-import User from './models/User';
+import { User } from './models/User';
 
 const seedDB = async () => {
   try {
@@ -31,7 +31,7 @@ const seedDB = async () => {
     }
 
     // 1. Create Company
-    const company = await Company.create({ name: 'Acme Corp', code: 'ACME' });
+    const company = await Company.create({ name: 'Stackly', code: 'STACKLY' });
 
     // 2. Create 5 Locations
     const locationsData = [
@@ -42,9 +42,17 @@ const seedDB = async () => {
       { code: 'KOC', name: 'Kochi', count: 30 }
     ];
     
-    const locations = {};
+    const locations: Record<string, any> = {};
     for (const loc of locationsData) {
-      locations[loc.code] = await Location.create({ company: company._id, name: loc.name, code: loc.code });
+      locations[loc.code] = await Location.create({
+        companyId: company._id,
+        name: loc.name,
+        code: loc.code,
+        coordinates: {
+          latitude: faker.location.latitude(),
+          longitude: faker.location.longitude()
+        }
+      });
     }
 
     // 3. Create Departments
@@ -85,16 +93,15 @@ const seedDB = async () => {
           phone: faker.phone.number(),
           avatar: faker.image.avatar(),
           
-          company: company._id,
-          location: locations[loc.code]._id,
-          department: departments[deptName]._id,
-          team: team._id,
+          companyId: company._id,
+          locationId: locations[loc.code]._id,
+          departmentId: departments[deptName]._id,
+          teamId: team._id,
           
-          role: faker.person.jobTitle(),
+          role: faker.helpers.arrayElement(['Admin', 'HR', 'Manager', 'Employee']),
           designation: faker.person.jobType(),
-          employmentType: faker.helpers.arrayElement(['Permanent', 'Contract', 'Intern', 'Consultant']),
-          status: faker.helpers.arrayElement(['Active', 'Active', 'Active', 'Inactive', 'On Leave']),
-          risk: faker.helpers.arrayElement(['Low', 'Low', 'Medium', 'High', 'Critical']),
+          employmentStatus: faker.helpers.arrayElement(['Active', 'Active', 'Active', 'Inactive', 'On Leave']),
+          riskLevel: faker.helpers.arrayElement(['Low', 'Low', 'Medium', 'High', 'Critical']),
           
           joiningDate: faker.date.past({ years: 5 }),
           gender,
@@ -119,11 +126,31 @@ const seedDB = async () => {
 
     // 6. Create Development Users
     console.log('Creating 5 development accounts...');
-    const roles = ['Admin', 'HR', 'Manager', 'Team Lead', 'Employee'];
+    const roles = ['Admin', 'HR', 'Manager', 'Employee'];
+    
+    // Pick the first generated location and department
+    const devLocation = Object.values(locations)[0];
+    const devDepartment = Object.values(departments)[0];
     
     for (const role of roles) {
+      const empIdStr = `DEV_${role.toUpperCase().replace(' ', '_')}`;
+      
+      const emp = await Employee.create({
+        employeeId: empIdStr,
+        companyId: company._id,
+        locationId: devLocation._id,
+        departmentId: devDepartment._id,
+        email: `${role.toLowerCase().replace(' ', '')}@thestackly.com`,
+        firstName: 'Dev',
+        lastName: role,
+        fullName: `Dev ${role}`,
+        role: role,
+        joiningDate: new Date(),
+      });
+
       await User.create({
-        employeeId: `DEV_${role.toUpperCase()}`,
+        employeeId: empIdStr,
+        companyId: company._id,
         email: `${role.toLowerCase().replace(' ', '')}@thestackly.com`,
         password: 'Password123!',
         role: role

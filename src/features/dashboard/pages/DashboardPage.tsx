@@ -1,8 +1,18 @@
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import DashboardAnalytics from "../components/DashboardAnalytics";
-import { employees } from "../../../data/employees";
 import EmployeeTable from "../../../components/EmployeeTable";
+import { fetchEmployees, selectRestrictedDashboardEmployees } from "../../../redux/dashboardSlice";
+import type { AppDispatch } from "../../../redux/store";
 
 const DashboardPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const employees = useSelector(selectRestrictedDashboardEmployees);
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
   return (
     <div
       style={{

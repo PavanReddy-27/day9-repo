@@ -1,0 +1,276 @@
+import { useMemo, useState, useEffect } from "react";
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  MenuItem,
+  Chip,
+  Stack,
+  InputAdornment,
+  Button,
+} from "@mui/material";
+
+import { DataGrid } from "@mui/x-data-grid";
+import type { GridColDef } from "@mui/x-data-grid";
+
+import SearchIcon from "@mui/icons-material/Search";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+
+import { useAppSelector } from "../../../hooks/redux";
+import leaveApi, { LeaveRequestData } from "../../../services/leaveApi";
+import "./LeaveRequests.css";
+
+const SharedLeaveRequests = () => {
+  const { user } = useAppSelector((state) => state.auth);
+  const isManager = user?.role === "Manager";
+
+  const [search, setSearch] = useState("");
+  // Admin/HR can only see Approved/Rejected, so default their view to Approved. Manager defaults to All.
+  const [statusFilter, setStatusFilter] = useState(isManager ? "All" : "Approved");
+
+  const [rows, setRows] = useState<LeaveRequestData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchLeaves = async () => {
+    setIsLoading(true);
+    try {
+      const data = await leaveApi.getLeaves();
+      setRows(data);
+    } catch (error) {
+      console.error("Failed to fetch leaves", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
+  const handleApprove = async (id: string) => {
+    try {
+      await leaveApi.updateLeaveStatus(id, "Approved");
+      await fetchLeaves();
+    } catch (error) {
+      console.error("Failed to approve leave", error);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      await leaveApi.updateLeaveStatus(id, "Rejected");
+      await fetchLeaves();
+    } catch (error) {
+      console.error("Failed to reject leave", error);
+    }
+  };
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((item) => {
+      // For Admin and HR, filter out Pending leaves completely even if statusFilter is 'All'
+      if (!isManager && item.status === "Pending") return false;
+
+      const empName = `${item.employeeId.firstName} ${item.employeeId.lastName}`.toLowerCase();
+      const matchesSearch =
+        empName.includes(search.toLowerCase()) ||
+        item.employeeId.employeeId.toLowerCase().includes(search.toLowerCase());
+
+      const matchesStatus =
+        statusFilter === "All" ? true : item.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [rows, search, statusFilter, isManager]);
+
+  const columns: GridColDef<LeaveRequestData>[] = [
+    {
+      field: "empId",
+      headerName: "Emp ID",
+      width: 120,
+      valueGetter: (_, row) => row.employeeId.employeeId,
+    },
+    {
+      field: "employeeName",
+      headerName: "Employee",
+      flex: 1,
+      minWidth: 160,
+      valueGetter: (_, row) => `${row.employeeId.firstName} ${row.employeeId.lastName}`,
+    },
+    {
+      field: "type",
+      headerName: "Leave Type",
+      width: 140,
+    },
+    {
+      field: "startDate",
+      headerName: "From",
+      width: 120,
+    },
+    {
+      field: "endDate",
+      headerName: "To",
+      width: 120,
+    },
+    {
+      field: "durationDays",
+      headerName: "Days",
+      width: 80,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "reason",
+      headerName: "Reason",
+      flex: 1,
+      minWidth: 180,
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 130,
+      renderCell: (params) => {
+        const value = params.value as "Pending" | "Approved" | "Rejected";
+        return (
+          <Chip
+            label={value}
+            className={`status-chip ${value.toLowerCase()}`}
+            size="small"
+          />
+        );
+      },
+    },
+  ];
+
+  if (isManager) {
+    columns.push({
+      field: "actions",
+      headerName: "Actions",
+      width: 220,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <Button
+            size="small"
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircleIcon />}
+            disabled={params.row.status === "Approved"}
+            onClick={() => handleApprove(params.row._id)}
+          >
+            Approve
+          </Button>
+
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            startIcon={<CancelIcon />}
+            disabled={params.row.status === "Rejected"}
+            onClick={() => handleReject(params.row._id)}
+          >
+            Reject
+          </Button>
+        </Stack>
+      ),
+    });
+  }
+
+  // Calculate summaries based on role rules
+  const pendingCount = rows.filter((item) => item.status === "Pending").length;
+  const approvedCount = rows.filter((item) => item.status === "Approved").length;
+  const rejectedCount = rows.filter((item) => item.status === "Rejected").length;
+
+  return (
+    <Box className="shared-leave-page">
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h4" className="leave-title">
+          {isManager ? "Leave Approvals" : "Leave Records"}
+        </Typography>
+      </Box>
+
+      <div className="leave-summary-grid">
+        {isManager && (
+          <Paper elevation={3} className="summary-card pending-card">
+            <Typography variant="h5" className="summary-count">
+              {pendingCount}
+            </Typography>
+            <Typography className="summary-label">Pending Approvals</Typography>
+          </Paper>
+        )}
+
+        <Paper elevation={3} className="summary-card approved-card">
+          <Typography variant="h5" className="summary-count">
+            {approvedCount}
+          </Typography>
+          <Typography className="summary-label">Approved Leaves</Typography>
+        </Paper>
+
+        <Paper elevation={3} className="summary-card rejected-card">
+          <Typography variant="h5" className="summary-count">
+            {rejectedCount}
+          </Typography>
+          <Typography className="summary-label">Rejected Leaves</Typography>
+        </Paper>
+      </div>
+
+      <Paper elevation={3} className="leave-filter-card">
+        <Stack
+          className="leave-filter-stack"
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+        >
+          <TextField
+            fullWidth
+            placeholder="Search by Employee Name or ID"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+
+          <TextField
+            select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="leave-status-filter"
+          >
+            {isManager && <MenuItem value="All">All Status</MenuItem>}
+            {isManager && <MenuItem value="Pending">Pending</MenuItem>}
+            <MenuItem value="Approved">Approved</MenuItem>
+            <MenuItem value="Rejected">Rejected</MenuItem>
+            {!isManager && <MenuItem value="All">All (App & Rej)</MenuItem>}
+          </TextField>
+        </Stack>
+      </Paper>
+
+      <Paper elevation={3} className="leave-table-card">
+        <DataGrid
+          rows={filteredRows}
+          columns={columns}
+          getRowId={(row) => row._id}
+          pageSizeOptions={[5, 10, 20]}
+          loading={isLoading}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 },
+            },
+          }}
+          disableRowSelectionOnClick
+          className="shared-data-grid"
+        />
+      </Paper>
+    </Box>
+  );
+};
+
+export default SharedLeaveRequests;

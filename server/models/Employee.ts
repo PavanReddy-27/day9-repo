@@ -1,47 +1,38 @@
 import mongoose from 'mongoose';
 
+// Field names here match what is actually stored in the `employees` collection
+// (companyId/locationId/departmentId-style refs), not the older `company`/`location`
+// naming used by server/seed.ts. See server/README or the Task 14 handoff notes:
+// server/seed.ts still writes the old field names and needs to be updated to match.
 const employeeSchema = new mongoose.Schema({
   employeeId: { type: String, required: true, unique: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  
+  companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
+  email: { type: String, required: true, unique: true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   fullName: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String },
   avatar: { type: String },
 
-  // References
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
-  location: { type: mongoose.Schema.Types.ObjectId, ref: 'Location', required: true },
-  department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', required: true },
-  team: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', required: true },
-  manager: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
+  locationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Location', required: true },
+  locationCode: { type: String },
+  departmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', required: true },
+  departmentName: { type: String },
+  teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' },
+  managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
+  shiftId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shift' },
 
-  role: { type: String, required: true },
-  designation: { type: String, required: true },
-  employmentType: { type: String, enum: ['Permanent', 'Contract', 'Intern', 'Consultant'], default: 'Permanent' },
-  status: { type: String, enum: ['Active', 'Inactive', 'On Leave', 'Notice Period'], default: 'Active' },
-  risk: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Low' },
+  role: { type: String, enum: ['Admin', 'HR', 'Manager', 'Employee'], required: true },
+  designation: { type: String },
+  workMode: { type: String, enum: ['Office', 'Remote', 'Hybrid'], default: 'Office' },
+  employmentStatus: { type: String, enum: ['Active', 'Inactive', 'On Leave', 'Notice Period'], default: 'Active' },
+  riskLevel: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Low' },
 
   joiningDate: { type: Date, required: true },
-  confirmationDate: { type: Date },
-
-  gender: { type: String, enum: ['Male', 'Female', 'Other'] },
-  age: { type: Number },
-  
-  salary: { type: Number },
-  bonus: { type: Number },
-  experience: { type: Number },
-
-  performanceScore: { type: Number, min: 0, max: 100 },
-  engagementScore: { type: Number, min: 0, max: 100 },
-  attendancePercentage: { type: Number, min: 0, max: 100 },
-  trainingCompletion: { type: Number, min: 0, max: 100 },
-  skillCoverage: { type: Number, min: 0, max: 100 },
-  promotionCount: { type: Number, default: 0 },
-  
-  project: { type: String },
 }, { timestamps: true });
 
-export default mongoose.model('Employee', employeeSchema);
+employeeSchema.index({ companyId: 1, locationId: 1 });
+employeeSchema.index({ companyId: 1, departmentId: 1 });
+
+export default mongoose.models.Employee || mongoose.model('Employee', employeeSchema);

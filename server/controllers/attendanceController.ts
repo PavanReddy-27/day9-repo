@@ -3,8 +3,8 @@ import AttendanceEvent from "../models/AttendanceEvent.js";
 import BreakSession from "../models/BreakSession.js";
 import CorrectionRequest from "../models/CorrectionRequest.js";
 import ApprovalHistory from "../models/ApprovalHistory.js";
-import Location from "../models/Location.js";
-import AuditLog from "../models/AuditLog.js";
+import LocationModel from "../models/Location.js";
+
 import IdempotencyRecord from "../models/IdempotencyRecord.js";
 
 // Haversine formula for geofence validation
@@ -45,7 +45,7 @@ async function saveIdempotency(req, idempotencyKey, status, body) {
       responseBody: body,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     });
-  } catch (err) {
+  } catch {
     // Ignore duplicate key collision
   }
 }
@@ -76,42 +76,68 @@ export const getAttendanceStatus = async (req, res) => {
 
 export const checkIn = async (req, res) => {
   try {
-    const { coordinates, gpsAccuracy, idempotencyKey } = req.body;
+    const { location: coordinates, source = "Web", shiftType = "Regular", idempotencyKey, isWFH } = req.body;
 
     const handled = await checkIdempotency(req, res, idempotencyKey);
     if (handled) return;
 
     const today = getTodayDateStr();
+    // Use sort to get the most recent record for today
     let record = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    });
+    }).sort({ createdAt: -1 });
 
     if (record && record.status !== "Not Checked In") {
-      const resp = { success: false, message: `Cannot check in: Current state is '${record.status}'.` };
+      const resp = { success: false, message: `Cannot check in: You have already checked in today (Status: ${record.status}).` };
       return res.status(400).json(resp);
     }
 
-    // Geofence check
-    const location = await Location.findById(req.employee.locationId);
+    // Reject GPS readings too imprecise to trust before doing anything else with them.
+    const MAX_GPS_ACCURACY_METERS = 500;
+    if (coordinates?.accuracy != null && coordinates.accuracy > MAX_GPS_ACCURACY_METERS) {
+      return res.status(400).json({
+        success: false,
+        message: `GPS reading is too inaccurate (±${Math.round(coordinates.accuracy)}m) to verify your location. Please try again with a stronger signal.`,
+      });
+    }
+
+    // Geofence & Location check
+    const location = await LocationModel.findById(req.employee.locationId);
     let distanceMeters = 0;
     let isGeofenced = true;
+    let actualWorkMode = "Office";
+
+    const isIndiaLocation = (lat, lng) => lat >= 6.0 && lat <= 37.5 && lng >= 68.0 && lng <= 97.5;
 
     if (location && coordinates && location.coordinates?.lat) {
       distanceMeters = calculateHaversineDistance(
-        coordinates.lat,
-        coordinates.lng,
+        coordinates.latitude || coordinates.lat,
+        coordinates.longitude || coordinates.lng,
         location.coordinates.lat,
         location.coordinates.lng
       );
 
-      if (req.employee.workMode === "Office" && distanceMeters > location.radiusMeters) {
-        const resp = {
-          success: false,
-          message: `Check-in rejected: Outside office geofence (${Math.round(distanceMeters)}m from office, max allowed ${location.radiusMeters}m).`,
-        };
-        return res.status(403).json(resp);
+      const requestedWorkMode = req.body.workMode;
+      const isWFHRequest = requestedWorkMode === "Work From Home" || requestedWorkMode === "Remote" || isWFH;
+      const isWFHMode = isWFHRequest || req.employee.workMode === "Remote" || req.employee.workMode === "Hybrid" || isIndiaLocation(coordinates.latitude || coordinates.lat, coordinates.longitude || coordinates.lng);
+
+      if (!isWFHMode && req.employee.workMode === "Office" && distanceMeters > (location.geofenceRadiusMeters || location.radiusMeters || 500)) {
+        if (isWFH) {
+           actualWorkMode = "WFH";
+           isGeofenced = false;
+        } else {
+           const resp = {
+             success: false,
+             message: `OUTSIDE_GEOFENCE`,
+             distance: Math.round(distanceMeters)
+           };
+           return res.status(403).json(resp);
+        }
+      } else if (isWFHMode) {
+        actualWorkMode = "WFH";
+        isGeofenced = false;
       }
     }
 
@@ -125,11 +151,18 @@ export const checkIn = async (req, res) => {
         date: today,
         checkInTime: now,
         status: "Working",
-        shiftKind: "Regular",
+        shiftKind: shiftType,
+        workMode: actualWorkMode,
+        checkInCoordinates: coordinates ? { lat: coordinates.latitude || coordinates.lat, lng: coordinates.longitude || coordinates.lng } : undefined,
       });
     } else {
       record.checkInTime = now;
       record.status = "Working";
+      record.workMode = actualWorkMode;
+      record.shiftKind = shiftType;
+      if (coordinates) {
+        record.checkInCoordinates = { lat: coordinates.latitude || coordinates.lat, lng: coordinates.longitude || coordinates.lng };
+      }
     }
 
     await record.save();
@@ -141,7 +174,7 @@ export const checkIn = async (req, res) => {
       eventType: "CHECK_IN",
       timestamp: now,
       locationCoordinates: coordinates,
-      gpsAccuracy: gpsAccuracy || 0,
+      gpsAccuracy: coordinates?.accuracy || 0,
       isGeofenced,
       distanceMeters,
       idempotencyKey,
@@ -168,12 +201,21 @@ export const startBreak = async (req, res) => {
       date: today,
     });
 
-    if (!record || record.status !== "Working") {
-      return res.status(400).json({ success: false, message: "Must be in 'Working' state to start break." });
+    if (!record || record.status === "Not Checked In") {
+      return res.status(400).json({ success: false, message: "Cannot start break: Employee has not checked in yet." });
+    }
+
+    if (record.status === "On Break") {
+      return res.status(400).json({ success: false, message: "Already on break." });
+    }
+
+    if (record.status === "Checked Out") {
+      return res.status(400).json({ success: false, message: "Cannot start break: Shift has already ended." });
     }
 
     const now = new Date();
     record.status = "On Break";
+    record.breakStartTime = now;
     await record.save();
 
     await BreakSession.create({
@@ -224,6 +266,7 @@ export const resumeWork = async (req, res) => {
     }
 
     record.status = "Working";
+    record.breakStartTime = null;
     await record.save();
 
     const responseBody = { success: true, message: "Resumed work.", data: record };
@@ -236,7 +279,8 @@ export const resumeWork = async (req, res) => {
 
 export const checkOut = async (req, res) => {
   try {
-    const { idempotencyKey } = req.body;
+    const { location: coordinates, idempotencyKey } = req.body;
+
     const handled = await checkIdempotency(req, res, idempotencyKey);
     if (handled) return;
 
@@ -247,16 +291,56 @@ export const checkOut = async (req, res) => {
       date: today,
     });
 
-    if (!record || (record.status !== "Working" && record.status !== "On Break")) {
-      return res.status(400).json({ success: false, message: "Cannot check out: Invalid current state." });
+    if (!record || record.status === "Not Checked In") {
+      return res.status(400).json({ success: false, message: "Cannot check out: Employee has not checked in yet." });
+    }
+
+    if (record.status === "Checked Out") {
+      return res.status(400).json({ success: false, message: "Cannot check out: Employee has already checked out." });
+    }
+
+    // WFH checkout validation
+    if (record.workMode === "WFH" && record.checkInCoordinates?.lat && (coordinates?.lat || coordinates?.latitude)) {
+      const distanceMeters = calculateHaversineDistance(
+        coordinates.latitude || coordinates.lat,
+        coordinates.longitude || coordinates.lng,
+        record.checkInCoordinates.lat,
+        record.checkInCoordinates.lng
+      );
+      // Ensure they check out within 200m of where they checked in for WFH
+      if (distanceMeters > 200) {
+        return res.status(403).json({
+          success: false,
+          message: `Check-out rejected: You must check out from your WFH location (currently ${Math.round(distanceMeters)}m away).`
+        });
+      }
     }
 
     const now = new Date();
+
+    // If checked out while on break, finalize break session
+    if (record.status === "On Break") {
+      const activeBreak = await BreakSession.findOne({
+        companyId: req.companyId,
+        attendanceRecordId: record._id,
+        endTime: null,
+      });
+      if (activeBreak) {
+        activeBreak.endTime = now;
+        activeBreak.durationMinutes = Math.round((now - activeBreak.startTime) / (1000 * 60));
+        await activeBreak.save();
+        record.breakDurationMinutes = (record.breakDurationMinutes || 0) + activeBreak.durationMinutes;
+      }
+    }
+
     record.checkOutTime = now;
     record.status = "Checked Out";
+    record.breakStartTime = null;
 
     const totalElapsedMinutes = Math.round((now - record.checkInTime) / (1000 * 60));
-    record.workDurationMinutes = Math.max(0, totalElapsedMinutes - (record.breakDurationMinutes || 0));
+    const netWorkMinutes = Math.max(0, totalElapsedMinutes - (record.breakDurationMinutes || 0));
+    record.workDurationMinutes = netWorkMinutes;
+    record.workingHours = Number((netWorkMinutes / 60).toFixed(2));
 
     await record.save();
 
@@ -269,7 +353,11 @@ export const checkOut = async (req, res) => {
       idempotencyKey,
     });
 
-    const responseBody = { success: true, message: "Check-out successful.", data: record };
+    const responseBody = {
+      success: true,
+      message: `Check-out successful. Total worked hours: ${record.workingHours} hrs.`,
+      data: record,
+    };
     await saveIdempotency(req, idempotencyKey, 200, responseBody);
     return res.status(200).json(responseBody);
   } catch (error) {
@@ -290,7 +378,44 @@ export const getAttendanceHistory = async (req, res) => {
       .limit(100)
       .lean();
 
-    return res.status(200).json({ success: true, data: records });
+    // Flatten to the shape the attendance UI consumes. The raw documents store
+    // employeeId as an ObjectId (populated here to an Employee doc) and use the
+    // state-machine status enum; the tables expect string ids/names and a
+    // display status, so map it here rather than leaking Mongo internals to the
+    // client (and to avoid `.toLowerCase()` crashes on non-string fields).
+    const toDisplayStatus = (s: string): string => {
+      if (s === "Not Checked In") return "Absent";
+      return "Present"; // Working / On Break / Checked Out all count as present
+    };
+
+    const data = records.map((r: any) => {
+      const emp = r.employeeId && typeof r.employeeId === "object" ? r.employeeId : null;
+      const coords = r.checkInCoordinates;
+      const location =
+        coords && coords.lat != null && coords.lng != null
+          ? { latitude: coords.lat, longitude: coords.lng }
+          : undefined;
+      return {
+        id: r._id?.toString(),
+        employeeId: emp?.employeeId ?? (r.employeeId ? String(r.employeeId) : ""),
+        employeeName: emp?.fullName ?? "Unknown",
+        department: emp?.departmentName ?? "",
+        date: r.date,
+        checkInTime: r.checkInTime ?? null,
+        checkOutTime: r.checkOutTime ?? null,
+        workingHours: r.workingHours ?? 0,
+        totalBreakDuration: r.breakDurationMinutes ?? 0,
+        status: toDisplayStatus(r.status),
+        shiftType: r.shiftKind ?? "Regular",
+        workMode: r.workMode ?? "Office",
+        lateArrival: (r.lateMinutes ?? 0) > 0,
+        isOvertime: (r.overtimeMinutes ?? 0) > 0,
+        source: r.workMode === "WFH" ? "WFH" : "Web",
+        location,
+      };
+    });
+
+    return res.status(200).json({ success: true, data });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

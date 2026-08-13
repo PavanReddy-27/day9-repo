@@ -26,15 +26,8 @@ export interface HRState {
 }
 
 const initialState: HRState = {
-  openPositions: [
-    { id: 'JOB-101', title: 'Frontend Developer', department: 'Engineering', applicantsCount: 24, status: 'Open' },
-    { id: 'JOB-102', title: 'Data Analyst', department: 'Analytics', applicantsCount: 18, status: 'Interviewing' },
-    { id: 'JOB-103', title: 'UI/UX Designer', department: 'Design', applicantsCount: 12, status: 'Open' },
-  ],
-  leaveRequests: [
-    { id: 'LV-01', employeeName: 'Pavan Reddy', type: 'Casual', startDate: '2026-08-01', endDate: '2026-08-03', status: 'Pending' },
-    { id: 'LV-02', employeeName: 'Ananya Verma', type: 'Sick', startDate: '2026-08-05', endDate: '2026-08-06', status: 'Pending' },
-  ],
+  openPositions: [],
+  leaveRequests: [],
   attritionRate: 4.2,
   totalOnboarded: 38,
 };

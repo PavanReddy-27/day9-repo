@@ -1,6 +1,6 @@
 import express from "express";
 import { getDBHealth } from "../config/db.js";
-import { login, refreshToken, logout } from "../controllers/authController.js";
+import { login, refresh, logout } from "../controllers/authController.js";
 import {
   getLocations,
   getDepartments,
@@ -29,6 +29,11 @@ import {
   approveCorrection,
   rejectCorrection,
 } from "../controllers/attendanceController.js";
+import {
+  getLeaveRequests,
+  createLeaveRequest,
+  updateLeaveStatus,
+} from "../controllers/leaveController.js";
 import { authenticateJWT, requireRole, applyRoleDataScope, validateObjectId } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -46,14 +51,14 @@ router.get("/health", (req, res) => {
 
 // Authentication Routes
 router.post("/auth/login", login);
-router.post("/auth/refresh", refreshToken);
+router.post("/auth/refresh", refresh);
 router.post("/auth/logout", authenticateJWT, logout);
 
 // Protected Organization & Employee Routes
 router.get("/locations", authenticateJWT, getLocations);
 router.get("/departments", authenticateJWT, getDepartments);
 router.get("/teams", authenticateJWT, getTeams);
-router.get("/employees", authenticateJWT, applyRoleDataScope, getEmployees);
+router.get("/employees", authenticateJWT, getEmployees);
 router.get("/employees/:id", authenticateJWT, validateObjectId("id"), getEmployeeById);
 
 // Protected Analytics Routes
@@ -68,9 +73,13 @@ router.get("/analytics/productivity", authenticateJWT, getProductivityAnalytics)
 // Protected Attendance Routes
 router.get("/attendance/status", authenticateJWT, getAttendanceStatus);
 router.post("/attendance/check-in", authenticateJWT, checkIn);
+router.post("/check-in", authenticateJWT, checkIn);
 router.post("/attendance/break", authenticateJWT, startBreak);
+router.post("/break", authenticateJWT, startBreak);
 router.post("/attendance/resume", authenticateJWT, resumeWork);
+router.post("/resume", authenticateJWT, resumeWork);
 router.post("/attendance/check-out", authenticateJWT, checkOut);
+router.post("/check-out", authenticateJWT, checkOut);
 router.get("/attendance/history", authenticateJWT, applyRoleDataScope, getAttendanceHistory);
 
 // Attendance Corrections Routes
@@ -78,5 +87,10 @@ router.post("/attendance/corrections", authenticateJWT, createCorrection);
 router.get("/attendance/corrections", authenticateJWT, getCorrections);
 router.patch("/attendance/corrections/:id/approve", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), approveCorrection);
 router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), rejectCorrection);
+
+// Leave Requests Routes
+router.get("/leaves", authenticateJWT, getLeaveRequests);
+router.post("/leaves", authenticateJWT, requireRole(["Employee"]), createLeaveRequest);
+router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), updateLeaveStatus);
 
 export default router;

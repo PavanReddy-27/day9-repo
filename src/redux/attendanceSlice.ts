@@ -25,7 +25,7 @@ export const fetchTodayRecord = createAsyncThunk(
 
 export const checkIn = createAsyncThunk(
   'attendance/checkIn',
-  async (payload: { employeeId: string, employeeName: string, location?: Location, shiftType?: ShiftType, department?: string, idempotencyKey?: string }) => {
+  async (payload: { employeeId: string, employeeName: string, location?: Location, shiftType?: ShiftType, department?: string, idempotencyKey?: string, isWFH?: boolean }) => {
     return await attendanceApi.checkIn(
       payload.employeeId, 
       payload.employeeName, 
@@ -33,7 +33,8 @@ export const checkIn = createAsyncThunk(
       'Web', 
       payload.shiftType, 
       payload.idempotencyKey, 
-      payload.department
+      payload.department,
+      payload.isWFH
     );
   }
 );

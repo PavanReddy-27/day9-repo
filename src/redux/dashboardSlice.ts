@@ -1,18 +1,21 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from './store';
+import { apiClient } from '../services/apiClient';
 
 export interface Employee {
-  id: string;
-  name: string;
+  _id: string; // MongoDB ObjectId
+  employeeId: string;
+  name?: string; // Add if backend supports it, but fallback to fullName
+  fullName: string;
   email: string;
-  department: string;
+  department: { name: string, code: string } | string;
   role: string;
-  location: string;
+  location: { name: string, code: string } | string;
   status: string;
-  skills: string[];
-  experienceYears: number;
+  skills?: string[];
+  experience?: number;
   risk: string;
-  hireDate: string;
+  joiningDate: string;
 }
 
 export interface FilterState {
@@ -27,72 +30,6 @@ export interface FilterState {
   endDate: string;
 }
 
-// Map departments to dependent roles and skills
-export const DEPARTMENT_DEPENDENCIES: Record<string, { roles: string[]; skills: string[] }> = {
-  Engineering: {
-    roles: ['Frontend Developer', 'Backend Developer', 'DevOps Engineer', 'QA Engineer'],
-    skills: ['React', 'Node.js', 'Python', 'AWS', 'Docker', 'TypeScript'],
-  },
-  'Human Resources': {
-    roles: ['HR Manager', 'Recruiter', 'HR Generalist'],
-    skills: ['Recruitment', 'Employee Relations', 'Onboarding'],
-  },
-  Finance: {
-    roles: ['Financial Analyst', 'Accountant', 'Payroll Specialist'],
-    skills: ['Accounting', 'Financial Modeling', 'Payroll Management'],
-  },
-  Sales: {
-    roles: ['Sales Executive', 'Account Executive', 'Sales Manager'],
-    skills: ['B2B Sales', 'CRM', 'Negotiation'],
-  },
-  Marketing: {
-    roles: ['Marketing Manager', 'Content Writer', 'SEO Specialist'],
-    skills: ['SEO', 'Content Marketing', 'Social Media'],
-  },
-  Operations: {
-    roles: ['Operations Manager', 'Process Analyst', 'Logistics Coordinator'],
-    skills: ['Process Optimization', 'Logistics', 'Supply Chain'],
-  },
-  'Customer Support': {
-    roles: ['Support Representative', 'Customer Success Manager', 'Tech Support'],
-    skills: ['Customer Service', 'Troubleshooting', 'CRM'],
-  },
-};
-
-// Generate 10,000 Mock Records efficiently
-const generateMockEmployees = (count: number): Employee[] => {
-  const depts = Object.keys(DEPARTMENT_DEPENDENCIES);
-  const locations = ['HYD', 'VSP', 'CHN', 'BLR', 'KOC'];
-  const statuses = ['Active', 'Inactive', 'On Leave'];
-  const risks = ['Low', 'Medium', 'High'];
-  const firstNames = ['Ravi', 'Sridhika', 'Pavan', 'Maheswari', 'Ananya', 'Vikram', 'Neha', 'Arjun'];
-  const lastNames = ['Prasad', 'Kumar', 'Reddy', 'Sharma', 'Verma', 'Patel', 'Nair'];
-
-  const employees: Employee[] = [];
-  for (let i = 1; i <= count; i++) {
-    const dept = depts[i % depts.length];
-    const deptData = DEPARTMENT_DEPENDENCIES[dept];
-    const role = deptData.roles[i % deptData.roles.length];
-    const skill = deptData.skills[i % deptData.skills.length];
-
-    employees.push({
-      id: `EMP-${String(i).padStart(5, '0')}`,
-      name: `${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]}`,
-      email: `emp${i}@company.com`,
-      department: dept,
-      role: role,
-      location: locations[i % locations.length],
-      status: statuses[i % statuses.length],
-      skills: [skill],
-      experienceYears: (i % 15) + 1,
-      risk: risks[i % risks.length],
-      hireDate: new Date(2020, (i % 12), (i % 28) + 1).toISOString().split('T')[0],
-    });
-  }
-  return employees;
-};
-
-const initialEmployees = generateMockEmployees(10000);
 
 const initialFilters: FilterState = {
   search: '',
@@ -110,13 +47,24 @@ export interface DashboardState {
   employees: Employee[];
   filters: FilterState;
   filteredEmployees: Employee[];
+  isLoading: boolean;
+  error: string | null;
 }
 
 const initialState: DashboardState = {
-  employees: initialEmployees,
+  employees: [],
   filters: initialFilters,
-  filteredEmployees: initialEmployees,
+  filteredEmployees: [],
+  isLoading: false,
+  error: null,
 };
+
+export const fetchEmployees = createAsyncThunk(
+  'dashboard/fetchEmployees',
+  async () => {
+    return await apiClient<Employee[]>('/employees');
+  }
+);
 
 const dashboardSlice = createSlice({
   name: 'dashboard',
@@ -129,23 +77,28 @@ const dashboardSlice = createSlice({
       const searchLower = search.toLowerCase().trim();
 
       state.filteredEmployees = state.employees.filter((emp) => {
+        const empName = emp.fullName || emp.name || '';
         // Search by Employee Name or Employee ID
         const matchesSearch =
           !searchLower ||
-          emp.name.toLowerCase().includes(searchLower) ||
-          emp.id.toLowerCase().includes(searchLower);
+          empName.toLowerCase().includes(searchLower) ||
+          emp.employeeId.toLowerCase().includes(searchLower);
+
+        // Normalize department and location (can be populated objects or strings)
+        const empDept = typeof emp.department === 'object' ? emp.department.name : emp.department;
+        const empLoc = typeof emp.location === 'object' ? emp.location.name : emp.location;
 
         // Multi-select Filters
-        const matchesDept = departments.length === 0 || departments.includes(emp.department);
+        const matchesDept = departments.length === 0 || (empDept && departments.includes(empDept));
         const matchesRole = roles.length === 0 || roles.includes(emp.role);
-        const matchesLocation = locations.length === 0 || locations.includes(emp.location);
+        const matchesLocation = locations.length === 0 || (empLoc && locations.includes(empLoc));
         const matchesStatus = statuses.length === 0 || statuses.includes(emp.status);
         const matchesRisk = riskLevels.length === 0 || riskLevels.includes(emp.risk);
-        const matchesSkill = skills.length === 0 || emp.skills.some((s) => skills.includes(s));
+        const matchesSkill = skills.length === 0 || (emp.skills && emp.skills.some((s) => skills.includes(s)));
 
         // Date Range Filter
-        const matchesStartDate = !startDate || emp.hireDate >= startDate;
-        const matchesEndDate = !endDate || emp.hireDate <= endDate;
+        const matchesStartDate = !startDate || emp.joiningDate >= startDate;
+        const matchesEndDate = !endDate || emp.joiningDate <= endDate;
 
         return (
           matchesSearch &&
@@ -165,6 +118,23 @@ const dashboardSlice = createSlice({
       state.filteredEmployees = state.employees;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchEmployees.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployees.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.employees = action.payload || [];
+        // Re-apply filters
+        dashboardSlice.caseReducers.setFilter(state, { payload: {} } as any);
+      })
+      .addCase(fetchEmployees.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to fetch employees';
+      });
+  },
 });
 
 export const { setFilter, resetFilters } = dashboardSlice.actions;
@@ -178,7 +148,10 @@ export const selectRestrictedDashboardEmployees = (state: RootState) => {
   if (user.role === 'Admin' || user.role === 'HR') return filteredEmployees;
   // Managers can only see their own department's employees
   if (user.role === 'Manager') {
-    return filteredEmployees.filter((emp) => emp.department === user.department);
+    return filteredEmployees.filter((emp) => {
+      const empDept = typeof emp.department === 'object' ? emp.department.name : emp.department;
+      return empDept === user.department;
+    });
   }
   return [];
 };
