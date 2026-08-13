@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ManagerDashboard from "../pages/ManagerDashboard";
 import Team from "../pages/Team";
 import Attendance from "../pages/Attendance";
-import LeaveRequests from "../pages/LeaveRequests";
+import SharedLeaveRequests from "../../pages/shared/LeaveRequests/LeaveRequests";
 import Performance from "../pages/Performance";
 import Analytics from "../pages/Analytics";
 
@@ -32,7 +32,7 @@ const ManagerRoutes = () => {
 
       <Route
         path="leave-requests"
-        element={<LeaveRequests />}
+        element={<SharedLeaveRequests />}
       />
 
       <Route
