@@ -26,19 +26,21 @@ h4,
 h5,
 h6 {
   font-family: var(--heading);
-  font-weight: 500;
+  font-weight: 600; /* Apple headings are typically semi-bold */
   color: var(--text-h);
   margin: 0;
+  letter-spacing: -0.022em; /* SF Pro signature tracking */
 }
 
 h1 {
-  font-size: 32px;
-  letter-spacing: -0.5px;
+  font-size: 34px; /* iOS Large Title */
+  letter-spacing: -0.04em;
   margin-bottom: 24px;
 }
 h2 {
-  font-size: 24px;
+  font-size: 28px; /* iOS Title 1 */
   line-height: 1.2;
+  letter-spacing: -0.03em;
   margin-bottom: 16px;
 }
 p {

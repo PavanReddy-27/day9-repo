@@ -70,7 +70,7 @@ const StatusChart = ({
             labelLine={false}
           >
             {data.map((item) => {
-              let color = colors[0]; // default fallback
+              let color;
               if (item.status === 'Active') color = paletteMode === 'dark' ? '#34d399' : 'var(--success)';
               else if (item.status === 'Inactive') color = paletteMode === 'dark' ? '#fb7185' : 'var(--error)';
               else if (item.status === 'Notice Period') color = paletteMode === 'dark' ? '#60a5fa' : 'var(--primary)';

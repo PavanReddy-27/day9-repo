@@ -44,6 +44,35 @@ const Header = ({
     });
   };
 
+  const getProfileAvatar = (user: User) => {
+    const seed = user.username;
+    const role = user.role.toLowerCase();
+    const designation = (user.designation || "").toLowerCase();
+
+    // Developer / Tech roles
+    if (designation.includes('developer') || designation.includes('engineer') || designation.includes('tech') || designation.includes('software')) {
+      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}dev&backgroundColor=b6e3f4`;
+    }
+    
+    // HR roles
+    if (role.includes('hr') || designation.includes('hr') || designation.includes('human resources')) {
+      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}hr&backgroundColor=ffdfbf`;
+    }
+
+    // Manager / Executive / Team Lead roles
+    if (role.includes('manager') || role.includes('lead') || designation.includes('manager') || designation.includes('lead') || designation.includes('head') || designation.includes('director')) {
+      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}manager&backgroundColor=c0aede`;
+    }
+
+    // Admin
+    if (role.includes('admin') || designation.includes('admin')) {
+      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}admin&backgroundColor=d1d4f9`;
+    }
+
+    // Generic Employee fallback
+    return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=ffd5dc`;
+  };
+
   return (
     <header className="header">
       {/* Left */}
@@ -87,7 +116,7 @@ const Header = ({
           }
         >
           <img
-            src="https://static.vecteezy.com/system/resources/thumbnails/032/176/191/small/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg"
+            src={getProfileAvatar(user)}
             alt="Profile"
           />
 

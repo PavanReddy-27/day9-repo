@@ -109,7 +109,7 @@ const RiskChart = ({
             radius={[8, 8, 0, 0]}
           >
             {data.map((item) => {
-              let color = colors[0]; // default fallback
+              let color;
               if (item.risk === 'Low') color = paletteMode === 'dark' ? '#34d399' : 'var(--success)';
               else if (item.risk === 'Medium') color = paletteMode === 'dark' ? 'var(--warning)' : 'var(--warning)';
               else if (item.risk === 'High') color = paletteMode === 'dark' ? '#fb7185' : 'var(--error)';

@@ -54,7 +54,7 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({ records,
   }, [records]);
 
   return (
-    <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid var(--border)', bgcolor: 'var(--surface)', width: 'fit-content', mb: 3 }}>
+    <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid var(--border)', bgcolor: 'var(--surface)', width: '100%', height: '100%' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="subtitle1" sx={{ color: "var(--text-h)", fontWeight: 600, pl: 1 }}>
           {monthNames[month]} {year}

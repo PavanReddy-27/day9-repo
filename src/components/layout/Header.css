@@ -5,8 +5,10 @@
 .header {
     height: 84px;
     background: var(--surface);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border-bottom: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.03); /* Subtle float shadow */
   
     display: flex;
     justify-content: space-between;
@@ -317,3 +319,17 @@
       height: 32px;
     }
   }
+
+.profile-icon-container {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--primary);
+  font-size: 22px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}

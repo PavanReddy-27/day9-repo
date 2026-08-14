@@ -73,10 +73,7 @@ const Employees = () => {
     );
   });
 
-  const avatarColor = (name: string) => {
-    const colors = ["#2563EB", "#7C3AED", "#DB2777", "#D97706", "#16A34A", "#0891B2"];
-    return colors[name.charCodeAt(0) % colors.length];
-  };
+
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
@@ -143,7 +140,15 @@ const Employees = () => {
               <TableRow key={emp.employeeId}>
                 <TableCell>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: avatarColor(emp.fullName || emp.name || '') }}>{(emp.fullName || emp.name || '?')[0]}</Avatar>
+                    <Avatar src={(() => {
+                        const designation = ((emp as any).designation || (emp as any).role || "").toLowerCase();
+                        const seed = encodeURIComponent(emp.fullName || emp.name || 'User');
+                        if (designation.includes('developer') || designation.includes('engineer') || designation.includes('tech') || designation.includes('software')) return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}dev&backgroundColor=b6e3f4`;
+                        if (designation.includes('hr')) return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}hr&backgroundColor=ffdfbf`;
+                        if (designation.includes('manager') || designation.includes('lead') || designation.includes('head') || designation.includes('director')) return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}manager&backgroundColor=c0aede`;
+                        if (designation.includes('admin')) return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}admin&backgroundColor=d1d4f9`;
+                        return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}${(emp.fullName || emp.name || "").length}&backgroundColor=ffd5dc`;
+                      })()} sx={{ width: 32, height: 32 }} />
                     <Box>
                       <Typography sx={{ color: "var(--text-h)", fontWeight: 600, fontSize: 14 }}>{emp.fullName || emp.name}</Typography>
                       <Typography sx={{ color: "var(--text-light)", fontSize: 12 }}>{emp.email}</Typography>

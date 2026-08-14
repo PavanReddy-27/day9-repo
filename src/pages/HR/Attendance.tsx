@@ -6,7 +6,6 @@ import { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
-import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const STATUS_BUTTONS = [
   { id: "All", label: "All", color: "#64748B", bg: "#64748B1A", activeBg: "#64748B", icon: Groups },
@@ -92,8 +91,7 @@ const Attendance = () => {
     a.click();
   };
 
-  return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
+  return (    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
@@ -161,41 +159,6 @@ const Attendance = () => {
 
       {/* Status Filter Buttons Bar & Search / Date Controls */}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, color: "var(--text-light)", mr: 1 }}>
-            Filter Status:
-          </Typography>
-          {STATUS_BUTTONS.map((item) => {
-            const Icon = item.icon;
-            const isSelected = statusFilter === item.id;
-            const count = summaryCounts[item.id as keyof typeof summaryCounts] || 0;
-            return (
-              <Button
-                key={item.id}
-                variant={isSelected ? "contained" : "outlined"}
-                startIcon={<Icon fontSize="small" />}
-                onClick={() => setStatusFilter(item.id)}
-                sx={{
-                  borderRadius: 2,
-                  px: 2,
-                  py: 0.75,
-                  textTransform: "none",
-                  fontWeight: isSelected ? 700 : 500,
-                  bgcolor: isSelected ? item.activeBg : "var(--surface)",
-                  color: isSelected ? "#fff" : "var(--text-h)",
-                  borderColor: isSelected ? item.activeBg : "var(--border)",
-                  "&:hover": {
-                    bgcolor: isSelected ? item.activeBg : item.bg,
-                    borderColor: item.color,
-                  },
-                }}
-              >
-                {item.label} ({count})
-              </Button>
-            );
-          })}
-        </Box>
-
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
           <Tooltip title={showCalendar ? "Hide Calendar" : "Show Calendar"}>
             <IconButton 
@@ -234,9 +197,9 @@ const Attendance = () => {
         </Box>
       </Box>
 
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4, mb: 4 }}>
-        <Collapse in={showCalendar} orientation="horizontal" unmountOnExit>
-          <Box sx={{ flexShrink: 0 }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", lg: "row" }, gap: 3, alignItems: "stretch", flexGrow: 1, mb: 4 }}>
+        <Collapse in={showCalendar} orientation="horizontal" unmountOnExit sx={{ width: { xs: "100%", lg: "auto" }, transition: "width 0.4s cubic-bezier(0.25, 1, 0.5, 1)", '& .MuiCollapse-wrapper': { height: '100%' }, '& .MuiCollapse-wrapperInner': { height: '100%' } }}>
+          <Box sx={{ width: { xs: "100%", lg: "340px" }, flexShrink: 0, height: '100%' }}>
             <AttendanceCalendar 
               records={liveData} 
               selectedDate={dateFilter} 
@@ -245,14 +208,9 @@ const Attendance = () => {
           </Box>
         </Collapse>
 
-        <Box sx={{ flex: 1, minWidth: 300 }}>
+        <Box sx={{ flex: 1, minWidth: 300, display: "flex", flexDirection: "column" }}>
           <SmartAttendanceTable records={filteredRecords} role={(user?.role as any) || "HR"} />
         </Box>
-      </Box>
-
-      {/* Correction Requests Section */}
-      <Box sx={{ mt: 4 }}>
-        <CorrectionRequests />
       </Box>
     </Box>
   );

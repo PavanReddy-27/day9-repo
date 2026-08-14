@@ -374,6 +374,12 @@ const LoginForm = () => {
           fontSize: 16,
           textTransform: "none",
           borderRadius: 2,
+          background: "linear-gradient(135deg, rgba(59, 105, 120, 0.9) 0%, rgba(36, 70, 82, 1) 100%)",
+          boxShadow: "0 10px 20px rgba(59, 105, 120, 0.2)",
+          "&:hover": {
+            background: "linear-gradient(135deg, rgba(36, 70, 82, 1) 0%, rgba(20, 50, 60, 1) 100%)",
+            boxShadow: "0 12px 24px rgba(59, 105, 120, 0.3)",
+          },
         }}
       >
         {isLoading ? (

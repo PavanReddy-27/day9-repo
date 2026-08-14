@@ -145,6 +145,7 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
     <Box sx={{ 
       display: 'flex',
       flexDirection: 'column',
+      flexGrow: 1,
       width: '100%', 
       minHeight: 420, 
       bgcolor: 'var(--surface)', 
