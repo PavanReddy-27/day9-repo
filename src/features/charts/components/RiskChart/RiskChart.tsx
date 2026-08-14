@@ -108,16 +108,21 @@ const RiskChart = ({
             name="Employees"
             radius={[8, 8, 0, 0]}
           >
-            {data.map((item) => (
-              <Cell
-                key={item.id}
-                fill={
-                  colors[
-                    data.findIndex((entry) => entry.id === item.id) % colors.length
-                  ] ?? colors[0]
-                }
-              />
-            ))}
+            {data.map((item) => {
+              let color = colors[0]; // default fallback
+              if (item.risk === 'Low') color = paletteMode === 'dark' ? '#34d399' : 'var(--success)';
+              else if (item.risk === 'Medium') color = paletteMode === 'dark' ? 'var(--warning)' : 'var(--warning)';
+              else if (item.risk === 'High') color = paletteMode === 'dark' ? '#fb7185' : 'var(--error)';
+              else if (item.risk === 'Critical') color = paletteMode === 'dark' ? '#f43f5e' : '#8b0000';
+              else color = colors[data.findIndex((entry) => entry.id === item.id) % colors.length];
+
+              return (
+                <Cell
+                  key={item.id}
+                  fill={color}
+                />
+              );
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>

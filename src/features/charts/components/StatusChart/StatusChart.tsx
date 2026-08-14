@@ -53,32 +53,37 @@ const StatusChart = ({
       onRetry={onRetry}
       retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
+      <ResponsiveContainer width="100%" height={320} role="img" aria-label={config.title}>
         <PieChart style={{ backgroundColor: "var(--surface-solid)" }}>
           <Pie
             data={data}
             dataKey="employees"
             nameKey="status"
             cx="50%"
-            cy="45%"
-            innerRadius={65}
-            outerRadius={110}
+            cy="50%"
+            innerRadius={60}
+            outerRadius={100}
             paddingAngle={3}
             label={({ name, percent }) =>
               `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
             }
             labelLine={false}
           >
-            {data.map((item) => (
-              <Cell
-                key={item.id}
-                fill={
-                  colors[
-                    data.findIndex((entry) => entry.id === item.id) % colors.length
-                  ] ?? colors[0]
-                }
-              />
-            ))}
+            {data.map((item) => {
+              let color = colors[0]; // default fallback
+              if (item.status === 'Active') color = paletteMode === 'dark' ? '#34d399' : 'var(--success)';
+              else if (item.status === 'Inactive') color = paletteMode === 'dark' ? '#fb7185' : 'var(--error)';
+              else if (item.status === 'Notice Period') color = paletteMode === 'dark' ? '#60a5fa' : 'var(--primary)';
+              else if (item.status === 'On Leave') color = paletteMode === 'dark' ? '#fbbf24' : '#f9a825';
+              else color = colors[data.findIndex((entry) => entry.id === item.id) % colors.length];
+
+              return (
+                <Cell
+                  key={item.id}
+                  fill={color}
+                />
+              );
+            })}
           </Pie>
 
           <Tooltip

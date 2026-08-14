@@ -41,12 +41,23 @@
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+body {
+  background: var(--bg);
+  background-image: radial-gradient(circle at 50% -20%, var(--primary-bg) 0%, transparent 50%);
+  color: var(--text);
+  font-family: var(--sans);
+  transition: background-color 0.4s ease, color 0.4s ease;
+  min-height: 100vh;
+  color-scheme: light;
+}
+
 body[data-theme="dark"] {
   /* Oceanic Slate & Coral - Dark Theme */
   --bg: #15191c;
   --manager-bg: #15191c; 
   --surface: rgba(30, 36, 41, 0.85);
   --surface-solid: #1e2429;
+  color-scheme: dark; /* Force native UI elements to dark mode */
 
   /* Luminous Slate */
   --primary: #6398a8;
@@ -85,13 +96,17 @@ body[data-theme="dark"] {
   box-sizing: border-box;
 }
 
-body {
-  background: var(--bg);
-  background-image: radial-gradient(circle at 50% -20%, var(--primary-bg) 0%, transparent 50%);
-  color: var(--text);
-  font-family: var(--sans);
-  transition: background-color 0.4s ease, color 0.4s ease;
-  min-height: 100vh;
+/* Force Native Date Picker to match theme color-scheme */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="datetime-local"] {
+  color-scheme: dark;
 }
 
 a {

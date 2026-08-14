@@ -24,7 +24,7 @@ import "./LeaveRequests.css";
 
 const SharedLeaveRequests = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const canApprove = ["Manager", "HR", "Admin"].includes(user?.role || "");
+  const canApprove = user?.role === "Manager";
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -206,12 +206,14 @@ const SharedLeaveRequests = () => {
           <Typography className="summary-label">Approved Leaves</Typography>
         </Paper>
 
-        <Paper elevation={3} className="summary-card rejected-card">
-          <Typography variant="h5" className="summary-count">
-            {rejectedCount}
-          </Typography>
-          <Typography className="summary-label">Rejected Leaves</Typography>
-        </Paper>
+        {canApprove && (
+          <Paper elevation={3} className="summary-card rejected-card">
+            <Typography variant="h5" className="summary-count">
+              {rejectedCount}
+            </Typography>
+            <Typography className="summary-label">Rejected Leaves</Typography>
+          </Paper>
+        )}
       </div>
 
       <Paper elevation={3} className="leave-filter-card">

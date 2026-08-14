@@ -10,10 +10,12 @@ import {
 } from "recharts";
 
 import GroupsIcon from "@mui/icons-material/Groups";
+import { useTheme } from "../../../../context";
 
 import ChartContainer from "../ChartContainer";
 
 import type { DepartmentChartData } from "../../../../types/chart";
+import { chartConfig, getChartPalette } from "../../../../constants/chartConfig";
 
 import "./DepartmentChart.css";
 
@@ -25,17 +27,6 @@ interface DepartmentChartProps {
   onRetry?: () => void;
 }
 
-const COLORS = [
-  "#2563EB",
-  "#10B981",
-  "#F59E0B",
-  "#8B5CF6",
-  "#EF4444",
-  "#06B6D4",
-  "#EC4899",
-  "#84CC16",
-];
-
 const DepartmentChart = ({
   data,
   loading = false,
@@ -43,58 +34,58 @@ const DepartmentChart = ({
   empty = false,
   onRetry,
 }: DepartmentChartProps) => {
-  if (loading) {
-    return (
-      <ChartContainer
-        title="Department Distribution"
-        subtitle="Loading..."
-      >
-        <div className="department-chart__state">
-          Loading...
-        </div>
-      </ChartContainer>
-    );
-  }
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const paletteMode = isDarkMode ? "dark" : "light";
+  const config = chartConfig.departmentDistribution;
+  const colors = getChartPalette("departmentDistribution", paletteMode);
 
   return (
     <ChartContainer
-      title="Department Distribution"
-      subtitle="Employee distribution by department"
+      title={config.title}
+      subtitle={config.subtitle}
       action={<GroupsIcon color="primary" />}
-      height={420}
+      height={config.height}
       loading={loading}
       error={error}
       empty={empty || data.length === 0}
+      emptyMessage={config.emptyMessage}
       onRetry={onRetry}
-      retryLabel="Retry"
+      retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer
-        width="100%"
-        height={420}
-      >
-        <PieChart>
+      <ResponsiveContainer width="100%" height={420} role="img" aria-label={config.title}>
+        <PieChart style={{ backgroundColor: "var(--surface-solid)" }}>
           <Pie
             data={data}
             dataKey="value"
             nameKey="name"
             cx="50%"
-            cy="45%"
-            innerRadius={65}
-            outerRadius={110}
+            cy="50%"
+            innerRadius={80}
+            outerRadius={130}
             paddingAngle={3}
             label={({ name, percent }) =>
               `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
             }
             labelLine={false}
           >
-            {data.map((department, index) => (
-              <Cell
-                key={department.id}
-                fill={
-                  COLORS[index % COLORS.length]
-                }
-              />
-            ))}
+            {data.map((department, index) => {
+              let color = colors[index % colors.length] ?? colors[0];
+              const name = department.name.toLowerCase();
+              if (name.includes('engineering')) color = '#2563eb'; // Blue
+              else if (name.includes('finance')) color = '#8b5cf6'; // Purple
+              else if (name.includes('hr') || name.includes('human')) color = '#10b981'; // Green
+              else if (name.includes('marketing')) color = '#ef4444'; // Red
+              else if (name.includes('operations')) color = '#06b6d4'; // Cyan
+              else if (name.includes('sales')) color = '#f59e0b'; // Yellow/Orange
+
+              return (
+                <Cell
+                  key={department.id}
+                  fill={color}
+                />
+              );
+            })}
           </Pie>
 
           <Tooltip
@@ -102,6 +93,12 @@ const DepartmentChart = ({
               value,
               "Employees",
             ]}
+            contentStyle={{
+              backgroundColor: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+            labelStyle={{ color: "var(--text)" }}
+            itemStyle={{ color: "var(--text)" }}
           />
 
           <Legend
@@ -110,7 +107,9 @@ const DepartmentChart = ({
             iconType="circle"
             wrapperStyle={{
               paddingTop: 16,
+              color: "var(--text)",
             }}
+            formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>

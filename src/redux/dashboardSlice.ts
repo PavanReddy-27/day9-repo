@@ -126,7 +126,20 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchEmployees.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.employees = action.payload || [];
+        
+        // Normalize backend data to match frontend interfaces used by charts
+        const normalizedEmployees = (action.payload || []).map((emp: any) => {
+          return {
+            ...emp,
+            // Map MongoDB populated refs/names to frontend fields
+            department: emp.departmentName || (emp.departmentId ? emp.departmentId.name : "Unknown"),
+            location: emp.locationCode || (emp.locationId ? emp.locationId.name : "Unknown"),
+            status: emp.employmentStatus || "Active",
+            risk: emp.riskLevel || "Low",
+          };
+        });
+        
+        state.employees = normalizedEmployees;
         // Re-apply filters
         dashboardSlice.caseReducers.setFilter(state, { payload: {} } as any);
       })
