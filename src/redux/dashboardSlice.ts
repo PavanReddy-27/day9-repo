@@ -144,8 +144,6 @@ export const selectRestrictedDashboardEmployees = (state: RootState) => {
   const { user } = state.auth;
 
   if (!user) return [];
-  // Admin and HR can see all departments in the dashboard
-  if (user.role === 'Admin' || user.role === 'HR') return filteredEmployees;
   // Managers can only see their own department's employees
   if (user.role === 'Manager') {
     return filteredEmployees.filter((emp) => {
@@ -157,7 +155,9 @@ export const selectRestrictedDashboardEmployees = (state: RootState) => {
       return empDept === user.department;
     });
   }
-  return [];
+  
+  // Admin, HR, and Employee can see the overall dashboard
+  return filteredEmployees;
 };
 
 export default dashboardSlice.reducer;
