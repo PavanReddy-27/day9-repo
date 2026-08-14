@@ -23,10 +23,20 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
         return;
       }
       query.employeeId = empId;
+    } else if (role === "Manager") {
+      const empProfile = (req as any).employee;
+      if (empProfile && empProfile.departmentId) {
+        const teamMembers = await (Employee as any).find({ departmentId: empProfile.departmentId }).select("_id");
+        query.employeeId = { $in: teamMembers.map((e: any) => e._id) };
+      }
+    } else if (role === "HR" || role === "Admin") {
+      query.status = "Approved";
     }
 
     if (status && typeof status === "string" && status !== "All") {
-      query.status = status;
+      if (role !== "HR" && role !== "Admin") {
+        query.status = status;
+      }
     }
 
     const leaves = await LeaveRequest.find(query)
@@ -93,8 +103,8 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
     }
 
     const role = (req as any).user?.role || (req as any).role;
-    if (!["Manager", "HR", "Admin"].includes(role)) {
-      res.status(403).json({ error: "You are not allowed to approve or reject leave requests" });
+    if (role !== "Manager") {
+      res.status(403).json({ error: "Only managers are allowed to approve or reject leave requests" });
       return;
     }
 
@@ -102,7 +112,7 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
 
     const leave = await (LeaveRequest as any).findByIdAndUpdate(
       id,
-      { 
+      {
         status,
         reviewedBy: reviewerId || null,
         reviewedAt: new Date()
