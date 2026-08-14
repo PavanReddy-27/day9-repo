@@ -136,6 +136,13 @@ button {
   border-right: 1px solid var(--border) !important;
 }
 
+/* Fix Native Date Picker Icons in Dark Mode */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(0.8);
+}
+
 /* Recharts Global Styles */
 .recharts-tooltip-wrapper .recharts-default-tooltip {
   background: var(--surface) !important;
