@@ -108,12 +108,10 @@ export const buildEmployeeScopeFilter = (
   companyId: unknown
 ): Record<string, unknown> => {
   const filter: Record<string, unknown> = { companyId };
-  if (role === 'Manager') {
-    filter.departmentId = employee.departmentId;
-  } else if (role === 'Employee') {
+  if (role === 'Employee') {
     filter._id = employee._id;
   }
-  // Admin / HR: company-wide, no further narrowing.
+  // Admin / HR / Manager: company-wide, no further narrowing.
   return filter;
 };
 

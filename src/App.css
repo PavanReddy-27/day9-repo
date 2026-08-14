@@ -190,12 +190,12 @@
    Theme: Midnight Navy + Teal + Soft Gray
 
 :root {
-  --primary: #0f766e;
-  --primary-hover: #0d5f59;
-  --primary-light: #ecfdf5;
+  --primary: var(--info);
+  --primary-hover: var(--info);
+  --primary-light: var(--surface-solid);
 
-  --navy-950: #07111f;
-  --navy-900: #0b1f33;
+  --navy-950: var(--primary);
+  --navy-900: var(--primary);
   --navy-800: #12304a;
   --navy-700: #29445c;
 
@@ -212,10 +212,10 @@
   --success-bg: #e6f6eb;
 
   --warning: #b7791f;
-  --warning-bg: #fff8e1;
+  --warning-bg: var(--surface-solid);
 
-  --danger: #c53030;
-  --danger-bg: #fff5f5;
+  --danger: var(--error);
+  --danger-bg: var(--surface-solid);
 
   --shadow-sm:
     0 2px 8px rgba(7, 17, 31, 0.04);
@@ -317,9 +317,9 @@ a {
   background:
     linear-gradient(
       180deg,
-      #07111f 0%,
-      #0b1f33 55%,
-      #0e2f3a 100%
+      var(--primary) 0%,
+      var(--primary) 55%,
+      var(--primary) 100%
     );
 
   border-right:
@@ -366,8 +366,8 @@ a {
   background:
     linear-gradient(
       135deg,
-      #14b8a6,
-      #0f766e
+      var(--info),
+      var(--info)
     );
 
   border-radius: 12px;
@@ -398,7 +398,7 @@ a {
 
   padding: 0 15px;
 
-  color: #9fb3c8;
+  color: var(--text-light);
 
   border-radius: 12px;
 
@@ -425,8 +425,8 @@ a {
   background:
     linear-gradient(
       135deg,
-      #0f766e,
-      #0d5f59
+      var(--info),
+      var(--info)
     );
 
   box-shadow:
@@ -444,7 +444,7 @@ a {
   width: 4px;
   height: 28px;
 
-  background: #5eead4;
+  background: var(--info);
 
   border-radius:
     0 5px 5px 0;
@@ -521,8 +521,8 @@ a {
   background:
     linear-gradient(
       135deg,
-      #2dd4bf,
-      #0f766e
+      var(--info),
+      var(--info)
     );
 
   box-shadow:
@@ -533,10 +533,10 @@ a {
 .role-badge {
   padding: 7px 13px;
 
-  color: #0f766e;
+  color: var(--info);
 
   background:
-    #ecfdf5;
+    var(--surface-solid);
 
   border:
     1px solid #a7f3d0;
@@ -662,8 +662,8 @@ a {
   background:
     linear-gradient(
       90deg,
-      #0f766e,
-      #2dd4bf
+      var(--info),
+      var(--info)
     );
 }
 
@@ -787,7 +787,7 @@ a {
   text-align: left;
 
   border-bottom:
-    1px solid #edf1f5;
+    1px solid var(--bg);
 }
 
 .employee-table th {
@@ -818,7 +818,7 @@ a {
 
 .employee-table tbody tr:hover {
   background:
-    #f0fdfa;
+    var(--surface-solid);
 }
 
 .employee-table tbody tr:last-child td {
@@ -846,14 +846,14 @@ a {
   color: #15803d;
 
   background:
-    #dcfce7;
+    var(--surface-solid);
 }
 
 .status-leave {
   color: #a16207;
 
   background:
-    #fef3c7;
+    var(--surface-solid);
 }
 
 
@@ -870,7 +870,7 @@ a {
   padding: 23px 0;
 
   border-bottom:
-    1px solid #edf1f5;
+    1px solid var(--bg);
 }
 
 .settings-row:last-child {
@@ -922,7 +922,7 @@ a {
   inset: 0;
 
   background:
-    #cbd5e1;
+    var(--surface-solid);
 
   border-radius: 999px;
 
@@ -959,7 +959,7 @@ a {
 .switch input:checked
 + .slider {
   background:
-    #0f766e;
+    var(--info);
 }
 
 .switch input:checked
@@ -1021,7 +1021,7 @@ a {
 
 .page-state.error {
   background:
-    #fffafa;
+    var(--surface-solid);
 
   border-color:
     #fecaca;
@@ -1047,8 +1047,8 @@ a {
   background:
     linear-gradient(
       135deg,
-      #0f766e,
-      #0d5f59
+      var(--info),
+      var(--info)
     );
 
   border: none;
@@ -1089,7 +1089,7 @@ a {
     4px solid #ccfbf1;
 
   border-top-color:
-    #0f766e;
+    var(--info);
 
   border-radius: 50%;
 
@@ -1287,7 +1287,7 @@ body{
   justify-content:space-between;
   align-items:center;
   padding:18px 40px;
-  background:linear-gradient(90deg,#ff512f,#dd2476);
+  background:linear-gradient(90deg,var(--error),var(--error));
   box-shadow:0 5px 20px rgba(0,0,0,.2);
 }
 
@@ -1306,7 +1306,7 @@ body{
 }
 
 .navbar button{
-  background:#00c853;
+  background:var(--success);
   color:white;
   border:none;
   padding:10px 20px;
@@ -1317,7 +1317,7 @@ body{
 }
 
 .navbar button:hover{
-  background:#009624;
+  background:var(--success);
   transform:scale(1.05);
 }
 
@@ -1325,7 +1325,7 @@ body{
 
 form{
   width:380px;
-  background:white;
+  background:var(--surface);
   margin:70px auto;
   padding:35px;
   border-radius:20px;
@@ -1335,14 +1335,14 @@ form{
 form h2{
   text-align:center;
   margin-bottom:25px;
-  color:#6a11cb;
+  color:var(--primary);
 }
 
 input{
   width:100%;
   padding:14px;
   margin-bottom:18px;
-  border:2px solid #ddd;
+  border:2px solid var(--bg);
   border-radius:10px;
   outline:none;
   font-size:15px;
@@ -1350,7 +1350,7 @@ input{
 }
 
 input:focus{
-  border-color:#6a11cb;
+  border-color:var(--primary);
   box-shadow:0 0 10px rgba(106,17,203,.3);
 }
 
@@ -1359,7 +1359,7 @@ form button{
   padding:14px;
   border:none;
   border-radius:10px;
-  background:linear-gradient(90deg,#36d1dc,#5b86e5);
+  background:linear-gradient(90deg,var(--primary),var(--primary));
   color:white;
   font-size:17px;
   font-weight:600;
@@ -1381,7 +1381,7 @@ form button:hover{
 }
 
 .card{
-  background:white;
+  background:var(--surface);
   border-radius:18px;
   padding:25px;
   box-shadow:0 10px 25px rgba(0,0,0,.15);
@@ -1389,15 +1389,15 @@ form button:hover{
 }
 
 .card h1{
-  color:#6a11cb;
+  color:var(--primary);
 }
 
 .card h2{
-  color:#2193b0;
+  color:var(--info);
 }
 
 .card p{
-  color:#555;
+  color:var(--text);
   margin-top:10px;
   line-height:1.6;
 }
@@ -1420,19 +1420,19 @@ form button:hover{
 }
 
 .dashboard-card:nth-child(1){
-  background:linear-gradient(135deg,#36d1dc,#5b86e5);
+  background:linear-gradient(135deg,var(--primary),var(--primary));
 }
 
 .dashboard-card:nth-child(2){
-  background:linear-gradient(135deg,#ff512f,#dd2476);
+  background:linear-gradient(135deg,var(--error),var(--error));
 }
 
 .dashboard-card:nth-child(3){
-  background:linear-gradient(135deg,#11998e,#38ef7d);
+  background:linear-gradient(135deg,var(--success),var(--success));
 }
 
 .dashboard-card:nth-child(4){
-  background:linear-gradient(135deg,#f7971e,#ffd200);
+  background:linear-gradient(135deg,var(--warning),var(--warning));
 }
 
 .dashboard-card:hover{
@@ -1446,7 +1446,7 @@ form button:hover{
   padding:12px 24px;
   border:none;
   border-radius:30px;
-  background:linear-gradient(90deg,#00b09b,#96c93d);
+  background:linear-gradient(90deg,var(--success),var(--success));
   color:white;
   text-decoration:none;
   cursor:pointer;
@@ -1472,7 +1472,7 @@ form button:hover{
 
 .error{
   text-align:center;
-  color:#ff1744;
+  color:var(--error);
   font-size:40px;
   margin-top:100px;
 }

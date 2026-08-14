@@ -381,6 +381,8 @@ export const checkOut = async (req, res) => {
   }
 };
 
+import { buildEmployeeScopeFilter } from "../middleware/authMiddleware.js";
+
 /**
  * Global attendance roster for a single date.
  *
@@ -394,12 +396,10 @@ export const getGlobalAttendance = async (req, res) => {
   try {
     const dateStr = req.query.date ? String(req.query.date) : getTodayDateStr();
 
-    const empMatch: any = {};
-    if (req.role === "Employee" && req.employee?._id) {
-      empMatch._id = req.employee._id;
-    }
+    // Properly scope the query based on the authenticated user's role
+    const empMatch = buildEmployeeScopeFilter(req.role, req.employee || {}, req.companyId);
 
-    // For Admin, HR, and Manager: return the complete 250 employees dataset
+    // Return the authorized employees dataset
     let rows = await Employee.aggregate([
       { $match: empMatch },
       {

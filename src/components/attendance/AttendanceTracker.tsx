@@ -6,9 +6,8 @@ import {
 } from '@mui/material';
 import { PlayArrow, Pause, Stop, Sync, LocationOn, AccessTime, WbSunny, NightsStay } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { checkIn, checkOut, startBreak, endBreak, fetchTodayRecord, queueOfflineAction, clearOfflineQueue } from '../../redux/attendanceSlice';
+import { checkIn, checkOut, startBreak, endBreak, fetchTodayRecord, queueOfflineAction } from '../../redux/attendanceSlice';
 import { Location, ShiftType } from '../../types/attendance';
-import { attendanceApi } from '../../services/attendanceApi';
 import { getDistanceMeters, getOfficeLocation, MAX_GPS_ACCURACY_METERS, GEOFENCE_RADIUS_METERS } from '../../config/attendance';
 
 const AttendanceTracker = () => {

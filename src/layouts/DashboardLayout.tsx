@@ -6,7 +6,7 @@ import { useAppSelector } from "../hooks/redux";
 import Sidebar from "../components/layout/Sidebar";
 import Header from "../components/layout/Header";
 import Breadcrumbs from "../components/layout/Breadcrumbs";
-import AttendanceNotifications from "../components/Attendance/AttendanceNotifications";
+import AttendanceNotifications from "../components/attendance/AttendanceNotifications";
 
 import "./DashboardLayout.css";
 

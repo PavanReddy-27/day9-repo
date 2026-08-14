@@ -292,14 +292,35 @@ This project is intended for educational and organizational use.
 - **Employee**: `employee@company.com` / `employee123`
 
 ### 🛠️ Execution & Validation Commands
+
+**1. MongoDB Setup & Environment Configuration**
+The application requires a secure MongoDB connection via Mongoose. Ensure your `.env` contains the secure URI. **Do not use in-memory mock storage or SQLite**.
+```env
+# .env file
+VITE_API_BASE_URL=http://localhost:5000/api/v1
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/workforce?retryWrites=true&w=majority
+JWT_SECRET=your_secure_jwt_secret
+```
+
+**2. Database Seeding**
+The backend uses a strictly validated deterministic seeder that generates exactly 250 Stackly employees across 5 locations with no duplicate IDs:
+- Hyderabad: 70
+- Visakhapatnam: 40
+- Chennai: 50
+- Bengaluru: 60
+- Kochi: 30
 ```bash
-npm install
 npm run seed
-npm run server
+```
+
+**3. Run Validation Checks**
+To ensure codebase stability, all checks must pass before pushing to production:
+```bash
 npm run lint
 npm run typecheck
 npm run build
 npm test -- --run
+npx playwright test
 ```
 
 ---

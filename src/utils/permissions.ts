@@ -28,6 +28,10 @@ export function hasPermission(
     Employee: [
       "dashboard:view",
     ],
+    "Team Lead": [
+      "dashboard:view",
+      "employees:view",
+    ],
   };
 
   return rolePermissions[role].includes(permission);

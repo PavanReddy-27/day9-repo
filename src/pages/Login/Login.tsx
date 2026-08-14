@@ -48,7 +48,11 @@ const Login = () => {
         });
         break;
 
-
+      case "Team Lead":
+        navigate("/teamlead/dashboard", {
+          replace: true,
+        });
+        break;
 
       case "Employee":
         navigate("/employee/dashboard", {
@@ -69,40 +73,46 @@ const Login = () => {
 
   return (
     <Box className="login-container">
-      {/* Left Panel - Branding */}
-      <Box className="login-left">
-        <Box className="login-logo">
-          <img src={companyLogo} alt="Workforce Analytics" />
+      {/* Animated Background Blobs */}
+      <Box className="login-blob-3" />
+
+      {/* Glassmorphism Card */}
+      <Box className="login-glass-card">
+        {/* Left Panel - Branding */}
+        <Box className="login-left">
+          <Box className="login-logo">
+            <img src={companyLogo} alt="Workforce Analytics" />
+          </Box>
+
+          <Box className="login-branding">
+            <div className="login-overline">
+              Workforce Intelligence Platform
+            </div>
+            
+            <h1 className="login-heading">
+              Decisions get better when access stays intentional.
+            </h1>
+            
+            <p className="login-description">
+              One secure workspace for workforce visibility, role-based operations, and department-aware insights.
+            </p>
+          </Box>
+
+          <Box className="login-footer-note">
+            <VerifiedUserIcon fontSize="small" sx={{ opacity: 0.8 }} />
+            <span>Session persistence • RBAC • Department scope</span>
+          </Box>
         </Box>
 
-        <Box className="login-branding">
-          <Typography className="login-overline">
-            Workforce Intelligence Platform
-          </Typography>
-          
-          <Typography className="login-heading">
-            Decisions get better when access stays intentional.
-          </Typography>
-          
-          <Typography className="login-description">
-            One secure workspace for workforce visibility, role-based operations, and department-aware insights.
-          </Typography>
-        </Box>
+        {/* Right Panel - Form */}
+        <Box className="login-right">
+          <Box className="login-form-wrapper">
+            <LoginForm />
 
-        <Box className="login-footer-note">
-          <VerifiedUserIcon fontSize="small" sx={{ opacity: 0.8 }} />
-          <span>Session persistence • RBAC • Department scope</span>
-        </Box>
-      </Box>
-
-      {/* Right Panel - Form */}
-      <Box className="login-right">
-        <Box className="login-form-wrapper">
-          <LoginForm />
-
-          <Typography className="login-footer">
-            © {new Date().getFullYear()} Workforce Analytics Dashboard
-          </Typography>
+            <Typography className="login-footer">
+              © {new Date().getFullYear()} Workforce Analytics Dashboard
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Box>

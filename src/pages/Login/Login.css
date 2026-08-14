@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap");
 
 * {
   margin: 0;
@@ -14,113 +14,174 @@ body,
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
   background: var(--bg);
   color: var(--text);
 }
 
 /* ===========================
-   Login Split Layout
+   Animated Mesh Background
 =========================== */
 
 .login-container {
   display: flex;
   min-height: 100vh;
   width: 100%;
+  justify-content: center;
+  align-items: center;
+  position: relative;
   overflow: hidden;
-  background: var(--surface);
+  background-color: var(--bg);
+  padding: 20px;
+}
+
+/* Animated gradient blobs */
+.login-container::before,
+.login-container::after,
+.login-blob-3 {
+  content: "";
+  position: absolute;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  filter: blur(100px);
+  z-index: 0;
+  animation: float 20s infinite alternate ease-in-out;
+  opacity: 0.6;
+}
+
+.login-container::before {
+  background: var(--primary-light);
+  top: -20%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.login-container::after {
+  background: var(--primary-dark);
+  bottom: -20%;
+  right: -10%;
+  animation-delay: -5s;
+}
+
+.login-blob-3 {
+  background: var(--secondary);
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50vw;
+  height: 50vw;
+  animation-delay: -10s;
+  opacity: 0.4;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(5%, 5%) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-5%, 8%) scale(0.9);
+  }
+
+  100% {
+    transform: translate(-2%, -5%) scale(1.05);
+  }
+}
+
+/* ===========================
+   Glassmorphism Card
+=========================== */
+
+.login-glass-card {
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  min-height: 560px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  overflow: hidden;
+  position: relative;
+}
+
+[data-theme="dark"] .login-glass-card {
+  background: rgba(15, 20, 25, 0.4);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .login-left {
-  flex: 1;
+  flex: 1.1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 60px 80px;
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--text) 100%);
-  color: var(--surface);
+  justify-content: space-between;
+  padding: 40px;
+  color: var(--text-h);
   position: relative;
-  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Decorative backdrop in left panel */
-.login-left::before {
-  content: "";
-  position: absolute;
-  width: 800px;
-  height: 800px;
-  bottom: -300px;
-  right: -300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
-}
-
-.login-left::after {
-  content: "";
-  position: absolute;
-  width: 1400px;
-  height: 1400px;
-  bottom: -700px;
-  right: -700px;
-  border-radius: 50%;
-  border: 120px solid rgba(255,255,255,0.02);
-  pointer-events: none;
-}
-
-.login-logo {
-  position: absolute;
-  top: 60px;
-  left: 80px;
+[data-theme="light"] .login-left {
+  background: linear-gradient(135deg, rgba(59, 105, 120, 0.8) 0%, rgba(36, 70, 82, 0.9) 100%);
+  color: #fff;
 }
 
 .login-logo img {
-  height: 38px;
+  height: 36px;
   width: auto;
-  filter: brightness(0) invert(1); /* makes stackly logo white */
+  filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] .login-logo img {
+  filter: brightness(0) invert(1);
 }
 
 .login-branding {
-  position: relative;
-  z-index: 10;
-  max-width: 620px;
-  margin-top: 40px;
+  margin: auto 0;
 }
 
 .login-overline {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 28px;
+  color: white;
+  margin-bottom: 20px;
+  display: inline-block;
 }
 
 .login-heading {
-  font-size: 68px;
-  line-height: 1.05;
-  font-weight: 800;
-  letter-spacing: -2.5px;
-  margin-bottom: 36px;
-  color: var(--surface);
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-bottom: 12px;
 }
 
 .login-description {
-  font-size: 20px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.8;
   font-weight: 400;
-  max-width: 500px;
+  max-width: 400px;
 }
 
 .login-footer-note {
-  position: absolute;
-  bottom: 60px;
-  left: 80px;
   display: flex;
   align-items: center;
   gap: 12px;
-  color: rgba(255,255,255,0.6);
-  font-size: 14px;
+  opacity: 0.7;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -129,57 +190,62 @@ body {
 =========================== */
 
 .login-right {
-  flex: 1.1;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px;
-  background: var(--surface);
+  padding: 40px 30px;
   position: relative;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .login-right {
+  background: rgba(30, 36, 41, 0.4);
 }
 
 .login-form-wrapper {
   width: 100%;
-  max-width: 440px;
+  max-width: 360px;
 }
 
 .form-header {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
+  text-align: center;
 }
 
 .lock-icon-container {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: var(--hover);
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 24px;
-  color: var(--primary);
-  border: 1px solid var(--border);
+  margin: 0 auto 20px;
+  color: #fff;
+  box-shadow: 0 10px 20px var(--primary-bg);
 }
 
 .form-overline {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--text-light);
-  margin-bottom: 12px;
+  color: var(--primary);
+  margin-bottom: 8px;
 }
 
 .form-heading {
-  font-size: 40px;
+  font-size: 28px;
   font-weight: 800;
   color: var(--text-h);
-  letter-spacing: -1.5px;
-  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
 }
 
 .form-subtitle {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-light);
 }
 
@@ -188,6 +254,41 @@ body {
   text-align: center;
   color: var(--text-light);
   font-size: 13px;
+}
+
+/* Input Fields Styling overrides */
+.MuiOutlinedInput-root,
+.MuiSelect-select {
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .MuiOutlinedInput-root,
+[data-theme="dark"] .MuiSelect-select {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.MuiOutlinedInput-root:hover,
+.MuiSelect-select:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="dark"] .MuiOutlinedInput-root:hover,
+[data-theme="dark"] .MuiSelect-select:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.MuiButton-containedPrimary {
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+  box-shadow: 0 8px 16px var(--primary-bg) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.MuiButton-containedPrimary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 24px var(--primary-bg) !important;
 }
 
 /* Chrome autofill */
@@ -199,23 +300,27 @@ textarea:-webkit-autofill,
 select:-webkit-autofill {
   -webkit-text-fill-color: var(--text-h) !important;
   caret-color: var(--text-h) !important;
-  -webkit-box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
-  box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
   transition: background-color 5000s ease-in-out 0s;
-}
-
-.MuiInputBase-input:-webkit-autofill,
-.MuiOutlinedInput-input:-webkit-autofill {
-  -webkit-text-fill-color: var(--text-h) !important;
-  caret-color: var(--text-h) !important;
-  -webkit-box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
-  box-shadow: 0 0 0 1000px var(--surface-solid) inset !important;
-  border-radius: inherit;
 }
 
 /* Responsive */
 @media (max-width: 992px) {
+  .login-glass-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+
   .login-left {
     display: none;
+  }
+
+  .login-right {
+    padding: 40px 20px;
+    background: transparent;
+  }
+
+  [data-theme="dark"] .login-right {
+    background: transparent;
   }
 }

@@ -6,7 +6,7 @@ import { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
-import AttendanceTracker from "../../components/attendance/AttendanceTracker";
+import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const STATUS_BUTTONS = [
   { id: "All", label: "All", color: "#64748B", bg: "#64748B1A", activeBg: "#64748B", icon: Groups },
@@ -97,10 +97,12 @@ const Attendance = () => {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> Global Attendance
+            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> {user?.role === "Manager" ? "Team Attendance" : "Global Attendance"}
           </Typography>
           <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
-            Monitor daily check-ins, tardiness, absence trends, and manage corrections across all departments.
+            {user?.role === "Manager" 
+              ? "Monitor daily check-ins, tardiness, and manage attendance requests for your department."
+              : "Monitor daily check-ins, tardiness, absence trends, and manage corrections across all departments."}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -109,12 +111,6 @@ const Attendance = () => {
           </Button>
         </Box>
       </Box>
-
-      {user?.role !== "Admin" && user?.role !== "HR" && (
-        <Box sx={{ mb: 4 }}>
-          <AttendanceTracker />
-        </Box>
-      )}
 
       {/* Interactive Summary KPI Cards */}
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 2, mb: 4 }}>
@@ -250,8 +246,13 @@ const Attendance = () => {
         </Collapse>
 
         <Box sx={{ flex: 1, minWidth: 300 }}>
-          <SmartAttendanceTable records={filteredRecords} role="HR" />
+          <SmartAttendanceTable records={filteredRecords} role={(user?.role as any) || "HR"} />
         </Box>
+      </Box>
+
+      {/* Correction Requests Section */}
+      <Box sx={{ mt: 4 }}>
+        <CorrectionRequests />
       </Box>
     </Box>
   );

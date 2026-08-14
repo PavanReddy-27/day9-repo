@@ -32,11 +32,13 @@ import HRAttendance from "../pages/HR/Attendance";
 import HRPerformance from "../pages/HR/Performance";
 import HRAnalytics from "../pages/HR/Analytics";
 
-// Manager Pages
 import ManagerDashboard from "../manager/pages/ManagerDashboard";
 import ManagerTeam from "../manager/pages/Team";
 import ManagerPerformance from "../manager/pages/Performance";
 import ManagerAnalytics from "../manager/pages/Analytics";
+
+// Team Lead Pages
+import TeamLeadDashboard from "../pages/TeamLead/Dashboard";
 
 import SharedLeaveRequests from "../pages/shared/LeaveRequests/LeaveRequests";
 
@@ -73,7 +75,8 @@ const AppRoutes = () => {
       case "Manager":
         return "/manager/dashboard";
 
-
+      case "Team Lead":
+        return "/teamlead/dashboard";
 
       case "Employee":
         return "/employee/dashboard";
@@ -327,6 +330,38 @@ const AppRoutes = () => {
       </Route>
 
 
+
+      {/* ===========================
+          TEAM LEAD
+      ============================ */}
+
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={[
+              "Team Lead",
+              "Admin",
+            ]}
+          />
+        }
+      >
+        <Route
+          element={<DashboardLayout />}
+        >
+          <Route
+            path="/teamlead/dashboard"
+            element={<TeamLeadDashboard />}
+          />
+          <Route
+            path="/teamlead/attendance"
+            element={<EmployeeAttendance />}
+          />
+          <Route
+            path="/teamlead/leave-requests"
+            element={<EmployeeLeaveRequests />}
+          />
+        </Route>
+      </Route>
 
       {/* ===========================
           EMPLOYEE

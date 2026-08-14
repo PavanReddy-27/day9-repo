@@ -15,7 +15,7 @@
 import "dotenv/config";
 import * as argon2 from "argon2";
 import connectDB, { closeDB } from "../config/db.js";
-import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth } from "../models/User.js";
+import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from "../models/User.js";
 
 const getArg = (name: string, fallback: string): string => {
   const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
@@ -33,6 +33,7 @@ async function main() {
     ["HR", HRAuth],
     ["Manager", ManagerAuth],
     ["Employee", EmployeeAuth],
+    ["User", User],
   ] as const;
 
   let total = 0;

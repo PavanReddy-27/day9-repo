@@ -20,9 +20,9 @@ describe("RBAC & Multi-Tenant Data Isolation Scoping (production buildEmployeeSc
     expect(filter).toEqual({ companyId });
   });
 
-  it("pins a Manager to their own department within the company", () => {
-    const filter = buildEmployeeScopeFilter("Manager", { departmentId, teamId, _id: empId }, companyId);
-    expect(filter).toEqual({ companyId, departmentId });
+  it("gives a Manager global visibility across the company like HR", () => {
+    const filter = buildEmployeeScopeFilter("Manager", { departmentId: "dept-1" }, "comp-1");
+    expect(filter).toEqual({ companyId: "comp-1" });
   });
 
 

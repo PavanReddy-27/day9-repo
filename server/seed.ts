@@ -1,5 +1,5 @@
 import 'dotenv/config';
-
+import bcrypt from 'bcryptjs';
 import { faker } from '@faker-js/faker';
 import connectDB from './config/db';
 
@@ -9,6 +9,7 @@ import Department from './models/Department';
 import Team from './models/Team';
 import Employee from './models/Employee';
 import { User } from './models/User';
+import LeaveRequest from './models/LeaveRequest';
 
 const seedDB = async () => {
   try {
@@ -20,14 +21,13 @@ const seedDB = async () => {
 
     if (isReset) {
       console.log('Resetting Database...');
-      await Promise.all([
-        Company.deleteMany({}),
-        Location.deleteMany({}),
-        Department.deleteMany({}),
-        Team.deleteMany({}),
-        Employee.deleteMany({}),
-        User.deleteMany({})
-      ]);
+        await Company.deleteMany({});
+        await Location.deleteMany({});
+        await Department.deleteMany({});
+        await Team.deleteMany({});
+        await Employee.deleteMany({});
+        await User.deleteMany({});
+        await LeaveRequest.deleteMany({});
     }
 
     // 1. Create Company
@@ -73,7 +73,12 @@ const seedDB = async () => {
 
     // 5. Generate Employees
     const employees = [];
+    const users = [];
     let employeeCounter = 1;
+    
+    // Pre-hash password for speed
+    const salt = await bcrypt.genSalt(10);
+    const defaultPassword = await bcrypt.hash('Password123!', salt);
 
     for (const loc of locationsData) {
       for (let i = 0; i < loc.count; i++) {
@@ -84,12 +89,16 @@ const seedDB = async () => {
         const lastName = faker.person.lastName();
         const gender = faker.helpers.arrayElement(['Male', 'Female', 'Other']);
         
+        const empIdStr = `EMP${String(employeeCounter++).padStart(4, '0')}`;
+        const email = faker.internet.email({ firstName, lastName, provider: 'thestackly.com' }).toLowerCase();
+        const role = faker.helpers.arrayElement(['Admin', 'HR', 'Manager', 'Employee']);
+        
         employees.push({
-          employeeId: `EMP${String(employeeCounter++).padStart(4, '0')}`,
+          employeeId: empIdStr,
           firstName,
           lastName,
           fullName: `${firstName} ${lastName}`,
-          email: faker.internet.email({ firstName, lastName, provider: 'thestackly.com' }).toLowerCase(),
+          email,
           phone: faker.phone.number(),
           avatar: faker.image.avatar(),
           
@@ -98,7 +107,7 @@ const seedDB = async () => {
           departmentId: departments[deptName]._id,
           teamId: team._id,
           
-          role: faker.helpers.arrayElement(['Admin', 'HR', 'Manager', 'Employee']),
+          role,
           designation: faker.person.jobType(),
           employmentStatus: faker.helpers.arrayElement(['Active', 'Active', 'Active', 'Inactive', 'On Leave']),
           riskLevel: faker.helpers.arrayElement(['Low', 'Low', 'Medium', 'High', 'Critical']),
@@ -117,12 +126,21 @@ const seedDB = async () => {
           trainingCompletion: faker.number.int({ min: 0, max: 100 }),
           skillCoverage: faker.number.int({ min: 0, max: 100 }),
         });
+
+        users.push({
+          employeeId: empIdStr,
+          companyId: company._id,
+          email: email,
+          password: defaultPassword,
+          role: role
+        });
       }
     }
 
-    // Batch insert employees
+    // Batch insert employees and users
     await Employee.insertMany(employees);
-    console.log(`✅ Successfully seeded 1 Company, 5 Locations, ${depts.length} Departments, and 250 Employees!`);
+    await User.insertMany(users);
+    console.log(`✅ Successfully seeded 1 Company, 5 Locations, ${depts.length} Departments, 250 Employees, and 250 User Logins!`);
 
     // 6. Create Development Users
     console.log('Creating 5 development accounts...');

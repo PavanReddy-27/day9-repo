@@ -64,7 +64,7 @@ const LoginForm = () => {
     (state) => state.auth
   );
 
-  const [email, setEmail] =
+  const [username, setUsername] =
     useState("");
 
   const [password, setPassword] =
@@ -83,10 +83,10 @@ const LoginForm = () => {
     useState(false);
 
   const validateForm = (): boolean => {
-    if (!email.trim()) {
+    if (!username.trim()) {
       dispatch(
         loginFailure(
-          "Email is required."
+          "Username is required."
         )
       );
       return false;
@@ -111,21 +111,39 @@ const LoginForm = () => {
   ) => {
     switch (role) {
       case "Admin":
-        navigate("/admin/dashboard", { replace: true });
+        navigate(
+          "/admin/dashboard",
+          {
+            replace: true,
+          }
+        );
         break;
 
       case "HR":
-        navigate("/hr/dashboard", { replace: true });
+        navigate(
+          "/hr/dashboard",
+          {
+            replace: true,
+          }
+        );
         break;
 
       case "Manager":
-        navigate("/manager/dashboard", { replace: true });
+        navigate(
+          "/manager/dashboard",
+          {
+            replace: true,
+          }
+        );
         break;
 
-
-
       case "Employee":
-        navigate("/employee/dashboard", { replace: true });
+        navigate(
+          "/employee/dashboard",
+          {
+            replace: true,
+          }
+        );
         break;
 
       default:
@@ -146,12 +164,10 @@ const LoginForm = () => {
 
     try {
       const payload: LoginRequest = {
-        email: email.trim(),
-
+        email: username.trim(),
         password,
-
         rememberMe,
-      };
+      } as unknown as LoginRequest;
 
       const response =
         await authApi.login(
@@ -179,10 +195,10 @@ const LoginForm = () => {
     }
   };
 
-  const handleEmailChange = (
+  const handleUsernameChange = (
     value: string
   ) => {
-    setEmail(value);
+    setUsername(value);
 
     if (error) {
       dispatch(clearError());
@@ -206,22 +222,22 @@ const LoginForm = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: 3,
+        gap: 2.5,
       }}
     >
       <Box className="form-header">
         <Box className="lock-icon-container">
           <LockOutlinedIcon fontSize="small" />
         </Box>
-        <Typography className="form-overline">
+        <div className="form-overline">
           Secure Sign In
-        </Typography>
-        <Typography className="form-heading">
+        </div>
+        <h2 className="form-heading">
           Welcome back
-        </Typography>
-        <Typography className="form-subtitle">
+        </h2>
+        <p className="form-subtitle">
           Select a role, then sign in to its permitted workspace.
-        </Typography>
+        </p>
       </Box>
       {error && (
         <Alert severity="error">
@@ -240,21 +256,18 @@ const LoginForm = () => {
             setRole(selectedRole);
             if (error) dispatch(clearError());
 
-            // Auto-fill the REAL seeded dev accounts (these exist in MongoDB).
-            // Using non-existent @thestackly.com demo emails caused the backend
-            // login to 401, fall back to a fake client token, and get the user
-            // instantly logged out on the first authenticated request.
+            // Auto-fill logic based on selected role (matches seeded credentials)
             if (selectedRole === "Admin") {
-              setEmail("admin@company.com");
+              setUsername("admin@thestackly.com");
               setPassword("Password123!");
             } else if (selectedRole === "HR") {
-              setEmail("hr@company.com");
+              setUsername("hr@thestackly.com");
               setPassword("Password123!");
             } else if (selectedRole === "Manager") {
-              setEmail("manager@company.com");
+              setUsername("manager@thestackly.com");
               setPassword("Password123!");
             } else if (selectedRole === "Employee") {
-              setEmail("employee@company.com");
+              setUsername("employee@thestackly.com");
               setPassword("Password123!");
             }
           }}
@@ -262,7 +275,6 @@ const LoginForm = () => {
           <MenuItem value="Admin">Admin</MenuItem>
           <MenuItem value="HR">HR</MenuItem>
           <MenuItem value="Manager">Manager</MenuItem>
-
           <MenuItem value="Employee">Employee</MenuItem>
         </Select>
       </FormControl>
@@ -270,11 +282,11 @@ const LoginForm = () => {
       <TextField
         autoFocus
         fullWidth
-        label="Email"
-        placeholder="Enter your email"
-        value={email}
+        label="Username"
+        placeholder="Enter your username"
+        value={username}
         onChange={(e) =>
-          handleEmailChange(
+          handleUsernameChange(
             e.target.value
           )
         }

@@ -131,7 +131,7 @@
 }
 
 .dashboard-body::-webkit-scrollbar-thumb{
-    background:#cbd5e1;
+    background:var(--surface-solid);
     border-radius:20px;
 }
 
