@@ -24,7 +24,7 @@ import "./LeaveRequests.css";
 
 const SharedLeaveRequests = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const canApprove = user?.role === "Manager";
+  const canApprove = ["Manager", "HR", "Admin"].includes(user?.role || "");
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
