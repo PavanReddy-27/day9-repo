@@ -54,7 +54,7 @@
   }
   
   .performance-table-card .MuiDataGrid-columnHeaders {
-    background-color: #f1f5f9;
+    background-color: var(--surface-solid);
   }
   
   .performance-table-card .MuiDataGrid-columnHeaderTitle {
@@ -127,3 +127,29 @@
       font-size: 1.1rem !important;
     }
   }
+.status-badge {
+  padding: 0 12px;
+  height: 26px;
+  border-radius: 13px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.status-badge.present {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+}
+
+.status-badge.absent {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+}
+
+.status-badge.leave {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+}

@@ -27,6 +27,8 @@ interface TeamToolbarProps {
 
   risk: string;
   onRiskChange: (value: string) => void;
+
+  onAddMemberClick?: () => void;
 }
 
 const TeamToolbar = ({
@@ -36,6 +38,7 @@ const TeamToolbar = ({
   onAttendanceChange,
   risk,
   onRiskChange,
+  onAddMemberClick,
 }: TeamToolbarProps) => {
   return (
     <Box className="team-toolbar">
@@ -113,6 +116,7 @@ const TeamToolbar = ({
           <Button
             variant="contained"
             startIcon={<PersonAdd />}
+            onClick={onAddMemberClick}
           >
             Add Member
           </Button>

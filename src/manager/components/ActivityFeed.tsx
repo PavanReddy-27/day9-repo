@@ -57,7 +57,7 @@ const activities = [
     action: "Received Employee of the Sprint",
     time: "Today",
     avatar: "S",
-    icon: <EmojiEvents sx={{ color: "#F59E0B" }} />,
+    icon: <EmojiEvents sx={{ color: "var(--warning)" }} />,
     status: "Achievement",
     color: "secondary" as const,
   },

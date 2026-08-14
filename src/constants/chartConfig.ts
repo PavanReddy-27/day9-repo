@@ -20,8 +20,8 @@ export const chartConfig = {
     retryLabel: "Retry",
     height: 420,
     colors: {
-      light: ["#1976d2", "#2e7d32", "#fb8c00", "#d32f2f"],
-      dark: ["#60a5fa", "#34d399", "#f59e0b", "#fb7185"],
+      light: ["var(--primary)", "var(--success)", "var(--warning)", "var(--error)"],
+      dark: ["#60a5fa", "#34d399", "var(--warning)", "#fb7185"],
     },
   },
   departmentDistribution: {
@@ -32,8 +32,8 @@ export const chartConfig = {
     retryLabel: "Retry",
     height: 420,
     colors: {
-      light: ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16"],
-      dark: ["#60a5fa", "#34d399", "#f59e0b", "#a78bfa", "#f87171", "#22d3ee", "#f472b6", "#bef264"],
+      light: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "#06b6d4", "var(--secondary)", "#84cc16"],
+      dark: ["#60a5fa", "#34d399", "var(--warning)", "#a78bfa", "#f87171", "#22d3ee", "#f472b6", "#bef264"],
     },
   },
   locationDistribution: {
@@ -44,8 +44,8 @@ export const chartConfig = {
     retryLabel: "Retry",
     height: 420,
     colors: {
-      light: ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899"],
-      dark: ["#60a5fa", "#34d399", "#f59e0b", "#a78bfa", "#f87171", "#22d3ee", "#f472b6"],
+      light: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "#06b6d4", "var(--secondary)"],
+      dark: ["#60a5fa", "#34d399", "var(--warning)", "#a78bfa", "#f87171", "#22d3ee", "#f472b6"],
     },
   },
   roleDistribution: {
@@ -56,8 +56,8 @@ export const chartConfig = {
     retryLabel: "Retry",
     height: 420,
     colors: {
-      light: ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16"],
-      dark: ["#60a5fa", "#34d399", "#f59e0b", "#a78bfa", "#f87171", "#22d3ee", "#f472b6", "#bef264"],
+      light: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "#06b6d4", "var(--secondary)", "#84cc16"],
+      dark: ["#60a5fa", "#34d399", "var(--warning)", "#a78bfa", "#f87171", "#22d3ee", "#f472b6", "#bef264"],
     },
   },
   statusDistribution: {
@@ -68,7 +68,7 @@ export const chartConfig = {
     retryLabel: "Retry",
     height: 420,
     colors: {
-      light: ["#2e7d32", "#f9a825", "#d32f2f", "#1976d2"],
+      light: ["var(--success)", "#f9a825", "var(--error)", "var(--primary)"],
       dark: ["#34d399", "#fbbf24", "#fb7185", "#60a5fa"],
     },
   },
@@ -80,8 +80,8 @@ export const chartConfig = {
     retryLabel: "Retry",
     height: 420,
     colors: {
-      light: ["#2e7d32", "#fb8c00", "#d32f2f", "#8b0000"],
-      dark: ["#34d399", "#f59e0b", "#fb7185", "#f43f5e"],
+      light: ["var(--success)", "var(--warning)", "var(--error)", "#8b0000"],
+      dark: ["#34d399", "var(--warning)", "#fb7185", "#f43f5e"],
     },
   },
 } satisfies Record<string, ChartVisualConfig>;

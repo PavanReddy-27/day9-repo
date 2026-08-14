@@ -73,8 +73,8 @@ const LeaveOverviewChart = () => {
               type="monotone"
               dataKey="requested"
               name="Requested"
-              stroke="#2563EB"
-              fill="#93C5FD"
+              stroke="var(--info)"
+              fill="var(--info-bg)"
               fillOpacity={0.8}
             />
 
@@ -82,8 +82,8 @@ const LeaveOverviewChart = () => {
               type="monotone"
               dataKey="approved"
               name="Approved"
-              stroke="#16A34A"
-              fill="#86EFAC"
+              stroke="var(--success)"
+              fill="var(--success-bg)"
               fillOpacity={0.8}
             />
 
@@ -91,8 +91,8 @@ const LeaveOverviewChart = () => {
               type="monotone"
               dataKey="rejected"
               name="Rejected"
-              stroke="#DC2626"
-              fill="#FCA5A5"
+              stroke="var(--error)"
+              fill="var(--error-bg)"
               fillOpacity={0.8}
             />
           </AreaChart>

@@ -333,6 +333,7 @@ const TeamTable = ({ rows, onView }: Props) => {
       <DataGrid
         rows={rows}
         columns={columns}
+        getRowId={(row) => row.employeeId || row._id || Math.random()}
         autoHeight
         disableRowSelectionOnClick
         rowHeight={72}

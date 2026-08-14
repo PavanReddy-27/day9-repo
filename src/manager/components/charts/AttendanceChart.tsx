@@ -56,14 +56,14 @@ const AttendanceChart = () => {
             <Bar
               dataKey="present"
               name="Present"
-              fill="#16A34A"
+              fill="var(--success)"
               radius={[6, 6, 0, 0]}
             />
 
             <Bar
               dataKey="absent"
               name="Absent"
-              fill="#DC2626"
+              fill="var(--error)"
               radius={[6, 6, 0, 0]}
             />
           </BarChart>

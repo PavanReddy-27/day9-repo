@@ -110,7 +110,7 @@ export const PERMISSIONS: Record<UserRole, PermissionMap> = {
 
     attendance: {
       read: true,
-      create: true,
+      create: false,
       update: true,
       delete: false,
       export: true,
@@ -118,7 +118,7 @@ export const PERMISSIONS: Record<UserRole, PermissionMap> = {
 
     leave: {
       read: true,
-      create: true,
+      create: false,
       update: true,
       delete: false,
       export: false,
@@ -126,13 +126,56 @@ export const PERMISSIONS: Record<UserRole, PermissionMap> = {
 
     analytics: READ_ONLY,
 
-    reports: READ_ONLY,
+    reports: {
+      read: true,
+      create: false,
+      update: false,
+      delete: false,
+      export: true,
+    },
 
     settings: NO_ACCESS,
 
     auditLogs: NO_ACCESS,
   },
 
+  "Team Lead": {
+    dashboard: READ_ONLY,
+    users: NO_ACCESS,
+    employees: {
+      read: true,
+      create: false,
+      update: true,
+      delete: false,
+      export: true,
+    },
+    departments: READ_ONLY,
+    recruitment: NO_ACCESS,
+    attendance: {
+      read: true,
+      create: false,
+      update: true,
+      delete: false,
+      export: true,
+    },
+    leave: {
+      read: true,
+      create: false,
+      update: true,
+      delete: false,
+      export: false,
+    },
+    analytics: READ_ONLY,
+    reports: {
+      read: true,
+      create: false,
+      update: false,
+      delete: false,
+      export: true,
+    },
+    settings: NO_ACCESS,
+    auditLogs: NO_ACCESS,
+  },
 
   Employee: {
     dashboard: READ_ONLY,

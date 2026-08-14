@@ -26,9 +26,9 @@ const attendanceTrend: TrendChartData[] = [
 ];
 
 const riskData: RiskChartData[] = [
-  { id: "r1", risk: "Low", employees: 35, percentage: 73, color: "#22C55E" },
-  { id: "r2", risk: "Medium", employees: 9, percentage: 19, color: "#F59E0B" },
-  { id: "r3", risk: "High", employees: 4, percentage: 8, color: "#EF4444" },
+  { id: "r1", risk: "Low", employees: 35, percentage: 73, color: "var(--success)" },
+  { id: "r2", risk: "Medium", employees: 9, percentage: 19, color: "var(--warning)" },
+  { id: "r3", risk: "High", employees: 4, percentage: 8, color: "var(--error)" },
 ];
 
 const kpiData: KPIItem[] = [

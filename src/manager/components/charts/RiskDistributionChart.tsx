@@ -15,17 +15,17 @@ const riskData = [
   {
     name: "Low Risk",
     value: 35,
-    color: "#22C55E",
+    color: "var(--success)",
   },
   {
     name: "Medium Risk",
     value: 10,
-    color: "#F59E0B",
+    color: "var(--warning)",
   },
   {
     name: "High Risk",
     value: 3,
-    color: "#EF4444",
+    color: "var(--error)",
   },
 ];
 

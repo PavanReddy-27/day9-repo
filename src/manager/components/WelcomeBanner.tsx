@@ -14,9 +14,12 @@ import {
   AssignmentTurnedIn,
 } from "@mui/icons-material";
 
+import { useNavigate } from "react-router-dom";
 import "./WelcomeBanner.css";
 
 const WelcomeBanner = () => {
+  const navigate = useNavigate();
+
   return (
     <Paper elevation={3} className="welcome-banner">
       <Stack
@@ -58,6 +61,7 @@ const WelcomeBanner = () => {
               variant="contained"
               startIcon={<Groups />}
               className="btn-primary"
+              onClick={() => navigate("/manager/team")}
             >
               View Team
             </Button>
@@ -66,6 +70,7 @@ const WelcomeBanner = () => {
               variant="outlined"
               startIcon={<AssignmentTurnedIn />}
               className="btn-outline"
+              onClick={() => navigate("/manager/leave-requests")}
             >
               Approve Leaves
             </Button>
@@ -74,6 +79,7 @@ const WelcomeBanner = () => {
               variant="outlined"
               startIcon={<Download />}
               className="btn-outline"
+              onClick={() => alert("Exporting report...")}
             >
               Export Report
             </Button>

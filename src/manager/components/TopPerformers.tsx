@@ -24,7 +24,7 @@ const performers = [
     productivity: 96,
     avatar: "R",
     badge: "Top Performer",
-    color: "#FFD700",
+    color: "var(--warning)",
   },
   {
     id: 2,
@@ -34,7 +34,7 @@ const performers = [
     productivity: 94,
     avatar: "P",
     badge: "Outstanding",
-    color: "#C0C0C0",
+    color: "var(--text-light)",
   },
   {
     id: 3,
@@ -44,7 +44,7 @@ const performers = [
     productivity: 90,
     avatar: "A",
     badge: "Excellent",
-    color: "#CD7F32",
+    color: "var(--warning)",
   },
   {
     id: 4,
@@ -54,7 +54,7 @@ const performers = [
     productivity: 89,
     avatar: "S",
     badge: "Consistent",
-    color: "#2563EB",
+    color: "var(--info)",
   },
 ];
 

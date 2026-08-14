@@ -25,12 +25,12 @@
   
   .attendance-present {
     font-weight: 700 !important;
-    color: #16a34a;
+    color: var(--success);
   }
   
   .attendance-leave {
     font-weight: 700 !important;
-    color: #f59e0b;
+    color: var(--warning);
   }
   
   .attendance-absent {

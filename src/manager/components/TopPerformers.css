@@ -20,7 +20,7 @@
   }
   
   .performer-card:hover {
-    background: #eef4ff;
+    background: var(--surface-solid);
     transform: translateY(-3px);
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
   }
@@ -53,7 +53,7 @@
   
   .progress-bar .MuiLinearProgress-bar {
     border-radius: 6px;
-    background: linear-gradient(90deg, var(--primary), #16a34a);
+    background: linear-gradient(90deg, var(--primary), var(--success));
   }
   
   .bottom-row {

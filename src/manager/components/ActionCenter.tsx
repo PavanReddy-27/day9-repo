@@ -16,6 +16,7 @@ import {
   ArrowForward,
 } from "@mui/icons-material";
 
+import { useNavigate } from "react-router-dom";
 import "./ActionCenter.css";
 
 const actions = [
@@ -43,13 +44,32 @@ const actions = [
   {
     title: "Recognize Top Performer",
     description: "Reward outstanding team members this month.",
-    icon: <EmojiEvents sx={{ color: "#F59E0B" }} />,
+    icon: <EmojiEvents sx={{ color: "var(--warning)" }} />,
     chip: "Monthly",
     chipColor: "secondary" as const,
   },
 ];
 
 const ActionCenter = () => {
+  const navigate = useNavigate();
+
+  const handleActionClick = (title: string) => {
+    switch (title) {
+      case "Approve Leave Requests":
+        navigate("/manager/leave-requests");
+        break;
+      case "Schedule Team Meeting":
+        navigate("/manager/team");
+        break;
+      case "Review Performance":
+      case "Recognize Top Performer":
+        navigate("/manager/performance");
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <Paper elevation={3} className="action-center-card">
       <Typography
@@ -113,6 +133,7 @@ const ActionCenter = () => {
               size="small"
               endIcon={<ArrowForward />}
               className="action-item-button"
+              onClick={() => handleActionClick(action.title)}
             >
               View Details
             </Button>

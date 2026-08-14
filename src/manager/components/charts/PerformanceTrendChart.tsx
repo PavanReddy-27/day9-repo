@@ -73,7 +73,7 @@ const PerformanceTrendChart = () => {
               type="monotone"
               dataKey="score"
               name="Performance Score"
-              stroke="#2563EB"
+              stroke="var(--info)"
               strokeWidth={3}
               dot={{ r: 5 }}
               activeDot={{ r: 8 }}

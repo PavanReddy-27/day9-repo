@@ -20,22 +20,22 @@ const metrics = [
   {
     title: "Attendance",
     value: 92,
-    color: "#16A34A",
+    color: "var(--success)",
   },
   {
     title: "Performance",
     value: 89,
-    color: "#2563EB",
+    color: "var(--info)",
   },
   {
     title: "Engagement",
     value: 94,
-    color: "#7C3AED",
+    color: "var(--secondary)",
   },
   {
     title: "Productivity",
     value: 88,
-    color: "#0EA5E9",
+    color: "var(--info)",
   },
 ];
 

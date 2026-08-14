@@ -1,7 +1,7 @@
  .manager-sidebar {
     width: 260px;
     flex-shrink: 0;
-    background: linear-gradient(180deg, var(--text) 0%, #1e293b 100%);
+    background: linear-gradient(180deg, var(--text) 0%, var(--primary) 100%);
     color: var(--text-h);
     min-height: 100vh;
     padding: 24px 16px;
@@ -29,7 +29,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary), #3b82f6);
+    background: linear-gradient(135deg, var(--primary), var(--primary));
     font-weight: 800;
     font-size: 20px;
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
@@ -83,7 +83,7 @@
   }
   
   .menu.active {
-    background: linear-gradient(135deg, var(--primary), #3b82f6);
+    background: linear-gradient(135deg, var(--primary), var(--primary));
     color: var(--text-h);
     box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
   }
