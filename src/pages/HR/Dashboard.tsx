@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAppSelector } from '../../redux/hooks';
 
 import { selectRestrictedHROpenPositions, selectRestrictedHRLeaveRequests } from '../../redux/hrSlice';
@@ -7,6 +7,11 @@ import KPICards from '../../features/kpi/components/KPICards';
 export const HRDashboard: React.FC = () => {
   const openPositions = useAppSelector(selectRestrictedHROpenPositions) || [];
   const leaveRequests = useAppSelector(selectRestrictedHRLeaveRequests) || [];
+  
+  const totalOnboarded = useAppSelector((state) => state.hr.totalOnboarded) || 38;
+  const attritionRate = useAppSelector((state) => state.hr.attritionRate) || 4.2;
+  const employees = useAppSelector((state) => state.dashboard.employees) || [];
+  const totalWorkforce = useMemo(() => employees.filter(e => e.role === 'Employee').length, [employees]);
 
   return (
     <div style={{ padding: '32px', backgroundColor: 'var(--bg)', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -28,14 +33,14 @@ export const HRDashboard: React.FC = () => {
           {
             id: 'totalEmployees',
             title: 'Total Workforce',
-            value: '10,000',
+            value: totalWorkforce,
             trend: 2.4,
             subtitle: 'vs last quarter'
           },
           {
             id: 'newHires',
             title: 'New Onboarded (Q3)',
-            value: 38,
+            value: totalOnboarded,
             trend: 5,
             subtitle: 'Onboarding on schedule'
           },
@@ -49,7 +54,7 @@ export const HRDashboard: React.FC = () => {
           {
             id: 'attritionRate',
             title: 'Monthly Attrition Rate',
-            value: '4.2%',
+            value: `${attritionRate}%`,
             trend: -0.5,
             subtitle: 'lower than target'
           }

@@ -80,6 +80,7 @@ const DashboardAnalytics = ({
      Filters
   =========================================== */
 
+  const employeeRoleOnly = useMemo(() => employees.filter(e => e.role === 'Employee'), [employees]);
   const {
   clearFilters,
   undoLastFilter,
@@ -88,7 +89,7 @@ const DashboardAnalytics = ({
   comparison,
   savedViews,
   saveCurrentView,
-} = useChartFilters(employees as any);
+} = useChartFilters(employeeRoleOnly as any);
   /* ===========================================
      Charts
   =========================================== */
