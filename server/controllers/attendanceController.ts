@@ -28,28 +28,39 @@ export function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
 const getTodayDateStr = () => new Date().toISOString().split("T")[0];
 
 // Idempotency Middleware helper
-async function checkIdempotency(req, res, idempotencyKey) {
+async function checkIdempotency(req: any, res: any, idempotencyKey: string, session?: any) {
   if (!idempotencyKey) return null;
-  const existing = await IdempotencyRecord.findOne({ companyId: req.companyId, idempotencyKey } as any);
+  const existing = session
+    ? await IdempotencyRecord.findOne({ companyId: req.companyId, idempotencyKey } as any).session(session)
+    : await IdempotencyRecord.findOne({ companyId: req.companyId, idempotencyKey } as any);
   if (existing) {
     return res.status(existing.responseStatus).json(existing.responseBody);
   }
   return null;
 }
 
-async function saveIdempotency(req, idempotencyKey, status, body) {
+async function saveIdempotency(req: any, idempotencyKey: string, status: number, body: any, session?: any) {
   if (!idempotencyKey) return;
   try {
-    await IdempotencyRecord.create({
+    const doc = {
       companyId: req.companyId,
       idempotencyKey,
       requestPath: req.originalUrl,
       responseStatus: status,
       responseBody: body,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-    });
-  } catch {
-    // Ignore duplicate key collision
+    };
+    if (session) {
+      await IdempotencyRecord.create([doc], { session });
+    } else {
+      await IdempotencyRecord.create(doc);
+    }
+  } catch (err: any) {
+    console.error("saveIdempotency error:", err);
+    if (err.code === 11000) {
+      throw new Error("IDEMPOTENCY_CONFLICT");
+    }
+    throw err;
   }
 }
 
@@ -287,39 +298,45 @@ export const resumeWork = async (req, res) => {
   }
 };
 
-export const checkOut = async (req, res) => {
+export const checkOut = async (req: any, res: any) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { location: coordinates, idempotencyKey } = req.body;
 
-    const handled = await checkIdempotency(req, res, idempotencyKey);
-    if (handled) return;
+    const handled = await checkIdempotency(req, res, idempotencyKey, session);
+    if (handled) {
+      await session.abortTransaction();
+      session.endSession();
+      return;
+    }
 
     const today = getTodayDateStr();
 
     // Look for active attendance record for today or current active shift
     let record: any = await AttendanceRecord.findOne({
+      companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any).sort({ createdAt: -1 });
+    } as any).session(session).sort({ createdAt: -1 });
 
     if (!record || record.status === "Checked Out") {
       record = await AttendanceRecord.findOne({
+        companyId: req.companyId,
         employeeId: req.employee._id,
         status: { $in: ["Working", "On Break"] }
-      } as any).sort({ createdAt: -1 });
-    }
-
-    if (!record) {
-      record = await AttendanceRecord.findOne({
-        status: { $in: ["Working", "On Break"] }
-      } as any).sort({ createdAt: -1 });
+      } as any).session(session).sort({ createdAt: -1 });
     }
 
     if (!record || record.status === "Not Checked In") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot check out: Employee has not checked in yet." });
     }
 
     if (record.status === "Checked Out") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot check out: Employee has already checked out." });
     }
 
@@ -328,13 +345,14 @@ export const checkOut = async (req, res) => {
     // If checked out while on break, finalize break session
     if (record.status === "On Break") {
       const activeBreak: any = await BreakSession.findOne({
+        companyId: req.companyId,
         attendanceRecordId: record._id,
         endTime: null,
-      } as any);
+      } as any).session(session);
       if (activeBreak) {
         activeBreak.endTime = now;
         activeBreak.durationMinutes = Math.round((now.getTime() - new Date(activeBreak.startTime).getTime()) / (1000 * 60));
-        await activeBreak.save();
+        await activeBreak.save({ session });
         record.breakDurationMinutes = (record.breakDurationMinutes || 0) + activeBreak.durationMinutes;
       }
     }
@@ -358,25 +376,48 @@ export const checkOut = async (req, res) => {
     record.workDurationMinutes = netWorkMinutes;
     record.workingHours = Number((netWorkMinutes / 60).toFixed(2));
 
-    await record.save();
+    await record.save({ session });
 
-    await AttendanceEvent.create({
-      companyId: req.companyId || record.companyId,
+    await AttendanceEvent.create([{
+      companyId: req.companyId,
       attendanceRecordId: record._id,
       employeeId: req.employee._id,
       eventType: "CHECK_OUT",
       timestamp: now,
       idempotencyKey,
-    });
+    }], { session });
 
     const responseBody = {
       success: true,
       message: `Check-out successful. Total worked hours: ${record.workingHours} hrs.`,
       data: record,
     };
-    await saveIdempotency(req, idempotencyKey, 200, responseBody);
+    await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
+    
+    try {
+      await session.commitTransaction();
+    } catch (commitErr: any) {
+      console.error("commitTransaction error:", commitErr);
+      throw commitErr;
+    }
+    session.endSession();
     return res.status(200).json(responseBody);
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Controller catch error:", error);
+    if (session) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
+      session.endSession();
+    }
+    
+    if ((error.message === "IDEMPOTENCY_CONFLICT" || error.code === 11000) && req.body.idempotencyKey) {
+       const existing = await IdempotencyRecord.findOne({ companyId: req.companyId, idempotencyKey: req.body.idempotencyKey } as any);
+       if (existing) {
+          return res.status(existing.responseStatus).json(existing.responseBody);
+       }
+    }
+    
     return res.status(500).json({ success: false, message: error.message });
   }
 };

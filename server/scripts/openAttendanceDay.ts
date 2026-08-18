@@ -42,7 +42,7 @@ async function main() {
 
   await connectDB();
 
-  const recordCount = await AttendanceRecord.countDocuments({ date });
+  const recordCount = await AttendanceRecord.countDocuments({ date } as any);
   console.log(`[open-day] Target date: ${date}`);
   console.log(`[open-day] AttendanceRecords on that date: ${recordCount}`);
 
@@ -53,11 +53,11 @@ async function main() {
   }
 
   // Collect the record ids for that day so we can also drop their child docs.
-  const recs = await AttendanceRecord.find({ date }).select("_id").lean();
+  const recs = await AttendanceRecord.find({ date } as any).select("_id").lean();
   const ids = recs.map((r: { _id: mongoose.Types.ObjectId }) => r._id);
 
   const [delRecords, delEvents, delBreaks] = await Promise.all([
-    AttendanceRecord.deleteMany({ date }),
+    AttendanceRecord.deleteMany({ date } as any),
     ids.length ? AttendanceEvent.deleteMany({ attendanceRecordId: { $in: ids } }) : Promise.resolve({ deletedCount: 0 }),
     ids.length ? BreakSession.deleteMany({ attendanceRecordId: { $in: ids } }) : Promise.resolve({ deletedCount: 0 }),
   ]);

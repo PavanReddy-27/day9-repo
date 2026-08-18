@@ -7,6 +7,8 @@ import { AttendanceRecord } from '../../types/attendance';
 interface SmartAttendanceTableProps {
   records: AttendanceRecord[];
   role: 'HR' | 'Manager' | 'Employee';
+  defaultSort?: 'asc' | 'desc';
+  hidePagination?: boolean;
 }
 
 const statusColors: Record<string, { bg: string; color: string }> = {
@@ -71,7 +73,7 @@ const LocationTimeCell = ({ time, location, label }: { time: string | null | und
   );
 };
 
-export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ records, role }) => {
+export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ records, role, defaultSort = 'desc', hidePagination = false }) => {
   const columns = useMemo(() => {
     const cols: GridColDef[] = [];
     
@@ -174,15 +176,16 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
         rows={records}
         getRowId={(row) => row.id || row._id || Math.random().toString()}
         columns={columns}
-        pageSizeOptions={[5, 10, 20, 50]}
+        pageSizeOptions={[5, 7, 10, 14, 20, 50]}
         initialState={{
           pagination: {
-            paginationModel: { page: 0, pageSize: 10 },
+            paginationModel: { page: 0, pageSize: hidePagination ? 7 : 10 },
           },
           sorting: {
-            sortModel: [{ field: 'date', sort: 'desc' }],
+            sortModel: [{ field: 'date', sort: defaultSort }],
           },
         }}
+        hideFooter={hidePagination}
         disableRowSelectionOnClick
       />
     </Box>

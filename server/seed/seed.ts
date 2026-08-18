@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import connectDB, { closeDB } from "../config/db.js";
@@ -230,12 +230,12 @@ export async function runSeed(reset = false) {
   }
 
   // 6. Create 250 Employees & Users
-  const defaultPasswordHash = await bcrypt.hash("Password@123", 10);
+  const defaultPasswordStr = "Password@123";
   const devAccountPasswords = {
-    Admin: await bcrypt.hash("admin123", 10),
-    HR: await bcrypt.hash("hr123", 10),
-    Manager: await bcrypt.hash("manager123", 10),
-    Employee: await bcrypt.hash("employee123", 10),
+    Admin: "admin123",
+    HR: "hr123",
+    Manager: "manager123",
+    Employee: "employee123",
   };
 
   const devAccountsConfig = [
@@ -274,14 +274,14 @@ export async function runSeed(reset = false) {
         role = "HR";
       }
 
-      const passHash = devAccountsConfig.some(d => d.email === email)
+      const passStr = devAccountsConfig.some(d => d.email === email)
         ? devAccountPasswords[role]
-        : defaultPasswordHash;
+        : defaultPasswordStr;
 
       const user = await User.create({
         employeeId: empIdStr,
         email: email.toLowerCase(),
-        password: passHash,
+        password: passStr,
         role: role,
         isActive: true,
       });

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Box, Typography, TextField, FormControl, InputLabel, Select, MenuItem, IconButton, Collapse, Tooltip } from "@mui/material";
-import { EventAvailable, CalendarMonth } from "@mui/icons-material";
+import { EventAvailable, CalendarMonth, ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { attendanceApi } from "../../services/attendanceApi";
 import type { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
@@ -15,6 +15,26 @@ const EmployeeAttendance = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
   const [showCalendar, setShowCalendar] = useState(true);
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const getWeekDates = (offset: number, selectedDateStr: string) => {
+    let curr = new Date();
+    if (selectedDateStr) {
+       curr = new Date(selectedDateStr);
+    }
+    curr.setDate(curr.getDate() + offset * 7);
+    const day = curr.getDay();
+    const diff = curr.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(curr.setDate(diff));
+    
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+    return dates;
+  };
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -33,19 +53,42 @@ const EmployeeAttendance = () => {
   }, [user]);
 
   const filteredRecords = useMemo(() => {
-    return records.filter(r => {
-      const matchesDate = (dateFilter === "" || r.date === dateFilter);
-      let matchesStatus = true;
+    const dates = getWeekDates(weekOffset, dateFilter);
+    return dates.map(dateStr => {
+      const existing = records.find(r => r.date === dateStr);
+      let match = true;
       if (statusFilter === "Present") {
-        matchesStatus = r.status === "Present" || ["Working", "On Break", "Checked Out"].includes(r.attendanceState ?? "");
+         match = existing ? (existing.status === "Present" || ["Working", "On Break", "Checked Out"].includes(existing.attendanceState ?? "")) : false;
       } else if (statusFilter === "Absent") {
-        matchesStatus = r.status === "Absent" || r.attendanceState === "Not Checked In";
+         match = existing ? (existing.status === "Absent" || existing.attendanceState === "Not Checked In") : true;
       } else if (statusFilter === "Leave" || statusFilter === "Half Day" || statusFilter === "Half Leave") {
-        matchesStatus = r.status === "Leave" || r.status === "Half Day" || r.status === "Half-Day" || r.status === "Half Leave" || ((r.workingHours ?? 0) > 0 && (r.workingHours ?? 0) < 5);
+         match = existing ? (existing.status === "Leave" || existing.status === "Half Day" || existing.status === "Half-Day" || existing.status === "Half Leave" || ((existing.workingHours ?? 0) > 0 && (existing.workingHours ?? 0) < 5)) : false;
       }
-      return matchesStatus && matchesDate;
-    });
-  }, [records, statusFilter, dateFilter]);
+
+      if (existing) {
+        return match ? existing : null;
+      }
+
+      const isWeekend = new Date(dateStr).getDay() === 0 || new Date(dateStr).getDay() === 6;
+      return match ? {
+        id: `dummy-${dateStr}`,
+        employeeId: user?.id || "",
+        employeeName: user?.fullName || "",
+        date: dateStr,
+        checkInTime: null,
+        checkOutTime: null,
+        workingHours: 0,
+        status: isWeekend ? "Weekend" : "Absent",
+        attendanceState: "Not Checked In"
+      } as AttendanceRecord : null;
+    }).filter(Boolean) as AttendanceRecord[];
+  }, [records, statusFilter, dateFilter, weekOffset, user]);
+
+  // Synchronize calendar clicks with week offset
+  const handleDateSelect = (d: string) => {
+      setDateFilter(d);
+      setWeekOffset(0); // Reset offset relative to newly selected date
+  };
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -84,11 +127,20 @@ const EmployeeAttendance = () => {
                   <CalendarMonth fontSize="small" />
                 </IconButton>
               </Tooltip>
+              <Box sx={{ display: "flex", alignItems: "center", bgcolor: "var(--surface)", borderRadius: 3, p: 0.5 }}>
+                <IconButton size="small" onClick={() => setWeekOffset(prev => prev - 1)}>
+                  <ChevronLeft />
+                </IconButton>
+                <Typography variant="body2" sx={{ px: 1, fontWeight: 600 }}>Week View</Typography>
+                <IconButton size="small" onClick={() => setWeekOffset(prev => prev + 1)}>
+                  <ChevronRight />
+                </IconButton>
+              </Box>
               <TextField
                 type="date"
                 size="small"
                 value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
+                onChange={(e) => handleDateSelect(e.target.value)}
                 sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { bgcolor: "var(--surface)", borderRadius: 3 }, '& input': { color: dateFilter ? 'var(--text-h)' : 'var(--text-light)' } }}
               />
               <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -108,13 +160,13 @@ const EmployeeAttendance = () => {
               <AttendanceCalendar 
                 records={records} 
                 selectedDate={dateFilter} 
-                onSelectDate={setDateFilter} 
+                onSelectDate={handleDateSelect} 
               />
             </Box>
           </Collapse>
           
           <Box sx={{ flex: 1, minWidth: 300, display: "flex", flexDirection: "column" }}>
-            <SmartAttendanceTable records={filteredRecords} role="Employee" />
+            <SmartAttendanceTable records={filteredRecords} role="Employee" defaultSort="asc" hidePagination={true} />
           </Box>
         </Box>
       </Box>

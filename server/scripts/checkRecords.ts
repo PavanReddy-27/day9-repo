@@ -8,7 +8,8 @@ async function run() {
   const emp = await Employee.findOne({ firstName: 'Pavan' });
   console.log("Pavan Employee ID:", emp?._id);
   if (emp) {
-    const record = await AttendanceRecord.findOne({ employeeId: emp._id }).sort({ createdAt: -1 });
+    const records = await AttendanceRecord.find({ employeeId: emp._id } as any);
+    const record = records[0];
     console.log("Pavan Latest Record:", record);
   }
   await closeDB();

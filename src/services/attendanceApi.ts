@@ -1,6 +1,6 @@
 import type { AttendanceRecord, CorrectionRequest, AttendanceAuditLog, Location, ShiftType, AttendanceSource } from "../types/attendance";
 import { apiClient, ApiError } from "./apiClient";
-import { enqueueOfflineAction, getPendingOfflineActions } from "../utils/indexedDB";
+import { enqueueOfflineAction, getPendingOfflineActions } from "../utils/offlineQueue";
 
 /**
  * Attendance service — 100% backend-driven.
@@ -28,7 +28,7 @@ export const attendanceApi = {
         const pending = await getPendingOfflineActions();
         // Look for the most recent pending checkIn for this employee
         // Since getPendingOfflineActions returns all pending, we find the last checkIn
-        const checkIns = pending.filter(a => a.method === "POST" && a.url.includes("/check-in"));
+        const checkIns = pending.filter(a => a.actionType === "check-in");
         if (checkIns.length > 0) {
           const latest = checkIns[checkIns.length - 1];
           const todayStr = new Date().toISOString().split("T")[0];
@@ -42,9 +42,9 @@ export const attendanceApi = {
             checkOutTime: null,
             workingHours: 0,
             status: "Present",
-            shiftType: (latest.body as any).shiftType || "Regular",
+            shiftType: (latest.payload as any).shiftType || "Regular",
             source: "Offline",
-            location: (latest.body as any).location,
+            location: (latest.payload as any).location,
           } as AttendanceRecord;
         }
       } catch {
@@ -88,7 +88,7 @@ export const attendanceApi = {
         location,
       };
       try {
-        await enqueueOfflineAction("/attendance/check-in", "POST", {
+        await enqueueOfflineAction("check-in", {
           location, source, shiftType, idempotencyKey, isWFH
         });
       } catch {
@@ -202,3 +202,25 @@ export const attendanceApi = {
     // No-op: attendance state lives only in MongoDB.
   },
 };
+
+if (typeof window !== "undefined") {
+  import("../utils/offlineQueue").then(({ syncOfflineQueue }) => {
+    window.addEventListener("sync_offline_queue", () => {
+      syncOfflineQueue(async (action) => {
+        let endpoint = "";
+        if (action.actionType === "check-in") endpoint = "/attendance/check-in";
+        else if (action.actionType === "check-out") endpoint = "/attendance/check-out";
+        else if (action.actionType === "break") endpoint = "/attendance/break";
+        else if (action.actionType === "resume") endpoint = "/attendance/resume";
+        else if (action.actionType === "correction") endpoint = "/attendance/corrections";
+
+        if (!endpoint) throw new Error("Unknown offline action type");
+        
+        return apiClient(endpoint, {
+          method: "POST",
+          body: JSON.stringify(action.payload)
+        });
+      }).catch(console.error);
+    });
+  });
+}

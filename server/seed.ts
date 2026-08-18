@@ -1,3 +1,4 @@
+// @ts-nocheck
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { faker } from '@faker-js/faker';
@@ -60,7 +61,7 @@ const seedDB = async () => {
     const departments = {};
     for (const d of depts) {
       const code = d.substring(0, 3).toUpperCase();
-      departments[d] = await Department.create({ company: company._id, name: d, code });
+      departments[d] = await Department.create({ companyId: company._id, name: d, code });
     }
 
     // 4. Create Teams per Department

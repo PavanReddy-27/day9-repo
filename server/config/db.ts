@@ -8,7 +8,7 @@ const connectDB = async () => {
   try {
     if (process.env.MONGODB_URI) {
       const conn = await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 3000 });
-      console.log(`MongoDB Connected: ${conn.connection.host}`);
+      console.log(`MongoDB Connected successfully`);
       return conn;
     }
     throw new Error('No MONGODB_URI provided');
@@ -21,20 +21,7 @@ const connectDB = async () => {
     const conn = await mongoose.connect(uri);
     console.log(`In-Memory MongoDB Connected: ${conn.connection.host}`);
     
-    // Seed the database if we're falling back to memory, but ONLY if we aren't already running the seed script
-    if (!process.argv[1]?.includes('seed.ts')) {
-      try {
-        console.log('Running automatic seed for In-Memory DB...');
-        console.log('Running automatic seed for In-Memory DB...');
-        // Pass the new URI so the seed script connects to the SAME memory database!
-        execSync('npm run seed', { 
-          stdio: 'inherit',
-          env: { ...process.env, MONGODB_URI: uri }
-        });
-      } catch (seedErr) {
-        console.error('Failed to seed in-memory db', seedErr);
-      }
-    }
+    // Removed automatic database seed script running to prevent data loss or unintended seeding in production-like environments
     
     return conn;
   }
