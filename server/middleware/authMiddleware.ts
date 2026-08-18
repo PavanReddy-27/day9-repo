@@ -109,13 +109,8 @@ export const buildEmployeeScopeFilter = (
 ): Record<string, unknown> => {
   const filter: Record<string, unknown> = { companyId };
   
-  if (role === 'Admin' || role === 'HR') {
+  if (role === 'Admin' || role === 'HR' || role === 'Manager') {
     // Full company visibility
-  } else if (role === 'Manager') {
-    // Managers can only see their department
-    if (employee.departmentId) {
-      filter.departmentId = employee.departmentId;
-    }
   } else {
     // Standard employees can only see their own record
     filter._id = employee._id;
