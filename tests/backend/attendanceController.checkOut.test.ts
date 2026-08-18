@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from "vitest";
-import mongoose from "../../server/node_modules/mongoose";
+import mongoose from "mongoose";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { checkOut } from "../../server/controllers/attendanceController";
 import AttendanceRecord from "../../server/models/AttendanceRecord";
