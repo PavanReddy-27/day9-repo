@@ -439,6 +439,11 @@ export const getGlobalAttendance = async (req, res) => {
 
     // Properly scope the query based on the authenticated user's role
     const empMatch = buildEmployeeScopeFilter(req.role, req.employee || {}, req.companyId);
+    empMatch.role = 'Employee';
+    // Remove the department constraint so managers can see all 206 employees
+    if (req.role === 'Manager') {
+      delete empMatch.departmentId;
+    }
 
     // Return the authorized employees dataset
     let rows = await Employee.aggregate([
@@ -469,6 +474,7 @@ export const getGlobalAttendance = async (req, res) => {
     // Fallback: If 0 rows match specific match criteria, query all employees
     if (rows.length === 0) {
       rows = await Employee.aggregate([
+        { $match: { role: 'Employee' } },
         {
           $lookup: {
             from: "attendancerecords",

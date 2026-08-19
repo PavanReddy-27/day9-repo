@@ -25,11 +25,8 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
       }
       query.employeeId = empId;
     } else if (role === "Manager") {
-      const empProfile = (req as any).employee;
-      if (empProfile && empProfile.departmentId) {
-        const teamMembers = await (Employee as any).find({ departmentId: empProfile.departmentId }).select("_id");
-        query.employeeId = { $in: teamMembers.map((e: any) => e._id) };
-      }
+      // Remove department constraint so managers can see all leave requests across the company
+      // (same as Admin and HR)
     }
     // HR / Admin: company-wide visibility (all statuses, incl. Pending to review).
 

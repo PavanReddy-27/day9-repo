@@ -95,12 +95,10 @@ const Attendance = () => {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> {user?.role === "Manager" ? "Team Attendance" : "Global Attendance"}
+            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> Global Attendance
           </Typography>
           <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
-            {user?.role === "Manager" 
-              ? "Monitor daily check-ins, tardiness, and manage attendance requests for your department."
-              : "Monitor daily check-ins, tardiness, absence trends, and manage corrections across all departments."}
+            Monitor daily check-ins, tardiness, absence trends, and manage corrections across all departments.
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
