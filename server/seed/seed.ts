@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -118,7 +119,7 @@ export async function runSeed(reset = false) {
   }
 
   // Check if company already exists to prevent duplicate runs without reset
-  const existingCompany = await Company.findOne({ code: "ACME" });
+  const existingCompany = await Company.findOne({ code: "STACKLY" });
   if (existingCompany && !reset) {
     console.log("[Seed Engine] Database already populated. Use --reset to re-seed.");
     await printCollectionCounts();
@@ -126,11 +127,11 @@ export async function runSeed(reset = false) {
     return;
   }
 
-  // 1. Create Company
+  // 1. Create Company (Stackly — the code doubles as the human-readable id)
   const company = await Company.create({
-    name: "Acme Enterprise Corp",
-    code: "ACME",
-    domain: "acme.com",
+    name: "Stackly",
+    code: "STACKLY",
+    domain: "stackly.com",
     settings: { defaultGeofenceRadiusMeters: 500, timezone: "Asia/Kolkata" },
   });
 
@@ -189,7 +190,8 @@ export async function runSeed(reset = false) {
     const loc = locationDocs[locDef.code];
     for (const deptDef of DEPARTMENTS_DEF) {
       const dept = await Department.create({
-        company: company._id,
+        companyId: company._id,
+        locationId: loc._id,
         name: `${deptDef.name} - ${locDef.code}`,
         code: `${deptDef.code}-${locDef.code}`,
       });
@@ -239,10 +241,10 @@ export async function runSeed(reset = false) {
   };
 
   const devAccountsConfig = [
-    { role: "Admin", email: "admin@company.com", empId: "EMP-001", firstName: "System", lastName: "Admin", locCode: "HYD", deptIndex: 0 },
-    { role: "HR", email: "hr@company.com", empId: "EMP-002", firstName: "David", lastName: "Miller", locCode: "HYD", deptIndex: 1 },
-    { role: "Manager", email: "manager@company.com", empId: "EMP-003", firstName: "Robert", lastName: "King", locCode: "HYD", deptIndex: 0 },
-    { role: "Employee", email: "employee@company.com", empId: "EMP-004", firstName: "Pavan", lastName: "Reddy", locCode: "HYD", deptIndex: 0 },
+    { role: "Admin", email: "admin@thestackly.com", empId: "EMP-001", firstName: "System", lastName: "Admin", locCode: "HYD", deptIndex: 0 },
+    { role: "HR", email: "hr@thestackly.com", empId: "EMP-002", firstName: "David", lastName: "Miller", locCode: "HYD", deptIndex: 1 },
+    { role: "Manager", email: "manager@thestackly.com", empId: "EMP-003", firstName: "Robert", lastName: "King", locCode: "HYD", deptIndex: 0 },
+    { role: "Employee", email: "employee@thestackly.com", empId: "EMP-004", firstName: "Pavan", lastName: "Reddy", locCode: "HYD", deptIndex: 0 },
   ];
 
   const createdEmployees = [];
@@ -259,7 +261,7 @@ export async function runSeed(reset = false) {
       const devCfg = devAccountsConfig.find((d) => d.empId === empIdStr);
 
       let role = "Employee";
-      let email = `employee${empIdNumber}@acme.com`;
+      let email = `employee${empIdNumber}@thestackly.com`;
       let firstName = prng.choice(FIRST_NAMES);
       let lastName = prng.choice(LAST_NAMES);
 
@@ -278,7 +280,17 @@ export async function runSeed(reset = false) {
         ? devAccountPasswords[role]
         : defaultPasswordStr;
 
-      const user = await User.create({
+      // Store the login in its role-specific collection (separate "folders":
+      // adminauths / hrauths / managerauths / employeeauths) so auth is split by
+      // role, matching authController/authMiddleware lookups.
+      const roleAuthModel: Record<string, any> = {
+        Admin: AdminAuth,
+        HR: HRAuth,
+        Manager: ManagerAuth,
+        Employee: EmployeeAuth,
+      };
+      const AuthModel = roleAuthModel[role] || EmployeeAuth;
+      const user = await AuthModel.create({
         employeeId: empIdStr,
         email: email.toLowerCase(),
         password: passStr,
@@ -303,7 +315,9 @@ export async function runSeed(reset = false) {
         lastName,
         fullName: `${firstName} ${lastName}`,
         locationId: loc._id,
+        locationCode: loc.code,
         departmentId: assignedDept._id,
+        departmentName: assignedDept.name,
         teamId: assignedTeam._id,
         managerId: null, // Will update next
         role: role,

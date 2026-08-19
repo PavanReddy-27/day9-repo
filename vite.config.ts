@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: true,
+    allowedHosts: ['workforce-task-8-demo.loca.lt'],
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

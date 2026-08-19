@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import Employee from '../models/Employee.js';
 
-import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth } from '../models/User.js';
+import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User.js';
 
 const findUserById = async (id: string) => {
   let user = await AdminAuth.findById(id);
@@ -12,6 +12,11 @@ const findUserById = async (id: string) => {
   user = await ManagerAuth.findById(id);
   if (user) return user;
   user = await EmployeeAuth.findById(id);
+  if (user) return user;
+  // Fallback to the unified `users` collection (matches authController's
+  // findUserByEmail). The seed writes accounts here, so without this fallback
+  // req.role/req.employee stay undefined and every scoped query 500s.
+  user = await User.findById(id);
   return user;
 };
 
@@ -65,6 +70,7 @@ export const authenticateJWT = async (req, res, next) => {
       }
       req.companyId = employeeDoc ? employeeDoc.companyId : userDoc.companyId;
       req.role = userDoc.role;
+      req.userEmail = userDoc.email;
     }
 
     next();
@@ -108,14 +114,16 @@ export const buildEmployeeScopeFilter = (
   companyId: unknown
 ): Record<string, unknown> => {
   const filter: Record<string, unknown> = { companyId };
-  
-  if (role === 'Admin' || role === 'HR' || role === 'Manager') {
-    // Full company visibility
-  } else {
-    // Standard employees can only see their own record
-    filter._id = employee._id;
+
+  if (role === 'Manager') {
+    // Managers are scoped to their own department.
+    filter.departmentId = employee?.departmentId;
+  } else if (role !== 'Admin' && role !== 'HR') {
+    // Standard employees can only see their own record.
+    filter._id = employee?._id;
   }
-  
+  // Admin / HR: company-wide.
+
   return filter;
 };
 

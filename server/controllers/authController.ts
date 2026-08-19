@@ -1,6 +1,7 @@
 import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User.js';
 import Employee from '../models/Employee.js';
 import jwt from 'jsonwebtoken';
+import { writeAuditLog } from '../utils/audit.js';
 
 // Helper to generate tokens
 const generateTokens = (id: any, role: any) => {
@@ -58,6 +59,15 @@ export const login = async (req: any, res: any, next: any) => {
 
     const employee: any = await Employee.findOne({ email } as any);
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+
+    // Sensitive-action audit trail (fire-and-forget).
+    void writeAuditLog(
+      { companyId: employee?.companyId ?? (user as any).companyId, role: user.role, userEmail: user.email, ip: (req as any).ip, headers: (req as any).headers },
+      "LOGIN",
+      `${user.role} ${user.email} signed in`,
+      "Auth",
+      String(user._id)
+    );
 
     res.status(200).json({
       success: true,

@@ -4,6 +4,7 @@ import {
   FiMenu,
   FiChevronDown,
   FiLogOut,
+  FiUser,
 } from "react-icons/fi";
 
 
@@ -44,34 +45,7 @@ const Header = ({
     });
   };
 
-  const getProfileAvatar = (user: User) => {
-    const seed = user.username;
-    const role = user.role.toLowerCase();
-    const designation = (user.designation || "").toLowerCase();
 
-    // Developer / Tech roles
-    if (designation.includes('developer') || designation.includes('engineer') || designation.includes('tech') || designation.includes('software')) {
-      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}dev&backgroundColor=b6e3f4`;
-    }
-    
-    // HR roles
-    if (role.includes('hr') || designation.includes('hr') || designation.includes('human resources')) {
-      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}hr&backgroundColor=ffdfbf`;
-    }
-
-    // Manager / Executive / Team Lead roles
-    if (role.includes('manager') || role.includes('lead') || designation.includes('manager') || designation.includes('lead') || designation.includes('head') || designation.includes('director')) {
-      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}manager&backgroundColor=c0aede`;
-    }
-
-    // Admin
-    if (role.includes('admin') || designation.includes('admin')) {
-      return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}admin&backgroundColor=d1d4f9`;
-    }
-
-    // Generic Employee fallback
-    return `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=ffd5dc`;
-  };
 
   return (
     <header className="header">
@@ -115,10 +89,9 @@ const Header = ({
             setMenuOpen(!menuOpen)
           }
         >
-          <img
-            src={getProfileAvatar(user)}
-            alt="Profile"
-          />
+          <div className="profile-icon-container">
+            <FiUser />
+          </div>
 
           <div className="profile-info">
             <h4>{user.fullName || user.username}</h4>

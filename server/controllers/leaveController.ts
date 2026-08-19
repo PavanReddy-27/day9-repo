@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import LeaveRequest from "../models/LeaveRequest.js";
 import Employee from "../models/Employee.js";
+import { writeAuditLog } from "../utils/audit.js";
 
 // @desc    Get all leave requests
 // @route   GET /api/v1/leaves
@@ -29,14 +30,11 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
         const teamMembers = await (Employee as any).find({ departmentId: empProfile.departmentId }).select("_id");
         query.employeeId = { $in: teamMembers.map((e: any) => e._id) };
       }
-    } else if (role === "HR" || role === "Admin") {
-      query.status = "Approved";
     }
+    // HR / Admin: company-wide visibility (all statuses, incl. Pending to review).
 
     if (status && typeof status === "string" && status !== "All") {
-      if (role !== "HR" && role !== "Admin") {
-        query.status = status;
-      }
+      query.status = status;
     }
 
     const leaves = await LeaveRequest.find(query)
@@ -82,6 +80,8 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
 
     const populatedLeave = await (LeaveRequest as any).findById(newLeave._id as any).populate("employeeId", "firstName lastName employeeId");
 
+    await writeAuditLog(req, "LEAVE_REQUESTED", `Requested ${type} leave (${startDate} to ${endDate})`, "LeaveRequest", newLeave._id);
+
     res.status(201).json(populatedLeave);
   } catch (error) {
     console.error("Error creating leave request:", error);
@@ -103,8 +103,8 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
     }
 
     const role = (req as any).user?.role || (req as any).role;
-    if (role !== "Manager") {
-      res.status(403).json({ error: "Only managers are allowed to approve or reject leave requests" });
+    if (!["Manager", "HR", "Admin"].includes(role)) {
+      res.status(403).json({ error: "Only managers, HR, or admins may approve or reject leave requests" });
       return;
     }
 
@@ -124,6 +124,8 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
       res.status(404).json({ error: "Leave request not found" });
       return;
     }
+
+    await writeAuditLog(req, `LEAVE_${status.toUpperCase()}`, `${status} leave request ${id}`, "LeaveRequest", id);
 
     res.json(leave);
   } catch (error) {
