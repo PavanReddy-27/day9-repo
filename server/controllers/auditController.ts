@@ -18,8 +18,8 @@ export const getAuditLogs = async (req: any, res: any) => {
     const skip = (Math.max(1, parseInt(String(page))) - 1) * parseInt(String(limit));
 
     const [logs, total] = await Promise.all([
-      AuditLog.find(query).sort({ timestamp: -1 }).skip(skip).limit(parseInt(String(limit))).lean(),
-      AuditLog.countDocuments(query),
+      AuditLog.find(query as any).sort({ timestamp: -1 }).skip(skip).limit(parseInt(String(limit))).lean(),
+      AuditLog.countDocuments(query as any),
     ]);
 
     return res.status(200).json({

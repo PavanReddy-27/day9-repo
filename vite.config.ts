@@ -26,4 +26,16 @@ export default defineConfig({
     environment: 'jsdom',
     exclude: ['**/node_modules/**', '**/dist/**', 'tests/e2e/**'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@mui/material', '@mui/icons-material', 'lucide-react', 'framer-motion'],
+          charting: ['recharts', 'd3'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  }
 })

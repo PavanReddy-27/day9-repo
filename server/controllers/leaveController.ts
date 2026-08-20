@@ -122,7 +122,7 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    await writeAuditLog(req, `LEAVE_${status.toUpperCase()}`, `${status} leave request ${id}`, "LeaveRequest", id);
+    await writeAuditLog(req, `LEAVE_${status.toUpperCase()}`, `${status} leave request ${String(id)}`, "LeaveRequest", String(id));
 
     res.json(leave);
   } catch (error) {
