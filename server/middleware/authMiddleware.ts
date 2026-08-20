@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import Employee from '../models/Employee.js';
+import TokenBlacklist from '../models/TokenBlacklist.js';
 
 import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User.js';
 
@@ -29,6 +30,12 @@ export const authenticateJWT = async (req, res, next) => {
     
     if (!token) {
       return res.status(401).json({ success: false, message: 'Not authorized, no token' });
+    }
+    
+    // Check if token is blacklisted
+    const isBlacklisted = await TokenBlacklist.findOne({ token });
+    if (isBlacklisted) {
+      return res.status(401).json({ success: false, message: 'Not authorized, token revoked' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;

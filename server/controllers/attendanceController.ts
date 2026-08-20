@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 
 import IdempotencyRecord from "../models/IdempotencyRecord.js";
 import { broadcastSSE } from "../utils/sse.js";
+import { writeAuditLog } from "../utils/audit.js";
 
 // Haversine formula for geofence validation
 export function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -205,6 +206,7 @@ export const checkIn = async (req, res) => {
     const responseBody = { success: true, message: "Check-in successful.", data: record };
     await saveIdempotency(req, idempotencyKey, 200, responseBody);
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_IN", recordId: record._id });
+    void writeAuditLog(req, "ATTENDANCE_CHECK_IN", "Employee checked in for the day", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -251,6 +253,7 @@ export const startBreak = async (req, res) => {
     const responseBody = { success: true, message: "Break started.", data: record };
     await saveIdempotency(req, idempotencyKey, 200, responseBody);
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "BREAK_STARTED", recordId: record._id });
+    void writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -296,6 +299,7 @@ export const resumeWork = async (req, res) => {
     const responseBody = { success: true, message: "Resumed work.", data: record };
     await saveIdempotency(req, idempotencyKey, 200, responseBody);
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "WORK_RESUMED", recordId: record._id });
+    void writeAuditLog(req, "ATTENDANCE_WORK_RESUME", "Employee resumed work from break", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -406,6 +410,7 @@ export const checkOut = async (req: any, res: any) => {
     }
     session.endSession();
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_OUT", recordId: record._id });
+    void writeAuditLog(req, "ATTENDANCE_CHECK_OUT", "Employee checked out for the day", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
     console.error("Controller catch error:", error);

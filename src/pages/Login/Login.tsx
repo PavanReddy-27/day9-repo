@@ -48,11 +48,6 @@ const Login = () => {
         });
         break;
 
-      case "Team Lead":
-        navigate("/teamlead/dashboard", {
-          replace: true,
-        });
-        break;
 
       case "Employee":
         navigate("/employee/dashboard", {

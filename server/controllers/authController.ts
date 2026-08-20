@@ -2,9 +2,10 @@ import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/Us
 import Employee from '../models/Employee.js';
 import jwt from 'jsonwebtoken';
 import { writeAuditLog } from '../utils/audit.js';
+import TokenBlacklist from '../models/TokenBlacklist.js';
 
 // Helper to generate tokens
-const generateTokens = (id: any, role: any) => {
+export const generateTokens = (id: any, role: any) => {
   const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET!, { expiresIn: '15m' });
   const refreshToken = jwt.sign({ id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: '7d' });
   return { accessToken, refreshToken };
@@ -115,8 +116,21 @@ export const refresh = async (req, res) => {
   }
 };
 
-export const logout = (req, res) => {
-  // Client should discard tokens. If storing refresh tokens in DB, remove it here.
-  res.status(200).json({ success: true, message: 'Logged out successfully' });
+export const logout = async (req: any, res: any, next: any) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    
+    if (token) {
+      // Add the token to the blacklist
+      await TokenBlacklist.create({ token });
+    }
+    
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
+  }
 };
 

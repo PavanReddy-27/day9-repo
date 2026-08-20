@@ -190,7 +190,7 @@ const SharedLeaveRequests = () => {
       </Box>
 
       <div className="leave-summary-grid">
-        {canApprove && (
+        {(canApprove || user?.role === "Admin" || user?.role === "HR") && (
           <Paper elevation={3} className="summary-card pending-card">
             <Typography variant="h5" className="summary-count">
               {pendingCount}
@@ -206,7 +206,7 @@ const SharedLeaveRequests = () => {
           <Typography className="summary-label">Approved Leaves</Typography>
         </Paper>
 
-        {canApprove && (
+        {(canApprove || user?.role === "Admin" || user?.role === "HR") && (
           <Paper elevation={3} className="summary-card rejected-card">
             <Typography variant="h5" className="summary-count">
               {rejectedCount}
