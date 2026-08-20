@@ -157,19 +157,28 @@ export const SmartAttendanceTable: React.FC<SmartAttendanceTableProps> = ({ reco
       '& .MuiDataGrid-root': {
         border: 'none',
         color: 'var(--text-h)',
+        background: 'transparent !important',
       },
       '& .MuiDataGrid-cell': {
         borderBottom: '1px solid var(--border)',
       },
-      '& .MuiDataGrid-columnHeaders': {
-        bgcolor: 'rgba(0,0,0,0.02)',
+      '& .MuiDataGrid-columnHeaders, & .MuiDataGrid-columnHeadersInner, & .MuiDataGrid-topContainer, & .MuiDataGrid-filler, & .MuiDataGrid-columnHeader': {
         borderBottom: '1px solid var(--border)',
-        color: 'var(--text-light)',
+        color: 'var(--text-h) !important',
         fontWeight: 600,
+        background: 'var(--surface-solid) !important',
       },
       '& .MuiDataGrid-footerContainer': {
         borderTop: '1px solid var(--border)',
+        backgroundColor: 'transparent !important',
+      },
+      '& .MuiDataGrid-row': {
+        backgroundColor: 'transparent !important',
+      },
+      '& .MuiDataGrid-row:hover, & .MuiDataGrid-row.Mui-hovered': {
+        backgroundColor: 'rgba(128, 128, 128, 0.1) !important',
       }
+
     }}>
       <DataGrid
         sx={{ flex: 1 }}

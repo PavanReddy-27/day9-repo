@@ -151,6 +151,55 @@ button {
   color: var(--text-light) !important;
 }
 
+/* Global MUI Text Color Overrides for Dark Mode */
+[data-theme="dark"] .MuiTypography-root {
+  color: var(--text-h);
+}
+
+[data-theme="dark"] .MuiInputBase-input,
+[data-theme="dark"] .MuiSelect-select,
+[data-theme="dark"] .MuiOutlinedInput-input {
+  color: var(--text-h) !important;
+}
+
+[data-theme="dark"] .MuiInputLabel-root {
+  color: var(--text-light) !important;
+}
+
+[data-theme="dark"] .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .MuiSvgIcon-root {
+  color: var(--text-light) !important;
+}
+
+[data-theme="dark"] .MuiDataGrid-root,
+[data-theme="dark"] .MuiDataGrid-cell,
+[data-theme="dark"] .MuiDataGrid-columnHeaderTitle {
+  color: var(--text-h) !important;
+}
+
+[data-theme="dark"] .MuiDataGrid-root,
+[data-theme="dark"] .MuiDataGrid-main,
+[data-theme="dark"] .MuiDataGrid-columnHeaders,
+[data-theme="dark"] .MuiDataGrid-columnHeadersInner,
+[data-theme="dark"] .MuiDataGrid-topContainer,
+[data-theme="dark"] .MuiDataGrid-filler,
+[data-theme="dark"] .MuiDataGrid-virtualScroller,
+[data-theme="dark"] .MuiDataGrid-footerContainer,
+[data-theme="dark"] .shared-data-grid .MuiDataGrid-columnHeaders,
+[data-theme="dark"] .shared-data-grid .MuiDataGrid-columnHeadersInner,
+[data-theme="dark"] .shared-data-grid .MuiDataGrid-topContainer,
+[data-theme="dark"] .shared-data-grid .MuiDataGrid-filler,
+[data-theme="dark"] .employee-data-grid .MuiDataGrid-columnHeaders,
+[data-theme="dark"] .employee-data-grid .MuiDataGrid-columnHeadersInner,
+[data-theme="dark"] .employee-data-grid .MuiDataGrid-topContainer,
+[data-theme="dark"] .employee-data-grid .MuiDataGrid-filler {
+  background-color: transparent !important;
+  color: var(--text-h) !important;
+}
+
 .MuiDrawer-paper {
   background-color: var(--surface) !important;
   backdrop-filter: blur(24px) saturate(180%) !important;
@@ -200,4 +249,16 @@ button {
 .recharts-text {
   fill: var(--text-light) !important;
   font-family: var(--sans) !important;
+}
+
+
+[data-theme="dark"] .MuiDataGrid-footerContainer,
+[data-theme="dark"] .MuiTablePagination-root,
+[data-theme="dark"] .MuiTablePagination-toolbar,
+[data-theme="dark"] .MuiTablePagination-displayedRows,
+[data-theme="dark"] .MuiTablePagination-selectLabel,
+[data-theme="dark"] .MuiTablePagination-select,
+[data-theme="dark"] .MuiTablePagination-selectIcon,
+[data-theme="dark"] .MuiTablePagination-actions .MuiIconButton-root {
+  color: var(--text-h) !important;
 }
