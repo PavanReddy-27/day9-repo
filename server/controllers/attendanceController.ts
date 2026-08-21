@@ -238,66 +238,91 @@ export const checkIn = async (req, res) => {
 };
 
 export const startBreak = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { idempotencyKey } = req.body;
-    const handled = await checkIdempotency(req, res, idempotencyKey);
-    if (handled) return;
+    const handled = await checkIdempotency(req, res, idempotencyKey, session);
+    if (handled) {
+      await session.abortTransaction();
+      session.endSession();
+      return;
+    }
 
     const today = getTodayDateStr();
     const record: any = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any);
+    } as any).session(session);
 
     if (!record || record.status === "Not Checked In") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot start break: Employee has not checked in yet." });
     }
 
     if (record.status === "On Break") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Already on break." });
     }
 
     if (record.status === "Checked Out") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot start break: Shift has already ended." });
     }
 
     const now = new Date();
     record.status = "On Break";
     record.breakStartTime = now;
-    await record.save();
+    await record.save({ session });
 
-    await BreakSession.create({
+    await BreakSession.create([{
       companyId: req.companyId,
       attendanceRecordId: record._id,
       employeeId: req.employee._id,
       startTime: now,
-    });
+    }], { session });
 
     const responseBody = { success: true, message: "Break started.", data: record };
-    await saveIdempotency(req, idempotencyKey, 200, responseBody);
+    await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
+
+    await session.commitTransaction();
+    session.endSession();
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "BREAK_STARTED", recordId: record._id });
-    void writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString());
+    void writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString(), { session });
     return res.status(200).json(responseBody);
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const resumeWork = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { idempotencyKey } = req.body;
-    const handled = await checkIdempotency(req, res, idempotencyKey);
-    if (handled) return;
+    const handled = await checkIdempotency(req, res, idempotencyKey, session);
+    if (handled) {
+      await session.abortTransaction();
+      session.endSession();
+      return;
+    }
 
     const today = getTodayDateStr();
     const record: any = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any);
+    } as any).session(session);
 
     if (!record || record.status !== "On Break") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Must be in 'On Break' state to resume work." });
     }
 
@@ -724,10 +749,12 @@ export const getAttendanceHistory = async (req, res) => {
 };
 
 export const createCorrection = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { attendanceRecordId, date, requestedCheckIn, requestedCheckOut, reason } = req.body;
 
-    const correction = await CorrectionRequest.create({
+    const correctionArr = await CorrectionRequest.create([{
       companyId: req.companyId,
       employeeId: req.employee._id,
       attendanceRecordId,
@@ -736,9 +763,10 @@ export const createCorrection = async (req, res) => {
       requestedCheckOut,
       reason,
       status: "Pending",
-    });
+    }], { session });
+    const correction = correctionArr[0];
 
-    await ApprovalHistory.create({
+    await ApprovalHistory.create([{
       companyId: req.companyId,
       correctionRequestId: correction._id,
       action: "Submitted",
@@ -746,12 +774,16 @@ export const createCorrection = async (req, res) => {
       previousStatus: "None",
       newStatus: "Pending",
       comments: reason,
-    });
+    }], { session });
 
-    void writeAuditLog(req, "ATTENDANCE_CORRECTION_REQUESTED", "Employee submitted an attendance correction request", "CorrectionRequest", correction._id.toString());
+    void writeAuditLog(req, "ATTENDANCE_CORRECTION_REQUESTED", "Employee submitted an attendance correction request", "CorrectionRequest", correction._id.toString(), { session });
 
+    await session.commitTransaction();
+    session.endSession();
     return res.status(201).json({ success: true, data: correction });
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -775,29 +807,33 @@ export const getCorrections = async (req, res) => {
 };
 
 export const approveCorrection = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { id } = req.params;
-    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any);
+    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
     if (!correction || correction.status !== "Pending") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
     }
 
     correction.status = "Approved";
     correction.reviewedBy = req.employee._id;
     correction.reviewedAt = new Date();
-    await correction.save();
+    await correction.save({ session });
 
     // Update original attendance record
-    const record: any = await (AttendanceRecord as any).findById(correction.attendanceRecordId as any);
+    const record: any = await (AttendanceRecord as any).findById(correction.attendanceRecordId as any).session(session);
     if (record) {
       record.checkInTime = correction.requestedCheckIn;
       record.checkOutTime = correction.requestedCheckOut;
       record.status = "Checked Out";
-      await record.save();
+      await record.save({ session });
     }
 
-    await ApprovalHistory.create({
+    await ApprovalHistory.create([{
       companyId: req.companyId,
       correctionRequestId: correction._id,
       action: "Approved",
@@ -805,31 +841,39 @@ export const approveCorrection = async (req, res) => {
       previousStatus: "Pending",
       newStatus: "Approved",
       comments: req.body.comments || "Approved by Manager/HR",
-    });
+    }], { session });
 
-    void writeAuditLog(req, "APPROVED_ATTENDANCE_CORRECTION", `Approved attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id));
+    void writeAuditLog(req, "APPROVED_ATTENDANCE_CORRECTION", `Approved attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id), { session });
 
+    await session.commitTransaction();
+    session.endSession();
     return res.status(200).json({ success: true, data: correction });
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const rejectCorrection = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { id } = req.params;
-    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any);
+    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
     if (!correction || correction.status !== "Pending") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
     }
 
     correction.status = "Rejected";
     correction.reviewedBy = req.employee._id;
     correction.reviewedAt = new Date();
-    await correction.save();
+    await correction.save({ session });
 
-    await ApprovalHistory.create({
+    await ApprovalHistory.create([{
       companyId: req.companyId,
       correctionRequestId: correction._id,
       action: "Rejected",
@@ -837,12 +881,16 @@ export const rejectCorrection = async (req, res) => {
       previousStatus: "Pending",
       newStatus: "Rejected",
       comments: req.body.comments || "Rejected",
-    });
+    }], { session });
 
-    void writeAuditLog(req, "REJECTED_ATTENDANCE_CORRECTION", `Rejected attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id));
+    void writeAuditLog(req, "REJECTED_ATTENDANCE_CORRECTION", `Rejected attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id), { session });
 
+    await session.commitTransaction();
+    session.endSession();
     return res.status(200).json({ success: true, data: correction });
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };

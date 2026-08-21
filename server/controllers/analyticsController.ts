@@ -5,12 +5,12 @@ import PerformanceRecord from "../models/PerformanceRecord.js";
 import ProductivityRecord from "../models/ProductivityRecord.js";
 
 import EmployeeSkill from "../models/EmployeeSkill.js";
-
-
+import { buildEmployeeScopeFilter } from "../middleware/authMiddleware.js";
 
 export const getWorkforceAnalytics = async (req, res) => {
   try {
-    const filter = { companyId: new mongoose.Types.ObjectId(req.companyId), role: "Employee" };
+    const baseFilter = buildEmployeeScopeFilter(req.role, req.employee, req.companyId);
+    const filter = { ...baseFilter, role: "Employee" };
 
     const [totalEmployees, activeEmployees, onLeaveEmployees, riskDistribution, workModeDistribution] = await Promise.all([
       Employee.countDocuments(filter),
@@ -48,7 +48,8 @@ export const getWorkforceAnalytics = async (req, res) => {
 
 export const getHiringAnalytics = async (req, res) => {
   try {
-    const filter = { companyId: new mongoose.Types.ObjectId(req.companyId), role: "Employee" };
+    const baseFilter = buildEmployeeScopeFilter(req.role, req.employee, req.companyId);
+    const filter = { ...baseFilter, role: "Employee" };
 
     const hiringTrends = await Employee.aggregate([
       { $match: filter },
@@ -72,11 +73,12 @@ export const getHiringAnalytics = async (req, res) => {
 
 export const getAttendanceAnalytics = async (req, res) => {
   try {
-    const filter = { companyId: new mongoose.Types.ObjectId(req.companyId) };
+    const baseFilter = buildEmployeeScopeFilter(req.role, req.employee, req.companyId);
+    const filter = { ...baseFilter };
     const validEmployeeIds = await Employee.find({ ...filter, role: "Employee" }).distinct("_id");
 
     const attendanceStats = await AttendanceRecord.aggregate([
-      { $match: { ...filter, employeeId: { $in: validEmployeeIds } } },
+      { $match: { companyId: baseFilter.companyId, employeeId: { $in: validEmployeeIds } } },
       {
         $group: {
           _id: "$status",
@@ -88,7 +90,7 @@ export const getAttendanceAnalytics = async (req, res) => {
     ]);
 
     const trends = await AttendanceRecord.aggregate([
-      { $match: { ...filter, employeeId: { $in: validEmployeeIds } } },
+      { $match: { companyId: baseFilter.companyId, employeeId: { $in: validEmployeeIds } } },
       {
         $group: {
           _id: "$date",
@@ -125,7 +127,8 @@ export const getAttendanceAnalytics = async (req, res) => {
 
 export const getDepartmentAnalytics = async (req, res) => {
   try {
-    const filter = { companyId: new mongoose.Types.ObjectId(req.companyId), role: "Employee" };
+    const baseFilter = buildEmployeeScopeFilter(req.role, req.employee, req.companyId);
+    const filter = { ...baseFilter, role: "Employee" };
 
     const deptStats = await Employee.aggregate([
       { $match: filter },
@@ -179,11 +182,12 @@ export const getDepartmentAnalytics = async (req, res) => {
 
 export const getSkillsAnalytics = async (req, res) => {
   try {
-    const filter = { companyId: new mongoose.Types.ObjectId(req.companyId) };
+    const baseFilter = buildEmployeeScopeFilter(req.role, req.employee, req.companyId);
+    const filter = { ...baseFilter };
     const validEmployeeIds = await Employee.find({ ...filter, role: "Employee" }).distinct("_id");
 
     const skillGaps = await EmployeeSkill.aggregate([
-      { $match: { ...filter, employeeId: { $in: validEmployeeIds } } },
+      { $match: { companyId: baseFilter.companyId, employeeId: { $in: validEmployeeIds } } },
       {
         $lookup: {
           from: "skills",
@@ -221,11 +225,12 @@ export const getSkillsAnalytics = async (req, res) => {
 
 export const getPerformanceAnalytics = async (req, res) => {
   try {
-    const filter = { companyId: new mongoose.Types.ObjectId(req.companyId) };
+    const baseFilter = buildEmployeeScopeFilter(req.role, req.employee, req.companyId);
+    const filter = { ...baseFilter };
     const validEmployeeIds = await Employee.find({ ...filter, role: "Employee" }).distinct("_id");
 
     const perfData = await PerformanceRecord.aggregate([
-      { $match: { ...filter, employeeId: { $in: validEmployeeIds } } },
+      { $match: { companyId: baseFilter.companyId, employeeId: { $in: validEmployeeIds } } },
       {
         $group: {
           _id: "$period",
@@ -252,11 +257,12 @@ export const getPerformanceAnalytics = async (req, res) => {
 
 export const getProductivityAnalytics = async (req, res) => {
   try {
-    const filter = { companyId: new mongoose.Types.ObjectId(req.companyId) };
+    const baseFilter = buildEmployeeScopeFilter(req.role, req.employee, req.companyId);
+    const filter = { ...baseFilter };
     const validEmployeeIds = await Employee.find({ ...filter, role: "Employee" }).distinct("_id");
 
     const productivity = await ProductivityRecord.aggregate([
-      { $match: { ...filter, employeeId: { $in: validEmployeeIds } } },
+      { $match: { companyId: baseFilter.companyId, employeeId: { $in: validEmployeeIds } } },
       {
         $group: {
           _id: "$date",
