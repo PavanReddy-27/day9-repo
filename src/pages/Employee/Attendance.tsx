@@ -8,6 +8,7 @@ import AttendanceTracker from "../../components/Attendance/AttendanceTracker";
 import AttendanceChart from "../../components/Attendance/AttendanceChart";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const EmployeeAttendance = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -107,6 +108,11 @@ const EmployeeAttendance = () => {
         {/* Row 1: Tracker */}
         <Box>
           <AttendanceTracker />
+        </Box>
+
+        {/* Row 1.5: Corrections */}
+        <Box>
+          <CorrectionRequests />
         </Box>
 
         {/* Row 2: Chart */}

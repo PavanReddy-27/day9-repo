@@ -6,6 +6,7 @@ import { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const STATUS_BUTTONS = [
   { id: "All", label: "All", color: "#64748B", bg: "#64748B1A", activeBg: "#64748B", icon: Groups },
@@ -153,6 +154,11 @@ const Attendance = () => {
             </Paper>
           );
         })}
+      </Box>
+
+      {/* Correction Requests Module */}
+      <Box sx={{ mb: 4 }}>
+        <CorrectionRequests />
       </Box>
 
       {/* Status Filter Buttons Bar & Search / Date Controls */}
