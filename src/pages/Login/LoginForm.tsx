@@ -74,9 +74,6 @@ const LoginForm = () => {
   const [password, setPassword] =
     useState("");
 
-  const [role, setRole] =
-    useState("");
-
   const [rememberMe, setRememberMe] =
     useState(false);
 
@@ -334,39 +331,7 @@ const LoginForm = () => {
         </Alert>
       )}
 
-      <FormControl fullWidth>
-        <InputLabel id="role-select-label">Select Role for Demo</InputLabel>
-        <Select
-          labelId="role-select-label"
-          value={role}
-          label="Select Role for Demo"
-          onChange={(e) => {
-            const selectedRole = e.target.value;
-            setRole(selectedRole);
-            if (error) dispatch(clearError());
 
-            // Auto-fill logic based on selected role (matches seeded credentials)
-            if (selectedRole === "Admin") {
-              setUsername("admin@thestackly.com");
-              setPassword("Password123!");
-            } else if (selectedRole === "HR") {
-              setUsername("hr@thestackly.com");
-              setPassword("Password123!");
-            } else if (selectedRole === "Manager") {
-              setUsername("manager@thestackly.com");
-              setPassword("Password123!");
-            } else if (selectedRole === "Employee") {
-              setUsername("employee@thestackly.com");
-              setPassword("Password123!");
-            }
-          }}
-        >
-          <MenuItem value="Admin">Admin</MenuItem>
-          <MenuItem value="HR">HR</MenuItem>
-          <MenuItem value="Manager">Manager</MenuItem>
-          <MenuItem value="Employee">Employee</MenuItem>
-        </Select>
-      </FormControl>
 
       <TextField
         autoFocus
