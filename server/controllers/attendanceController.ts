@@ -754,13 +754,16 @@ export const createCorrection = async (req, res) => {
   try {
     const { attendanceRecordId, date, requestedCheckIn, requestedCheckOut, reason } = req.body;
 
+    const checkInDate = requestedCheckIn ? new Date(`${date}T${requestedCheckIn}:00Z`) : null;
+    const checkOutDate = requestedCheckOut ? new Date(`${date}T${requestedCheckOut}:00Z`) : null;
+
     const correctionArr = await CorrectionRequest.create([{
       companyId: req.companyId,
       employeeId: req.employee._id,
-      attendanceRecordId,
+      attendanceRecordId: attendanceRecordId || null,
       date,
-      requestedCheckIn,
-      requestedCheckOut,
+      requestedCheckIn: checkInDate,
+      requestedCheckOut: checkOutDate,
       reason,
       status: "Pending",
     }], { session });
@@ -800,7 +803,21 @@ export const getCorrections = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    return res.status(200).json({ success: true, data: corrections });
+    const formatted = corrections.map((c: any) => ({
+      id: c._id.toString(),
+      recordId: c.attendanceRecordId ? c.attendanceRecordId.toString() : "",
+      date: c.date,
+      employeeId: c.employeeId?._id?.toString() || "",
+      employeeName: c.employeeId?.fullName || "Unknown Employee",
+      department: c.employeeId?.department || "",
+      requestedCheckIn: c.requestedCheckIn ? new Date(c.requestedCheckIn).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : null,
+      requestedCheckOut: c.requestedCheckOut ? new Date(c.requestedCheckOut).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : null,
+      reason: c.reason,
+      status: c.status,
+      submittedAt: c.createdAt,
+    }));
+
+    return res.status(200).json({ success: true, data: formatted });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
