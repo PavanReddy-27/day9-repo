@@ -291,6 +291,7 @@ export async function runSeed(reset = false) {
       };
       const AuthModel = roleAuthModel[role] || EmployeeAuth;
       const user = await AuthModel.create({
+        companyId: company._id,
         employeeId: empIdStr,
         email: email.toLowerCase(),
         password: passStr,
