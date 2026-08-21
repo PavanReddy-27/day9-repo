@@ -123,8 +123,8 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
 
     const reviewerId = (req as any).employee?._id || (req as any).user?.id;
 
-    const leave = await (LeaveRequest as any).findByIdAndUpdate(
-      id,
+    const leave = await (LeaveRequest as any).findOneAndUpdate(
+      { _id: id, companyId: (req as any).companyId },
       {
         status,
         reviewedBy: reviewerId || null,
