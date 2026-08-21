@@ -8,7 +8,7 @@ describe('API Integration Tests', () => {
   beforeAll(async () => {
     // In-memory DB connection is handled gracefully by connectDB if no URI
     await connectDB();
-  });
+  }, 60000);
 
   afterAll(async () => {
     await closeDB();

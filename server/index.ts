@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import connectDB, { closeDB } from "./config/db.js";
 import apiRoutes from "./routes/api.js";
 import mongoose from "mongoose";
+import { AdminAuth } from "./models/User.js";
 
 dotenv.config();
 
@@ -31,13 +32,16 @@ const apiLimiter = rateLimit({
 app.use("/api/v1", apiLimiter);
 
 import path from "path";
-const dir = __dirname || path.resolve();
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // API Routes
 app.use("/api/v1", apiRoutes);
 
 // Serve static frontend in production
-app.use(express.static(path.join(dir, "../dist")));
+app.use(express.static(path.join(__dirname, "../dist")));
 
 app.get(/.*/, (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
@@ -58,7 +62,16 @@ let server;
 async function startServer() {
   await connectDB();
 
-
+  try {
+    const userCount = await AdminAuth.countDocuments();
+    if (userCount === 0) {
+      console.log("[Server] Database is empty. Seeding initial accounts...");
+      const { runSeed } = await import("./seed/seed.js");
+      await runSeed(false);
+    }
+  } catch (seedErr: any) {
+    console.error("[Server] Auto-seed check error:", seedErr.message);
+  }
 
   const currentPort = parseInt(PORT as string, 10);
 
