@@ -232,12 +232,12 @@ export async function runSeed(reset = false) {
   }
 
   // 6. Create 250 Employees & Users
-  const defaultPasswordStr = "Password@123";
+  const defaultPasswordStr = "Password123!";
   const devAccountPasswords = {
-    Admin: "admin123",
-    HR: "hr123",
-    Manager: "manager123",
-    Employee: "employee123",
+    Admin: "Password123!",
+    HR: "Password123!",
+    Manager: "Password123!",
+    Employee: "Password123!",
   };
 
   const devAccountsConfig = [
@@ -270,10 +270,10 @@ export async function runSeed(reset = false) {
         email = devCfg.email;
         firstName = devCfg.firstName;
         lastName = devCfg.lastName;
-      } else if (empIdNumber <= 25) {
-        role = "Manager";
-      } else if (empIdNumber <= 45) {
-        role = "HR";
+      } else if (empIdNumber === 5) {
+        role = "Manager"; // 1 additional Manager
+      } else if (empIdNumber > 5 && empIdNumber <= 14) {
+        role = "HR"; // 9 additional HRs
       }
 
       const passStr = devAccountsConfig.some(d => d.email === email)
