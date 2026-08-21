@@ -40,10 +40,20 @@ class AuthApi {
       }
 
       const responseData = await res.json();
-      const userData = responseData.data || responseData.user;
-      const accessToken = responseData.data?.accessToken || responseData.accessToken;
-      const refreshToken = responseData.data?.refreshToken || responseData.refreshToken;
-      const expiresAt = responseData.data?.expiresAt || responseData.expiresAt || Date.now() + 15 * 60 * 1000;
+      const data = responseData.data || responseData.user || responseData;
+
+      if (data.mfaRequired) {
+        return {
+          success: true,
+          mfaRequired: true,
+          tempToken: data.tempToken,
+        };
+      }
+
+      const userData = data;
+      const accessToken = data.accessToken || responseData.accessToken;
+      const refreshToken = data.refreshToken || responseData.refreshToken;
+      const expiresAt = data.expiresAt || responseData.expiresAt || Date.now() + 15 * 60 * 1000;
 
       const loginRes: LoginResponse = {
         success: true,
@@ -54,7 +64,10 @@ class AuthApi {
       };
 
       saveSession({
-        ...loginRes,
+        user: userData,
+        accessToken,
+        refreshToken,
+        expiresAt,
         rememberMe: payload.rememberMe ?? false,
       });
 
@@ -72,6 +85,44 @@ class AuthApi {
       }
       throw err instanceof Error ? err : new Error("Invalid username or password.");
     }
+  }
+
+  async verifyLoginMfa(tempToken: string, mfaToken: string): Promise<LoginResponse> {
+    const res = await fetch(`${this.ApiBase}/auth/login/mfa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tempToken, mfaToken }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || "Invalid MFA code.");
+    }
+
+    const responseData = await res.json();
+    const data = responseData.data || responseData;
+
+    const loginRes: LoginResponse = {
+      success: true,
+      user: data,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      expiresAt: data.expiresAt || Date.now() + 15 * 60 * 1000,
+    };
+
+    saveSession({
+      user: loginRes.user!,
+      accessToken: loginRes.accessToken!,
+      refreshToken: loginRes.refreshToken!,
+      expiresAt: loginRes.expiresAt!,
+      rememberMe: false,
+    });
+
+    if (loginRes.accessToken) {
+      localStorage.setItem("accessToken", loginRes.accessToken);
+    }
+    
+    return loginRes;
   }
 
   logout(): void {
@@ -178,6 +229,44 @@ class AuthApi {
     return this.hasRole(
       "Manager"
     );
+  }
+
+  async generateMfa(): Promise<{ secret: string; qrCodeDataUrl: string }> {
+    const token = localStorage.getItem("accessToken");
+    const res = await fetch(`${this.ApiBase}/auth/mfa/generate`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Failed to generate MFA");
+    const data = await res.json();
+    return data.data;
+  }
+
+  async enableMfa(secret: string, mfaToken: string): Promise<boolean> {
+    const token = localStorage.getItem("accessToken");
+    const res = await fetch(`${this.ApiBase}/auth/mfa/enable`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify({ secret, mfaToken }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to enable MFA");
+    }
+    return true;
+  }
+
+  async disableMfa(): Promise<boolean> {
+    const token = localStorage.getItem("accessToken");
+    const res = await fetch(`${this.ApiBase}/auth/mfa/disable`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Failed to disable MFA");
+    return true;
   }
 }
 

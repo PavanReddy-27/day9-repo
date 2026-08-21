@@ -34,7 +34,7 @@ export const navigationItems: NavigationItem[] = [
   { name: "Departments", icon: FiBriefcase, route: "departments", roles: ["Admin"] },
   { name: "Audit Logs", icon: FiList, route: "audit-logs", roles: ["Admin"] },
   { name: "Reports", icon: FiFileText, route: "reports", roles: ["Admin"] },
-  { name: "Settings", icon: FiSettings, route: "settings", roles: ["Admin"] },
+  { name: "Settings", icon: FiSettings, route: "settings", roles: ["Admin", "HR", "Manager", "Employee"] },
 
   // Shared by HR & Manager & Employee
   { name: "Attendance", icon: FiFileText, route: "attendance", roles: ["HR", "Manager", "Admin", "Employee"] },

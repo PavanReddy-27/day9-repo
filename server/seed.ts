@@ -10,7 +10,7 @@ import Location from './models/Location';
 import Department from './models/Department';
 import Team from './models/Team';
 import Employee from './models/Employee';
-import { User } from './models/User';
+import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from './models/User';
 import LeaveRequest from './models/LeaveRequest';
 
 const seedDB = async () => {
@@ -21,16 +21,18 @@ const seedDB = async () => {
     // Set deterministic seed
     faker.seed(123);
 
-    if (isReset) {
-      console.log('Resetting Database...');
-        await Company.deleteMany({});
-        await Location.deleteMany({});
-        await Department.deleteMany({});
-        await Team.deleteMany({});
-        await Employee.deleteMany({});
-        await User.deleteMany({});
-        await LeaveRequest.deleteMany({});
-    }
+    console.log('Resetting Database for idempotent seed...');
+    await Company.deleteMany({});
+    await Location.deleteMany({});
+    await Department.deleteMany({});
+    await Team.deleteMany({});
+    await Employee.deleteMany({});
+    await AdminAuth.deleteMany({});
+    await HRAuth.deleteMany({});
+    await ManagerAuth.deleteMany({});
+    await EmployeeAuth.deleteMany({});
+    await User.deleteMany({});
+    await LeaveRequest.deleteMany({});
 
     // 1. Create Company
     const company = await Company.create({ name: 'Stackly', code: 'STACKLY' });
@@ -75,25 +77,62 @@ const seedDB = async () => {
 
     // 5. Generate Employees
     const employees = [];
-    const users = [];
+    const admins = [];
+    const hrs = [];
+    const managers = [];
+    const regularEmployees = [];
     let employeeCounter = 1;
     
     // Pre-hash password for speed
     const salt = await bcrypt.genSalt(10);
     const defaultPassword = await bcrypt.hash('Password123!', salt);
 
+    const roles = ['Admin', 'HR', 'Manager', 'Employee'];
+    let devIndex = 0;
+
+    const rolesTarget = {
+      Admin: 1,
+      Manager: 2,
+      HR: 10,
+      Employee: 237
+    };
+    
+    let adminCount = 0;
+    let managerCount = 0;
+    let hrCount = 0;
+    let empCount = 0;
+
     for (const loc of locationsData) {
       for (let i = 0; i < loc.count; i++) {
         const deptName = faker.helpers.arrayElement(depts);
         const team = faker.helpers.arrayElement(teamsByDept[deptName]);
         
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
+        let firstName = faker.person.firstName();
+        let lastName = faker.person.lastName();
         const gender = faker.helpers.arrayElement(['Male', 'Female', 'Other']);
         
-        const empIdStr = `EMP${String(employeeCounter++).padStart(4, '0')}`;
-        const email = faker.internet.email({ firstName, lastName, provider: 'thestackly.com' }).toLowerCase();
-        const role = faker.helpers.arrayElement(['Admin', 'HR', 'Manager', 'Employee']);
+        let empIdStr = `EMP${String(employeeCounter++).padStart(4, '0')}`;
+        let email = faker.internet.email({ firstName, lastName, provider: 'thestackly.com' }).toLowerCase();
+        let role = 'Employee';
+        
+        if (devIndex < roles.length) {
+          role = roles[devIndex];
+          email = `${role.toLowerCase().replace(' ', '')}@thestackly.com`;
+          empIdStr = `DEV_${role.toUpperCase().replace(' ', '_')}`;
+          firstName = 'Dev';
+          lastName = role;
+          devIndex++;
+        } else {
+          if (managerCount < rolesTarget.Manager) role = 'Manager';
+          else if (hrCount < rolesTarget.HR) role = 'HR';
+          else if (adminCount < rolesTarget.Admin) role = 'Admin';
+          else role = 'Employee';
+        }
+
+        if (role === 'Admin') adminCount++;
+        else if (role === 'Manager') managerCount++;
+        else if (role === 'HR') hrCount++;
+        else empCount++;
         
         employees.push({
           employeeId: empIdStr,
@@ -129,55 +168,29 @@ const seedDB = async () => {
           skillCoverage: faker.number.int({ min: 0, max: 100 }),
         });
 
-        users.push({
+        const userDoc = {
           employeeId: empIdStr,
           companyId: company._id,
           email: email,
           password: defaultPassword,
           role: role
-        });
+        };
+        
+        if (role === 'Admin') admins.push(userDoc);
+        else if (role === 'HR') hrs.push(userDoc);
+        else if (role === 'Manager') managers.push(userDoc);
+        else regularEmployees.push(userDoc);
       }
     }
 
     // Batch insert employees and users
     await Employee.insertMany(employees);
-    await User.insertMany(users);
+    if (admins.length > 0) await AdminAuth.insertMany(admins);
+    if (hrs.length > 0) await HRAuth.insertMany(hrs);
+    if (managers.length > 0) await ManagerAuth.insertMany(managers);
+    if (regularEmployees.length > 0) await EmployeeAuth.insertMany(regularEmployees);
     console.log(`✅ Successfully seeded 1 Company, 5 Locations, ${depts.length} Departments, 250 Employees, and 250 User Logins!`);
-
-    // 6. Create Development Users
-    console.log('Creating 5 development accounts...');
-    const roles = ['Admin', 'HR', 'Manager', 'Employee'];
-    
-    // Pick the first generated location and department
-    const devLocation = Object.values(locations)[0];
-    const devDepartment = Object.values(departments)[0];
-    
-    for (const role of roles) {
-      const empIdStr = `DEV_${role.toUpperCase().replace(' ', '_')}`;
-      
-      const emp = await Employee.create({
-        employeeId: empIdStr,
-        companyId: company._id,
-        locationId: devLocation._id,
-        departmentId: devDepartment._id,
-        email: `${role.toLowerCase().replace(' ', '')}@thestackly.com`,
-        firstName: 'Dev',
-        lastName: role,
-        fullName: `Dev ${role}`,
-        role: role,
-        joiningDate: new Date(),
-      });
-
-      await User.create({
-        employeeId: empIdStr,
-        companyId: company._id,
-        email: `${role.toLowerCase().replace(' ', '')}@thestackly.com`,
-        password: 'Password123!',
-        role: role
-      });
-    }
-    
-    console.log('✅ Dev accounts created! (e.g. admin@thestackly.com / Password123!)');
+    console.log('✅ Dev accounts included! (e.g. admin@thestackly.com / Password123!)');
     console.log('Seeding Complete! You may now exit.');
     process.exit(0);
     

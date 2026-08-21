@@ -14,7 +14,7 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
     const { role } = (req as any).user || { role: (req as any).role };
     const { status } = req.query;
 
-    const query: any = {};
+    const query: any = { companyId: (req as any).companyId };
 
     // Apply filters based on role
     if (role === "Employee") {

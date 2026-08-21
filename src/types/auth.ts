@@ -25,6 +25,7 @@ export interface User {
    * manager visibility, corrections, etc.) isn't overloaded with work-location meaning.
    */
   workMode?: AttendancePolicyType;
+  mfaEnabled?: boolean;
 }
 
 export interface LoginRequest {
@@ -35,10 +36,12 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   success: boolean;
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number;
+  user?: User;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  mfaRequired?: boolean;
+  tempToken?: string;
 }
 
 export interface AuthSession {
@@ -59,6 +62,8 @@ export interface AuthState {
   isLoading: boolean;
   initialized: boolean;
   error: string | null;
+  mfaRequired: boolean;
+  tempToken: string | null;
 }
 
 export interface Permission {

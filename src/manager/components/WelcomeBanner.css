@@ -1,7 +1,7 @@
 .welcome-banner {
     padding: 2rem;
     border-radius: 18px !important;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%) !important;
+    background: transparent;
     color: var(--text-h);
     overflow: hidden;
   }
@@ -18,7 +18,7 @@
   .welcome-subtitle {
     margin-top: 10px !important;
     opacity: 0.95;
-    color: white;
+    color: var(--text-h);
   }
   
   .welcome-description {
@@ -26,7 +26,7 @@
     max-width: 650px;
     line-height: 1.7;
     opacity: 0.9;
-    color: white;
+    color: var(--text-light);
   }
   
   /* ---------- Chips ---------- */
@@ -45,7 +45,7 @@
   .welcome-chip .MuiChip-label {
     padding: 0 14px;
     font-weight: 600;
-    color: var(--text-h);
+    color: var(--text-h) !important;
   }
   
   .welcome-chip.MuiChip-root {
@@ -105,13 +105,13 @@
   .manager-role {
     margin-top: 6px;
     opacity: 0.9;
-    color: white;
+    color: var(--text-light);
   }
   
   .login-title {
     margin-top: 18px !important;
     opacity: 0.8;
-    color: white;
+    color: var(--text-light);
   }
   
   /* ---------- Tablet ---------- */

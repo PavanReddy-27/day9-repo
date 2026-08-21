@@ -1,9 +1,16 @@
 import { Request, Response } from "express";
 
-let clients: Response[] = [];
+interface SSEClient {
+  id: string; // The employee _id string
+  res: Response;
+}
+
+let clients: SSEClient[] = [];
 
 /**
  * SSE Middleware to handle incoming event stream connections.
+ * Note: Should be used *after* authenticateJWT or similar so req.employee is available, 
+ * or the client must send a token in the query params.
  */
 export const sseMiddleware = (req: Request, res: Response) => {
   res.setHeader("Content-Type", "text/event-stream");
@@ -11,11 +18,14 @@ export const sseMiddleware = (req: Request, res: Response) => {
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders(); // Establish the connection immediately
 
-  // Add the client to the list
-  clients.push(res);
+  // Fallback to query param if JWT middleware not applied
+  const employeeId = (req as any).employee?._id?.toString() || req.query.employeeId as string || "unknown";
+
+  const client: SSEClient = { id: employeeId, res };
+  clients.push(client);
 
   req.on("close", () => {
-    clients = clients.filter((client) => client !== res);
+    clients = clients.filter((c) => c.res !== res);
   });
 };
 
@@ -25,8 +35,24 @@ export const sseMiddleware = (req: Request, res: Response) => {
  * @param payload The data to send
  */
 export const broadcastSSE = (eventName: string, payload: any) => {
-  clients.forEach((client) => {
-    client.write(`event: ${eventName}\n`);
-    client.write(`data: ${JSON.stringify(payload)}\n\n`);
+  clients.forEach((c) => {
+    c.res.write(`event: ${eventName}\n`);
+    c.res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  });
+};
+
+/**
+ * Closes the SSE connection for a specific employee.
+ * @param employeeId The employee ID to disconnect
+ */
+export const closeSSEConnection = (employeeId: string) => {
+  clients = clients.filter((c) => {
+    if (c.id === employeeId) {
+      c.res.write(`event: LOGOUT\n`);
+      c.res.write(`data: {}\n\n`);
+      c.res.end();
+      return false;
+    }
+    return true;
   });
 };

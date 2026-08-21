@@ -91,7 +91,7 @@ const WelcomeBanner = () => {
             SK
           </Avatar>
 
-          <Typography variant="h6" sx={{ fontWeight: 700, color:"white" }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "var(--text-h)" }}>
             Sridhika kodupuganti
           </Typography>
 
@@ -106,7 +106,7 @@ const WelcomeBanner = () => {
             Last Login
           </Typography>
 
-          <Typography sx={{ fontWeight: 600, color: "white" }}>
+          <Typography sx={{ fontWeight: 600, color: "var(--text-h)" }}>
             Today • 09:15 AM
           </Typography>
         </Box>

@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs';
 import * as argon2 from 'argon2';
 
 const userSchema = new mongoose.Schema({
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    required: true,
+  },
   employeeId: {
     type: String,
     required: true,
@@ -25,6 +30,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['Admin', 'HR', 'Manager', 'Employee'],
     default: 'Employee',
+  },
+  mfaSecret: {
+    type: String,
+    select: false,
+  },
+  mfaEnabled: {
+    type: Boolean,
+    default: false,
   },
   isActive: {
     type: Boolean,

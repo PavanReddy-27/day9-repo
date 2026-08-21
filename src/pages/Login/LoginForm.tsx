@@ -60,9 +60,13 @@ const LoginForm = () => {
   const {
     isLoading,
     error,
+    mfaRequired,
+    tempToken,
   } = useAppSelector(
     (state) => state.auth
   );
+
+  const [mfaCode, setMfaCode] = useState("");
 
   const [username, setUsername] =
     useState("");
@@ -181,9 +185,9 @@ const LoginForm = () => {
         })
       );
 
-      navigateByRole(
-        response.user.role
-      );
+      if (!response.mfaRequired && response.user) {
+        navigateByRole(response.user.role);
+      }
     } catch (error) {
       dispatch(
         loginFailure(
@@ -214,6 +218,91 @@ const LoginForm = () => {
       dispatch(clearError());
     }
   };
+
+  const handleMfaSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!mfaCode.trim() || mfaCode.length !== 6) {
+      dispatch(loginFailure("Please enter a valid 6-digit code."));
+      return;
+    }
+    dispatch(loginStart());
+    try {
+      const response = await authApi.verifyLoginMfa(tempToken!, mfaCode);
+      dispatch(loginSuccess({ response, rememberMe }));
+      if (response.user) navigateByRole(response.user.role);
+    } catch (err) {
+      dispatch(
+        loginFailure(err instanceof Error ? err.message : "Invalid MFA code.")
+      );
+    }
+  };
+
+  if (mfaRequired) {
+    return (
+      <Box
+        component="form"
+        onSubmit={handleMfaSubmit}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2.5,
+        }}
+      >
+        <Box className="form-header">
+          <Box className="lock-icon-container">
+            <LockOutlinedIcon fontSize="small" />
+          </Box>
+          <div className="form-overline">Two-Factor Authentication</div>
+          <h2 className="form-heading">Enter Verification Code</h2>
+          <p className="form-subtitle">Enter the 6-digit code from Google Authenticator.</p>
+        </Box>
+        {error && <Alert severity="error">{error}</Alert>}
+        
+        <TextField
+          autoFocus
+          fullWidth
+          label="Authenticator Code"
+          placeholder="123456"
+          value={mfaCode}
+          onChange={(e) => {
+            setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+            if (error) dispatch(clearError());
+          }}
+          slotProps={{ htmlInput: { maxLength: 6, style: { textAlign: 'center', letterSpacing: '8px', fontSize: '24px' } } }}
+        />
+        
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={isLoading || mfaCode.length !== 6}
+          sx={{
+            py: 1.4,
+            fontWeight: 600,
+            fontSize: 16,
+            textTransform: "none",
+            borderRadius: 2,
+            background: "linear-gradient(135deg, rgba(59, 105, 120, 0.9) 0%, rgba(36, 70, 82, 1) 100%)",
+            boxShadow: "0 10px 20px rgba(59, 105, 120, 0.2)",
+            "&:hover": {
+              background: "linear-gradient(135deg, rgba(36, 70, 82, 1) 0%, rgba(20, 50, 60, 1) 100%)",
+              boxShadow: "0 12px 24px rgba(59, 105, 120, 0.3)",
+            },
+          }}
+        >
+          {isLoading ? (
+            <>
+              <CircularProgress size={20} sx={{ color: "var(--text-h)", mr: 1 }} />
+              Verifying...
+            </>
+          ) : (
+            "Verify Code"
+          )}
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box

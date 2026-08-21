@@ -32,9 +32,9 @@ const createSession = (
   response: LoginResponse,
   rememberMe: boolean
 ): AuthSession => ({
-  user: response.user,
-  accessToken: response.accessToken,
-  refreshToken: response.refreshToken,
+  user: response.user!,
+  accessToken: response.accessToken!,
+  refreshToken: response.refreshToken!,
   expiresAt:
     response.expiresAt ??
     Date.now() + SESSION_DURATION,
@@ -56,6 +56,8 @@ const createStateFromSession = (
   isLoading: false,
   initialized: true,
   error: null,
+  mfaRequired: false,
+  tempToken: null,
 });
 
 /**
@@ -71,6 +73,8 @@ const createInitialState = (): AuthState => ({
   isLoading: false,
   initialized: false,
   error: null,
+  mfaRequired: false,
+  tempToken: null,
 });
 
 /* ============================================================
@@ -135,8 +139,17 @@ const authSlice = createSlice({
     ) {
       const { response, rememberMe } = action.payload;
 
+      if (response.mfaRequired && response.tempToken) {
+        state.mfaRequired = true;
+        state.tempToken = response.tempToken;
+        state.isLoading = false;
+        return;
+      }
+
+      if (!response.user || !response.accessToken || !response.refreshToken) return;
+
       const session = createSession(
-        response,
+        { ...response, user: response.user, accessToken: response.accessToken, refreshToken: response.refreshToken },
         rememberMe
       );
 
@@ -151,6 +164,8 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.initialized = true;
       state.error = null;
+      state.mfaRequired = false;
+      state.tempToken = null;
     },
 
     /* ===========================
@@ -170,6 +185,8 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.initialized = true;
       state.error = action.payload;
+      state.mfaRequired = false;
+      state.tempToken = null;
 
       clearSession();
     },
@@ -357,6 +374,9 @@ export const selectRememberMe = (
 export const selectError = (
   state: RootState
 ) => state.auth.error;
+
+export const selectMfaRequired = (state: RootState) => state.auth.mfaRequired;
+export const selectTempToken = (state: RootState) => state.auth.tempToken;
 
 /* ============================================================
    Role Selectors

@@ -25,6 +25,8 @@ describe("AppRoutes", () => {
           isLoading: false,
           initialized: false,
           error: null,
+          mfaRequired: false,
+          tempToken: null,
         },
       },
     });

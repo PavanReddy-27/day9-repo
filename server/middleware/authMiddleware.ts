@@ -14,11 +14,7 @@ const findUserById = async (id: string) => {
   if (user) return user;
   user = await EmployeeAuth.findById(id);
   if (user) return user;
-  // Fallback to the unified `users` collection (matches authController's
-  // findUserByEmail). The seed writes accounts here, so without this fallback
-  // req.role/req.employee stay undefined and every scoped query 500s.
-  user = await User.findById(id);
-  return user;
+  return null;
 };
 
 export const authenticateJWT = async (req, res, next) => {

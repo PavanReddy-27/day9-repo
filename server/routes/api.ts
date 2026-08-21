@@ -1,6 +1,6 @@
 import express from "express";
 import { getDBHealth } from "../config/db.js";
-import { login, refresh, logout } from "../controllers/authController.js";
+import { login, refresh, logout, verifyLoginMfa, generateMfaSetup, enableMfa, disableMfa } from "../controllers/authController.js";
 import {
   getLocations,
   getDepartments,
@@ -62,8 +62,12 @@ router.get("/health", (req, res) => {
 
 // Authentication Routes
 router.post("/auth/login", validateRequest(loginSchema), login);
+router.post("/auth/login/mfa", verifyLoginMfa);
 router.post("/auth/refresh", validateRequest(refreshSchema), refresh);
 router.post("/auth/logout", authenticateJWT, logout);
+router.get("/auth/mfa/generate", authenticateJWT, generateMfaSetup);
+router.post("/auth/mfa/enable", authenticateJWT, enableMfa);
+router.post("/auth/mfa/disable", authenticateJWT, disableMfa);
 
 // Protected Organization & Employee Routes
 router.get("/locations", authenticateJWT, getLocations);

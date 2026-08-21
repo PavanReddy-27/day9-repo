@@ -22,7 +22,7 @@ import AdminRoles from "../pages/admin/Roles";
 import AdminDepartments from "../pages/admin/Departments";
 import AdminReports from "../pages/admin/Reports";
 import AdminAuditLogs from "../pages/admin/AuditLogs";
-import AdminSettings from "../pages/admin/Settings";
+import Settings from "../pages/Settings";
 
 // HR Pages
 import HRDashboard from "../pages/HR/Dashboard";
@@ -180,7 +180,7 @@ const AppRoutes = () => {
 
           <Route
             path="/admin/settings"
-            element={<AdminSettings />}
+            element={<Settings />}
           />
 
           {/* === HR Pages for Admin === */}
@@ -273,6 +273,11 @@ const AppRoutes = () => {
             path="/hr/analytics"
             element={<HRAnalytics />}
           />
+
+          <Route
+            path="/hr/settings"
+            element={<Settings />}
+          />
         </Route>
       </Route>
 
@@ -322,6 +327,11 @@ const AppRoutes = () => {
             path="/manager/analytics"
             element={<ManagerAnalytics />}
           />
+
+          <Route
+            path="/manager/settings"
+            element={<Settings />}
+          />
         </Route>
       </Route>
 
@@ -356,6 +366,11 @@ const AppRoutes = () => {
           <Route
             path="/employee/leave-requests"
             element={<EmployeeLeaveRequests />}
+          />
+
+          <Route
+            path="/employee/settings"
+            element={<Settings />}
           />
         </Route>
       </Route>

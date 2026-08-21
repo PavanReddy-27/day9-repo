@@ -98,11 +98,17 @@ export const getAttendanceStatus = async (req, res) => {
 };
 
 export const checkIn = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { location: coordinates, source = "Web", shiftType = "Regular", idempotencyKey, isWFH } = req.body;
 
-    const handled = await checkIdempotency(req, res, idempotencyKey);
-    if (handled) return;
+    const handled = await checkIdempotency(req, res, idempotencyKey, session);
+    if (handled) {
+      await session.abortTransaction();
+      session.endSession();
+      return;
+    }
 
     const today = getTodayDateStr();
     // Use sort to get the most recent record for today
@@ -110,7 +116,7 @@ export const checkIn = async (req, res) => {
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any).sort({ createdAt: -1 });
+    } as any).session(session).sort({ createdAt: -1 });
 
     if (record && record.status !== "Not Checked In") {
       const resp = { success: false, message: `Cannot check in: You have already checked in today (Status: ${record.status}).` };
@@ -156,6 +162,8 @@ export const checkIn = async (req, res) => {
             message: `OUTSIDE_GEOFENCE`,
             distance: Math.round(distanceMeters)
           };
+          await session.abortTransaction();
+          session.endSession();
           return res.status(403).json(resp);
         }
       } else if (isWFHMode) {
@@ -165,6 +173,10 @@ export const checkIn = async (req, res) => {
     }
 
     const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    // Simple 9 AM shift start assumption
+    const lateMinutes = Math.max(0, (currentHour * 60 + currentMinute) - (9 * 60));
 
     if (!record) {
       record = new AttendanceRecord({
@@ -176,6 +188,7 @@ export const checkIn = async (req, res) => {
         status: "Working",
         shiftKind: shiftType,
         workMode: actualWorkMode,
+        lateMinutes,
         checkInCoordinates: coordinates ? { lat: coordinates.latitude || coordinates.lat, lng: coordinates.longitude || coordinates.lng } : undefined,
       });
     } else {
@@ -183,14 +196,17 @@ export const checkIn = async (req, res) => {
       record.status = "Working";
       record.workMode = actualWorkMode;
       record.shiftKind = shiftType;
+      // Keep existing lateMinutes if already set by an earlier checkIn today
+      if (!record.lateMinutes) record.lateMinutes = lateMinutes;
+      
       if (coordinates) {
         record.checkInCoordinates = { lat: coordinates.latitude || coordinates.lat, lng: coordinates.longitude || coordinates.lng };
       }
     }
 
-    await record.save();
+    await record.save({ session });
 
-    await AttendanceEvent.create({
+    await AttendanceEvent.create([{
       companyId: req.companyId,
       attendanceRecordId: record._id,
       employeeId: req.employee._id,
@@ -201,14 +217,22 @@ export const checkIn = async (req, res) => {
       isGeofenced,
       distanceMeters,
       idempotencyKey,
-    });
+    }], { session });
 
     const responseBody = { success: true, message: "Check-in successful.", data: record };
-    await saveIdempotency(req, idempotencyKey, 200, responseBody);
+    await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
+    
+    await session.commitTransaction();
+    session.endSession();
+    
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_IN", recordId: record._id });
     void writeAuditLog(req, "ATTENDANCE_CHECK_IN", "Employee checked in for the day", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -381,8 +405,18 @@ export const checkOut = async (req: any, res: any) => {
     const checkInDate = record.checkInTime ? new Date(record.checkInTime) : now;
     const totalElapsedMinutes = Math.max(1, Math.round((now.getTime() - checkInDate.getTime()) / (1000 * 60)));
     const netWorkMinutes = Math.max(0, totalElapsedMinutes - (record.breakDurationMinutes || 0));
+    
+    // Standard 8 hour shift (480 mins)
+    const overtimeMinutes = Math.max(0, netWorkMinutes - 480);
+    // Early departure if checked out before 5 PM
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const earlyDepartureMinutes = Math.max(0, (17 * 60) - (currentHour * 60 + currentMinute));
+    
     record.workDurationMinutes = netWorkMinutes;
     record.workingHours = Number((netWorkMinutes / 60).toFixed(2));
+    record.overtimeMinutes = overtimeMinutes;
+    record.earlyDepartureMinutes = earlyDepartureMinutes;
 
     await record.save({ session });
 
@@ -714,6 +748,8 @@ export const createCorrection = async (req, res) => {
       comments: reason,
     });
 
+    void writeAuditLog(req, "ATTENDANCE_CORRECTION_REQUESTED", "Employee submitted an attendance correction request", "CorrectionRequest", correction._id.toString());
+
     return res.status(201).json({ success: true, data: correction });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -771,17 +807,7 @@ export const approveCorrection = async (req, res) => {
       comments: req.body.comments || "Approved by Manager/HR",
     });
 
-    await AuditLog.create({
-      companyId: req.companyId,
-      performedBy: String(req.employee._id),
-      userRole: req.role,
-      action: "APPROVED_ATTENDANCE_CORRECTION",
-      entityType: "CorrectionRequest",
-      entityId: String(correction._id),
-      details: `Approved attendance correction for employee ${correction.employeeId}`,
-      ipAddress: req.ip || "127.0.0.1",
-      userAgent: req.headers["user-agent"] || "",
-    });
+    void writeAuditLog(req, "APPROVED_ATTENDANCE_CORRECTION", `Approved attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id));
 
     return res.status(200).json({ success: true, data: correction });
   } catch (error) {
@@ -813,17 +839,7 @@ export const rejectCorrection = async (req, res) => {
       comments: req.body.comments || "Rejected",
     });
 
-    await AuditLog.create({
-      companyId: req.companyId,
-      performedBy: String(req.employee._id),
-      userRole: req.role,
-      action: "REJECTED_ATTENDANCE_CORRECTION",
-      entityType: "CorrectionRequest",
-      entityId: String(correction._id),
-      details: `Rejected attendance correction for employee ${correction.employeeId}`,
-      ipAddress: req.ip || "127.0.0.1",
-      userAgent: req.headers["user-agent"] || "",
-    });
+    void writeAuditLog(req, "REJECTED_ATTENDANCE_CORRECTION", `Rejected attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id));
 
     return res.status(200).json({ success: true, data: correction });
   } catch (error) {

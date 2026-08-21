@@ -3,6 +3,8 @@ import Employee from '../models/Employee.js';
 import jwt from 'jsonwebtoken';
 import { writeAuditLog } from '../utils/audit.js';
 import TokenBlacklist from '../models/TokenBlacklist.js';
+import { authenticator } from 'otplib';
+import QRCode from 'qrcode';
 
 // Helper to generate tokens
 export const generateTokens = (id: any, role: any) => {
@@ -21,9 +23,7 @@ const findUserByEmail = async (email: string) => {
 
   user = await EmployeeAuth.findOne({ email } as any).select('+password');
   if (user) return user;
-  // Legacy fallback for tests that insert directly into users collection
-  user = await User.findOne({ email } as any).select('+password');
-  return user;
+  return null;
 };
 
 const findUserById = async (id: string) => {
@@ -36,8 +36,7 @@ const findUserById = async (id: string) => {
 
   user = await EmployeeAuth.findById(id as any);
   if (user) return user;
-  user = await User.findById(id as any);
-  return user;
+  return null;
 };
 
 export const login = async (req: any, res: any, next: any) => {
@@ -56,6 +55,14 @@ export const login = async (req: any, res: any, next: any) => {
 
     if (!user.isActive) {
       return res.status(403).json({ success: false, message: 'Account is deactivated' });
+    }
+
+    if (user.mfaEnabled) {
+      const tempToken = jwt.sign({ id: user._id, role: user.role, isMfaTemp: true }, process.env.JWT_SECRET!, { expiresIn: '5m' });
+      return res.status(200).json({
+        success: true,
+        data: { mfaRequired: true, tempToken }
+      });
     }
 
     const employee: any = await Employee.findOne({ email } as any);
@@ -88,6 +95,7 @@ export const login = async (req: any, res: any, next: any) => {
         location: employee?.locationCode || employee?.location || 'HQ',
         avatar: employee?.avatar || '',
         isActive: user.isActive,
+        mfaEnabled: !!user.mfaEnabled,
         createdAt: (user as any).createdAt,
         updatedAt: (user as any).updatedAt,
         accessToken,
@@ -104,11 +112,15 @@ export const refresh = async (req, res) => {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(401).json({ success: false, message: 'Refresh token required' });
 
+    const isBlacklisted = await TokenBlacklist.findOne({ token: refreshToken });
+    if (isBlacklisted) return res.status(401).json({ success: false, message: 'Refresh token revoked' });
+
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET) as any;
     const user = await findUserById(decoded.id);
 
     if (!user) return res.status(401).json({ success: false, message: 'User not found' });
 
+    await TokenBlacklist.create({ token: refreshToken });
     const tokens = generateTokens(user._id, user.role);
     res.status(200).json({ success: true, data: tokens });
   } catch {
@@ -118,17 +130,164 @@ export const refresh = async (req, res) => {
 
 export const logout = async (req: any, res: any, next: any) => {
   try {
-    let token;
+    const tokensToBlacklist = [];
+    
+    let accessToken;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
+      accessToken = req.headers.authorization.split(' ')[1];
+    }
+    if (accessToken) tokensToBlacklist.push({ token: accessToken });
+    
+    const { refreshToken } = req.body;
+    if (refreshToken) tokensToBlacklist.push({ token: refreshToken });
+    
+    if (tokensToBlacklist.length > 0) {
+      await TokenBlacklist.insertMany(tokensToBlacklist);
     }
     
-    if (token) {
-      // Add the token to the blacklist
-      await TokenBlacklist.create({ token });
+    // Close SSE connection for this user
+    if (req.user && req.user.id) {
+      const { closeSSEConnection } = await import('../utils/sse.js');
+      // For SSE clients, the id is typically the employee _id (or user _id if employee not found).
+      closeSSEConnection(req.user.id);
     }
     
     res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyLoginMfa = async (req: any, res: any, next: any) => {
+  try {
+    const { tempToken, mfaToken } = req.body;
+    if (!tempToken || !mfaToken) {
+      return res.status(400).json({ success: false, message: 'Missing temporary token or MFA code' });
+    }
+
+    const decoded = jwt.verify(tempToken, process.env.JWT_SECRET!) as any;
+    if (!decoded.isMfaTemp) {
+      return res.status(400).json({ success: false, message: 'Invalid temporary token' });
+    }
+
+    const user: any = await findUserById(decoded.id);
+    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+      return res.status(400).json({ success: false, message: 'MFA is not enabled for this user' });
+    }
+
+    const isValid = authenticator.verify({ token: mfaToken, secret: user.mfaSecret });
+    if (!isValid) {
+      return res.status(401).json({ success: false, message: 'Invalid MFA code' });
+    }
+
+    const employee: any = await Employee.findOne({ email: user.email } as any);
+    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+
+    void writeAuditLog(
+      { companyId: employee?.companyId ?? user.companyId, role: user.role, userEmail: user.email, ip: req.ip, headers: req.headers },
+      "LOGIN_MFA",
+      `${user.role} ${user.email} signed in with MFA`,
+      "Auth",
+      String(user._id)
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        _id: user._id,
+        id: user._id.toString(),
+        employeeId: user.employeeId,
+        email: user.email,
+        username: user.email,
+        role: user.role,
+        firstName: employee?.firstName || 'System',
+        lastName: employee?.lastName || 'User',
+        fullName: employee?.fullName || 'System User',
+        department: employee?.departmentName || employee?.department || 'General',
+        departmentId: employee?.departmentId,
+        designation: employee?.designation || user.role,
+        location: employee?.locationCode || employee?.location || 'HQ',
+        avatar: employee?.avatar || '',
+        isActive: user.isActive,
+        mfaEnabled: !!user.mfaEnabled,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        accessToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const generateMfaSetup = async (req: any, res: any, next: any) => {
+  try {
+    const userDoc: any = await findUserById(req.user.id);
+    if (!userDoc) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    if (userDoc.mfaEnabled) {
+      return res.status(400).json({ success: false, message: 'MFA is already enabled' });
+    }
+
+    const secret = authenticator.generateSecret();
+    const otpauth = authenticator.keyuri(userDoc.email, 'Workforce Analytics', secret);
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauth);
+
+    res.status(200).json({
+      success: true,
+      data: { secret, qrCodeDataUrl }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const enableMfa = async (req: any, res: any, next: any) => {
+  try {
+    const { mfaToken, secret } = req.body;
+
+    if (!mfaToken || !secret) {
+      return res.status(400).json({ success: false, message: 'MFA code and secret are required' });
+    }
+
+    const isValid = authenticator.verify({ token: mfaToken, secret });
+    if (!isValid) {
+      return res.status(401).json({ success: false, message: 'Invalid MFA code' });
+    }
+
+    const userDoc: any = await findUserById(req.user.id);
+    if (!userDoc) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    userDoc.mfaSecret = secret;
+    userDoc.mfaEnabled = true;
+    await userDoc.save();
+
+    res.status(200).json({ success: true, message: 'MFA enabled successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const disableMfa = async (req: any, res: any, next: any) => {
+  try {
+    const userDoc: any = await findUserById(req.user.id);
+    if (!userDoc) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    if (!userDoc.mfaEnabled) {
+      return res.status(400).json({ success: false, message: 'MFA is not enabled' });
+    }
+
+    userDoc.mfaSecret = undefined;
+    userDoc.mfaEnabled = false;
+    await userDoc.save();
+
+    res.status(200).json({ success: true, message: 'MFA disabled successfully' });
   } catch (error) {
     next(error);
   }
