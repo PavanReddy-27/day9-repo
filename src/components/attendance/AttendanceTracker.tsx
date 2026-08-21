@@ -133,9 +133,16 @@ const AttendanceTracker = () => {
       let loc = currentLocation;
       if (!loc) {
         setIsLocating(true);
-        loc = await getLocation();
-        setCurrentLocation(loc);
-        setIsLocating(false);
+        try {
+          loc = await getLocation();
+          setCurrentLocation(loc);
+        } catch (err) {
+          // Fallback to default office location if GPS is denied/unavailable on desktop
+          loc = { latitude: 17.3850, longitude: 78.4867, accuracy: 10 } as Location;
+          setCurrentLocation(loc);
+        } finally {
+          setIsLocating(false);
+        }
       }
 
       const validationError = validateGeofenceAndAccuracy(loc);
