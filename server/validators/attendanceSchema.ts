@@ -15,10 +15,11 @@ export const checkOutSchema = z.object({
 });
 
 export const correctionSchema = z.object({
+  attendanceRecordId: z.string().optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format, expected YYYY-MM-DD"),
   reason: z.string().min(10, "Reason must be at least 10 characters long"),
-  requestedCheckIn: z.string().optional(),
-  requestedCheckOut: z.string().optional(),
+  requestedCheckIn: z.string().optional().nullable(),
+  requestedCheckOut: z.string().optional().nullable(),
 }).refine(data => data.requestedCheckIn || data.requestedCheckOut, {
   message: "Must provide either requestedCheckIn or requestedCheckOut",
   path: ["requestedCheckIn"], // Assigning error to requestedCheckIn

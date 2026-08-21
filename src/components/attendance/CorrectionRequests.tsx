@@ -12,7 +12,7 @@ export const CorrectionRequests = () => {
   const { user } = useAppSelector(state => state.auth);
   const [corrections, setCorrections] = useState<CorrectionRequest[]>([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ recordId: '', checkIn: '', checkOut: '', reason: '' });
+  const [form, setForm] = useState({ recordId: '', date: '', checkIn: '', checkOut: '', reason: '' });
   
   // Manager Approval State
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -42,24 +42,40 @@ export const CorrectionRequests = () => {
 
   const handleSubmit = async () => {
     if (!user) return;
-    await attendanceApi.submitCorrection({
-      recordId: form.recordId,
-      employeeId: user.id,
-      employeeName: user.fullName,
-      requestedCheckIn: form.checkIn || null,
-      requestedCheckOut: form.checkOut || null,
-      reason: form.reason
-    });
-    setOpen(false);
-    setForm({ recordId: '', checkIn: '', checkOut: '', reason: '' });
+    try {
+      await attendanceApi.submitCorrection({
+        attendanceRecordId: form.recordId || undefined,
+        date: form.date,
+        employeeId: user.id,
+        employeeName: user.fullName,
+        requestedCheckIn: form.checkIn || null,
+        requestedCheckOut: form.checkOut || null,
+        reason: form.reason
+      } as any);
+      setOpen(false);
+      setForm({ recordId: '', date: '', checkIn: '', checkOut: '', reason: '' });
+      window.dispatchEvent(new Event('corrections_updated'));
+    } catch (error: any) {
+      if (error.data && error.data.errors) {
+        const errorDetails = error.data.errors.map((e: any) => `${e.field}: ${e.message}`).join("\n");
+        alert("Failed to submit:\n" + errorDetails);
+      } else {
+        alert("Failed to submit: " + (error.message || "Unknown error"));
+      }
+    }
   };
 
   const handleReview = async (status: "Approved" | "Rejected") => {
     if (selectedCorrection) {
-       await attendanceApi.reviewCorrection(selectedCorrection.id, status, managerComment);
-       setReviewOpen(false);
-       setSelectedCorrection(null);
-       setManagerComment('');
+       try {
+         await attendanceApi.reviewCorrection(selectedCorrection.id, status, managerComment);
+         setReviewOpen(false);
+         setSelectedCorrection(null);
+         setManagerComment('');
+         window.dispatchEvent(new Event('corrections_updated'));
+       } catch (error: any) {
+         alert("Failed to review: " + (error.message || "Unknown error"));
+       }
     }
   };
 
@@ -96,7 +112,7 @@ export const CorrectionRequests = () => {
             ) : (
               corrections.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell>{c.recordId}</TableCell>
+                  <TableCell>{c.date || c.recordId}</TableCell>
                   {user.role !== 'Employee' && <TableCell>{c.employeeName}</TableCell>}
                   <TableCell>{c.requestedCheckIn || '-'}</TableCell>
                   <TableCell>{c.requestedCheckOut || '-'}</TableCell>
@@ -123,9 +139,10 @@ export const CorrectionRequests = () => {
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Request Attendance Correction</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField label="Record ID (Date or ID)" size="small" value={form.recordId} onChange={e => setForm({...form, recordId: e.target.value})} />
-          <TextField label="Requested Check In Time (ISO/Time)" size="small" value={form.checkIn} onChange={e => setForm({...form, checkIn: e.target.value})} />
-          <TextField label="Requested Check Out Time (ISO/Time)" size="small" value={form.checkOut} onChange={e => setForm({...form, checkOut: e.target.value})} />
+          <TextField label="Date (YYYY-MM-DD)" type="date" focused size="small" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+          <TextField label="Record ID (Optional)" size="small" value={form.recordId} onChange={e => setForm({...form, recordId: e.target.value})} />
+          <TextField label="Requested Check In Time (HH:MM)" type="time" focused size="small" value={form.checkIn} onChange={e => setForm({...form, checkIn: e.target.value})} />
+          <TextField label="Requested Check Out Time (HH:MM)" type="time" focused size="small" value={form.checkOut} onChange={e => setForm({...form, checkOut: e.target.value})} />
           <TextField label="Reason" size="small" multiline rows={3} value={form.reason} onChange={e => setForm({...form, reason: e.target.value})} />
         </DialogContent>
         <DialogActions>
