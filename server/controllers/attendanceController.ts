@@ -133,7 +133,7 @@ export const checkIn = async (req, res) => {
     }
 
     // Geofence & Location check
-    const location: any = await (LocationModel as any).findById(req.employee.locationId as any);
+    const location: any = await (LocationModel as any).findOne({ _id: req.employee.locationId, companyId: req.companyId });
     let distanceMeters = 0;
     let isGeofenced = true;
     let actualWorkMode = "Office";
@@ -602,7 +602,7 @@ export const getAttendanceHistory = async (req, res) => {
 
       // Try finding Employee doc by MongoDB _id, string employeeId (e.g. "EMP-001"), or userId
       if (mongoose.Types.ObjectId.isValid(qEmpId)) {
-        empDoc = await Employee.findById(qEmpId);
+        empDoc = await Employee.findOne({ _id: qEmpId, companyId: req.companyId });
         if (!empDoc) {
           empDoc = await Employee.findOne({
             $or: [
@@ -789,7 +789,7 @@ export const approveCorrection = async (req, res) => {
     await correction.save();
 
     // Update original attendance record
-    const record: any = await (AttendanceRecord as any).findById(correction.attendanceRecordId as any);
+    const record: any = await (AttendanceRecord as any).findOne({ _id: correction.attendanceRecordId, companyId: req.companyId });
     if (record) {
       record.checkInTime = correction.requestedCheckIn;
       record.checkOutTime = correction.requestedCheckOut;

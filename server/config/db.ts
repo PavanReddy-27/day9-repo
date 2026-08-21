@@ -21,8 +21,16 @@ const connectDB = async () => {
     const conn = await mongoose.connect(uri);
     console.log(`In-Memory MongoDB Connected: ${conn.connection.host}`);
     
-    // Removed automatic database seed script running to prevent data loss or unintended seeding in production-like environments
-    
+    console.log(`Running automatic seed for In-Memory DB...`);
+    try {
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+      await execAsync('npm run seed', { env: { ...process.env, MONGODB_URI: uri } });
+      console.log('Automatic seed complete!');
+    } catch (e) {
+      console.error('Failed to run seed script automatically:', e);
+    }
     return conn;
   }
 };
