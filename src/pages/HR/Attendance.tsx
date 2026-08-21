@@ -156,11 +156,6 @@ const Attendance = () => {
         })}
       </Box>
 
-      {/* Correction Requests Module */}
-      <Box sx={{ mb: 4 }}>
-        <CorrectionRequests />
-      </Box>
-
       {/* Status Filter Buttons Bar & Search / Date Controls */}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
@@ -215,6 +210,11 @@ const Attendance = () => {
         <Box sx={{ flex: 1, minWidth: 300, display: "flex", flexDirection: "column" }}>
           <SmartAttendanceTable records={filteredRecords} role={(user?.role as any) || "HR"} />
         </Box>
+      </Box>
+
+      {/* Correction Requests Module */}
+      <Box sx={{ mt: 2 }}>
+        <CorrectionRequests />
       </Box>
     </Box>
   );
