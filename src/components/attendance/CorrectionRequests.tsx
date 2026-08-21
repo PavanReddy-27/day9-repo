@@ -84,7 +84,7 @@ export const CorrectionRequests = () => {
   return (
     <Box sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: "var(--text-h)" }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>
           {user.role === 'Employee' ? 'My Correction Requests' : 'Pending Approvals'}
         </Typography>
         {user.role === 'Employee' && (
@@ -95,7 +95,7 @@ export const CorrectionRequests = () => {
       </Box>
 
       <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid var(--border)", borderRadius: 2, bgcolor: "var(--surface)" }}>
-        <Table>
+        <Table sx={{ '& th, & td': { color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' } }}>
           <TableHead>
             <TableRow>
               <TableCell>Date/Record ID</TableCell>

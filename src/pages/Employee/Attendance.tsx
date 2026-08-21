@@ -110,11 +110,6 @@ const EmployeeAttendance = () => {
           <AttendanceTracker />
         </Box>
 
-        {/* Row 1.5: Corrections */}
-        <Box>
-          <CorrectionRequests />
-        </Box>
-
         {/* Row 2: Chart */}
         <Box>
           <AttendanceChart records={records} />
@@ -174,6 +169,11 @@ const EmployeeAttendance = () => {
           <Box sx={{ flex: 1, minWidth: 300, display: "flex", flexDirection: "column" }}>
             <SmartAttendanceTable records={filteredRecords} role="Employee" defaultSort="asc" hidePagination={true} />
           </Box>
+        </Box>
+        
+        {/* Row 5: Corrections */}
+        <Box sx={{ mt: 2 }}>
+          <CorrectionRequests />
         </Box>
       </Box>
     </Box>
