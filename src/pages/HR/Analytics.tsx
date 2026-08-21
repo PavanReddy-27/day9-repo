@@ -9,27 +9,45 @@ import type { TrendChartData, DepartmentChartData } from "../../types/chart";
 import { useEffect, useState } from "react";
 import {
   getWorkforceAnalytics,
-  getHiringAnalytics,
   getDepartmentAnalytics,
-  subscribeToAnalytics
+  getAttendanceAnalytics,
+  getSkillsAnalytics,
+  getPerformanceAnalytics,
+  getProductivityAnalytics,
+  subscribeToAnalytics,
+  WorkforceAnalyticsResponse,
+  DepartmentAnalyticsResponse,
+  AttendanceAnalyticsResponse,
+  SkillsAnalyticsResponse,
+  PerformanceAnalyticsResponse,
+  ProductivityAnalyticsResponse
 } from "../../services/analyticsService";
 
 const HRAnalytics = () => {
   const [loading, setLoading] = useState(true);
-  const [workforceData, setWorkforceData] = useState<any>(null);
-  const [hiringData, setHiringData] = useState<any>(null);
-  const [deptData, setDeptData] = useState<any>(null);
+  const [workforceData, setWorkforceData] = useState<WorkforceAnalyticsResponse | null>(null);
+  const [deptData, setDeptData] = useState<DepartmentAnalyticsResponse | null>(null);
+  const [attendanceData, setAttendanceData] = useState<AttendanceAnalyticsResponse | null>(null);
+  const [skillsData, setSkillsData] = useState<SkillsAnalyticsResponse | null>(null);
+  const [perfData, setPerfData] = useState<PerformanceAnalyticsResponse[] | null>(null);
+  const [prodData, setProdData] = useState<ProductivityAnalyticsResponse | null>(null);
 
   const fetchData = async () => {
     try {
-      const [wfRes, hireRes, deptRes] = await Promise.all([
+      const [wfRes, deptRes, attRes, skillsRes, perfRes, prodRes] = await Promise.all([
         getWorkforceAnalytics(),
-        getHiringAnalytics(),
         getDepartmentAnalytics(),
+        getAttendanceAnalytics(),
+        getSkillsAnalytics(),
+        getPerformanceAnalytics(),
+        getProductivityAnalytics()
       ]);
       setWorkforceData(wfRes);
-      setHiringData(hireRes);
       setDeptData(deptRes);
+      setAttendanceData(attRes);
+      setSkillsData(skillsRes);
+      setPerfData(perfRes);
+      setProdData(prodRes);
     } catch (e) {
       console.error("Failed to fetch analytics", e);
     } finally {
@@ -54,11 +72,18 @@ const HRAnalytics = () => {
     );
   }
 
+  const totalOvertime = attendanceData?.summary.reduce((acc, s) => acc + s.totalOvertimeMinutes, 0) || 0;
+  const avgPerformanceRating = perfData && perfData.length > 0 ? perfData[perfData.length - 1].avgRating : 0;
+  
   const kpiData = [
     { id: "totalEmployees" as const, title: "Total Headcount", value: workforceData.totalEmployees.toLocaleString(), trend: 0 },
     { id: "activeEmployees" as const, title: "Active Employees", value: workforceData.activeEmployees.toLocaleString(), trend: 0 },
-    { id: "engagementScore" as const, title: "Retention Rate", value: `${workforceData.retentionRate}%`, trend: 0 },
-    { id: "attritionRate" as const, title: "Attrition Rate", value: `${workforceData.attritionRate}%`, trend: 0 },
+    { id: "engagementScore" as const, title: "Retention Rate", value: "N/A", trend: 0 },
+    { id: "attritionRate" as const, title: "Attrition Rate", value: "N/A", trend: 0 },
+    { id: "totalOvertime" as const, title: "Total Overtime (Mins)", value: totalOvertime.toLocaleString(), trend: 0 },
+    { id: "skillCoverage" as const, title: "Skill Coverage", value: `${skillsData?.coveragePercentage || 0}%`, trend: 0 },
+    { id: "performanceScore" as const, title: "Avg Performance", value: avgPerformanceRating.toString(), trend: 0 },
+    { id: "productivityScore" as const, title: "Productivity Score", value: prodData?.avgProductivityScore?.toString() || "0", trend: 0 },
   ];
 
   // Map backend department stats to frontend chart format
@@ -70,20 +95,14 @@ const HRAnalytics = () => {
     averageExperience: 0,
   }));
 
-  // Map hiring data to attrition trend (simulated for now using hiring data)
-  const attritionTrend: TrendChartData[] = (hiringData || []).map((h: any) => ({
-    month: h.month,
-    activeEmployees: workforceData.activeEmployees,
-    totalEmployees: workforceData.totalEmployees,
-    newHires: h.hires,
-    attrition: workforceData.attritionRate,
-  }));
+  // Attrition data is not yet available on the backend (requires leavingDate in Employee model)
+  const attritionTrend: TrendChartData[] = [];
 
   // Work Mode distribution for DepartmentChart
-  const workModeData: DepartmentChartData[] = Object.entries(workforceData.workModeDistribution || {}).map(([mode, count], idx) => ({
+  const workModeData: DepartmentChartData[] = (workforceData.workModeDistribution || []).map((item, idx) => ({
     id: String(idx),
-    name: mode,
-    value: count as number,
+    name: item.name,
+    value: item.value,
     activeEmployees: 0, inactiveEmployees: 0, averageSalary: 0, averageExperience: 0, performanceScore: 0, trainingCompletion: 0
   }));
 

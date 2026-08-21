@@ -38,6 +38,7 @@ export const getWorkforceAnalytics = async (req, res) => {
       success: true,
       data: {
         totalEmployees,
+        activeEmployees,
         statusDistribution,
         riskDistribution: riskDistribution.map(r => ({ name: r._id || "Low", value: r.count })),
         workModeDistribution: workModeDistribution.map(w => ({ name: w._id || "Office", value: w.count })),
@@ -57,7 +58,7 @@ export const getHiringAnalytics = async (req, res) => {
       { $match: filter },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$joinDate" } },
+          _id: { $dateToString: { format: "%Y-%m", date: "$joiningDate" } },
           hires: { $sum: 1 },
         },
       },
@@ -86,12 +87,13 @@ export const getAttendanceAnalytics = async (req, res) => {
           count: { $sum: 1 },
           avgWorkMinutes: { $avg: "$workDurationMinutes" },
           avgLateMinutes: { $avg: "$lateMinutes" },
+          totalOvertimeMinutes: { $sum: "$overtimeMinutes" },
         },
       },
     ]);
 
     const trends = await AttendanceRecord.aggregate([
-      { $match: { ...filter, employeeId: { $in: validEmployeeIds } } },
+      { $match: { companyId: new mongoose.Types.ObjectId(req.companyId), employeeId: { $in: validEmployeeIds } } },
       {
         $group: {
           _id: "$date",
@@ -114,7 +116,7 @@ export const getAttendanceAnalytics = async (req, res) => {
 
     const formattedSummary = attendanceStats.map(s => ({
       ...s,
-      totalOvertimeMinutes: s.avgWorkMinutes > 480 ? (s.avgWorkMinutes - 480) * s.count : 0
+      totalOvertimeMinutes: s.totalOvertimeMinutes || 0
     }));
 
     return res.status(200).json({
@@ -206,6 +208,9 @@ export const getSkillsAnalytics = async (req, res) => {
       },
     ]);
 
+    const employeesWithSkills = await EmployeeSkill.distinct("employeeId", { companyId: new mongoose.Types.ObjectId(req.companyId), employeeId: { $in: validEmployeeIds } });
+    const coveragePercentage = validEmployeeIds.length > 0 ? Math.round((employeesWithSkills.length / validEmployeeIds.length) * 100) : 0;
+
     return res.status(200).json({
       success: true,
       data: {
@@ -215,7 +220,7 @@ export const getSkillsAnalytics = async (req, res) => {
           count: s.employeeCount,
           experts: Math.floor(s.employeeCount * (s.avgProficiency / 100)), // Approximate
         })),
-        coveragePercentage: 75, // Default for now until properly implemented
+        coveragePercentage,
       }
     });
   } catch (error) {
@@ -235,6 +240,7 @@ export const getPerformanceAnalytics = async (req, res) => {
           _id: "$period",
           avgRating: { $avg: "$rating" },
           totalReviews: { $sum: 1 },
+          completedGoals: { $sum: "$goalsCompleted" }
         },
       },
       { $sort: { _id: 1 } },
@@ -245,8 +251,8 @@ export const getPerformanceAnalytics = async (req, res) => {
       data: perfData.map((p) => ({
         month: p._id,
         avgRating: Math.round(p.avgRating * 100) / 100,
-        avgKpiScore: Math.round(p.avgRating * 20), // Placeholder mapping
-        completedGoals: p.totalReviews * 2, // Placeholder mapping
+        avgKpiScore: Math.round(p.avgRating * 20), // Map 1-5 rating to 0-100 score
+        completedGoals: p.completedGoals || 0,
       })),
     });
   } catch (error) {
@@ -266,6 +272,7 @@ export const getProductivityAnalytics = async (req, res) => {
           _id: "$date",
           avgEfficiency: { $avg: "$efficiencyScore" },
           avgHours: { $avg: "$hoursLogged" },
+          totalTasks: { $sum: "$tasksCompleted" }
         },
       },
       { $sort: { _id: -1 } },
@@ -274,14 +281,15 @@ export const getProductivityAnalytics = async (req, res) => {
 
     const avgProductivityScore = productivity.length > 0 ? productivity.reduce((acc, p) => acc + p.avgEfficiency, 0) / productivity.length : 0;
     const avgActiveHours = productivity.length > 0 ? productivity.reduce((acc, p) => acc + p.avgHours, 0) / productivity.length : 0;
+    const totalTasksCompleted = productivity.reduce((acc, p) => acc + (p.totalTasks || 0), 0);
 
     return res.status(200).json({
       success: true,
       data: {
         avgProductivityScore: Math.round(avgProductivityScore),
-        avgFocusScore: Math.round(avgProductivityScore * 0.9), // Placeholder
+        avgFocusScore: Math.round(avgProductivityScore * 0.9), // Note: No focus score field exists in ProductivityRecord schema
         avgActiveHours: Math.round(avgActiveHours * 10) / 10,
-        totalTasksCompleted: Math.round(avgActiveHours * 2.5 * validEmployeeIds.length), // Placeholder
+        totalTasksCompleted,
       },
     });
   } catch (error) {
@@ -305,7 +313,10 @@ export const streamAnalytics = (req, res) => {
 
   // Event listener
   const updateListener = (data) => {
-    sendEvent(data);
+    // Only send the event if it matches the current user's tenant/company
+    if (!data.companyId || (req.companyId && data.companyId.toString() === req.companyId.toString())) {
+      sendEvent(data);
+    }
   };
 
   eventBus.on('analytics:update', updateListener);

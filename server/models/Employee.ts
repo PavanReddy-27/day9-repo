@@ -37,7 +37,10 @@ employeeSchema.index({ companyId: 1, locationId: 1 });
 employeeSchema.index({ companyId: 1, departmentId: 1 });
 
 employeeSchema.post('save', function(doc) {
-  eventBus.emit('analytics:update', { type: 'employee_updated', docId: doc._id });
+  eventBus.emit('analytics:update', { 
+    type: 'analytics_refresh', 
+    companyId: doc.companyId 
+  });
 });
 
 const Employee = mongoose.models.Employee || mongoose.model('Employee', employeeSchema);

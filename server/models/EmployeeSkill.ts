@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { eventBus } from "../services/eventBus.js";
 
 const employeeSkillSchema = new mongoose.Schema(
   {
@@ -12,5 +13,12 @@ const employeeSkillSchema = new mongoose.Schema(
 );
 
 employeeSkillSchema.index({ companyId: 1, employeeId: 1, skillId: 1 }, { unique: true });
+
+employeeSkillSchema.post('save', function(doc) {
+  eventBus.emit('analytics:update', { 
+    type: 'analytics_refresh', 
+    companyId: doc.companyId 
+  });
+});
 
 export default mongoose.models.EmployeeSkill || mongoose.model("EmployeeSkill", employeeSkillSchema, "employeeskills");

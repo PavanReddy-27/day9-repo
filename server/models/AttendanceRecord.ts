@@ -49,7 +49,10 @@ attendanceRecordSchema.index({ companyId: 1, employeeId: 1, date: 1 }, { unique:
 attendanceRecordSchema.index({ companyId: 1, date: 1, status: 1 });
 
 attendanceRecordSchema.post('save', function(doc) {
-  eventBus.emit('analytics:update', { type: 'attendance_updated', docId: doc._id });
+  eventBus.emit('analytics:update', { 
+    type: 'analytics_refresh', 
+    companyId: doc.companyId 
+  });
 });
 
 export default mongoose.models.AttendanceRecord || mongoose.model("AttendanceRecord", attendanceRecordSchema, "attendancerecords");

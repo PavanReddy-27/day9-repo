@@ -11,12 +11,15 @@ import { useEffect, useState } from "react";
 import {
   getWorkforceAnalytics,
   getAttendanceAnalytics,
-  subscribeToAnalytics
+  subscribeToAnalytics,
+  WorkforceAnalyticsResponse,
+  AttendanceAnalyticsResponse
 } from "../../services/analyticsService";
 
 const ManagerAnalytics = () => {
   const [loading, setLoading] = useState(true);
-  const [workforceData, setWorkforceData] = useState<any>(null);
+  const [workforceData, setWorkforceData] = useState<WorkforceAnalyticsResponse | null>(null);
+  const [attendanceData, setAttendanceData] = useState<AttendanceAnalyticsResponse | null>(null);
   const fetchData = async () => {
     try {
       const [wfRes, attRes] = await Promise.all([
@@ -24,8 +27,7 @@ const ManagerAnalytics = () => {
         getAttendanceAnalytics(),
       ]);
       setWorkforceData(wfRes);
-      // attendanceData is currently unused but fetched to ensure API works
-      console.log(attRes);
+      setAttendanceData(attRes);
     } catch (e) {
       console.error("Failed to fetch manager analytics", e);
     } finally {
@@ -52,25 +54,30 @@ const ManagerAnalytics = () => {
   const kpiData = [
     { id: "totalEmployees" as const, title: "Department Size", value: workforceData.totalEmployees.toLocaleString(), trend: 0 },
     { id: "activeEmployees" as const, title: "Active Today", value: workforceData.activeEmployees.toLocaleString(), trend: 0 },
-    { id: "inactiveEmployees" as const, title: "On Leave", value: workforceData.onLeaveEmployees.toLocaleString(), trend: 0 },
+    { id: "inactiveEmployees" as const, title: "On Leave", value: (workforceData.statusDistribution.find(s => s.name === "On Leave")?.value || 0).toLocaleString(), trend: 0 },
   ];
 
   // Map risk distribution to RiskChartData
-  const riskData: RiskChartData[] = Object.entries(workforceData.riskDistribution || {}).map(([level, count], idx) => ({
+  const riskData: RiskChartData[] = (workforceData.riskDistribution || []).map((item, idx) => ({
     id: String(idx),
-    risk: level,
-    employees: count as number,
-    percentage: workforceData.totalEmployees ? ((count as number) / workforceData.totalEmployees) * 100 : 0
+    risk: item.name,
+    employees: item.value,
+    percentage: workforceData.totalEmployees ? (item.value / workforceData.totalEmployees) * 100 : 0
   }));
 
-  // Dummy up some data for charts if not fully implemented in backend yet
+  // Map real department data (Currently Manager doesn't have a distinct sub-department breakdown unless returned from a specific endpoint, so we show the department total)
   const departmentData: RoleChartData[] = [
     { id: "1", role: "Your Department", employees: workforceData.totalEmployees, averageSalary: 0, averageExperience: 0 },
   ];
 
-  const attendanceTrend: TrendChartData[] = [
-    { month: "Current", activeEmployees: workforceData.activeEmployees, totalEmployees: workforceData.totalEmployees, newHires: 0, attrition: 0 }
-  ];
+  // Map real attendance trends
+  const attendanceTrend: TrendChartData[] = (attendanceData?.trends || []).map((t) => ({
+    month: t.date,
+    activeEmployees: t.present,
+    totalEmployees: t.total,
+    newHires: 0,
+    attrition: 0
+  }));
 
   return (
     <Box className="manager-analytics-container">
