@@ -105,7 +105,7 @@ const RoleChart = ({
             itemStyle={{ color: "var(--text)" }}
           />
 
-          <Legend wrapperStyle={{ color: "var(--text)" }} formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>} />
+
 
           <Bar
             dataKey="employees"

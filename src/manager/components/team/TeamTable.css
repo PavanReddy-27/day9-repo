@@ -84,20 +84,46 @@
   .team-table-paper {
     border-radius: 18px !important;
     overflow: hidden;
+    background-color: var(--surface) !important;
   }
   
   .team-data-grid {
     border: none !important;
+    background-color: transparent !important;
   }
   
-  .team-data-grid .MuiDataGrid-columnHeaders {
+  .team-data-grid .MuiDataGrid-columnHeaders,
+  .team-data-grid .MuiDataGrid-columnHeadersInner,
+  .team-data-grid .MuiDataGrid-topContainer,
+  .team-data-grid .MuiDataGrid-filler,
+  .team-data-grid .MuiDataGrid-columnHeader {
+    background: var(--surface-solid) !important;
+    border-bottom: 1px solid var(--border) !important;
+    color: var(--text-h) !important;
     font-weight: 700;
     font-size: 15px;
   }
   
+  .team-data-grid .MuiDataGrid-row {
+    background-color: transparent !important;
+  }
+  
+  .team-data-grid .MuiDataGrid-row:hover,
+  .team-data-grid .MuiDataGrid-row.Mui-hovered {
+    background-color: rgba(128, 128, 128, 0.1) !important;
+  }
+  
   .team-data-grid .MuiDataGrid-cell {
+    border-bottom: 1px solid var(--border) !important;
+    color: var(--text-h) !important;
     display: flex;
     align-items: center;
+  }
+  
+  .team-data-grid .MuiDataGrid-footerContainer {
+    border-top: 1px solid var(--border) !important;
+    background-color: transparent !important;
+    color: var(--text-h) !important;
   }
   
   .employee-cell {
@@ -112,6 +138,7 @@
     font-size: 18px !important;
     font-weight: 700 !important;
   }
+
   
   .employee-name {
     font-weight: 700;

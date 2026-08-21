@@ -77,7 +77,7 @@ router.get("/employees", authenticateJWT, getEmployees);
 router.get("/employees/:id", authenticateJWT, validateObjectId("id"), getEmployeeById);
 
 // Protected Analytics Routes
-router.get("/analytics/workforce", authenticateJWT, requireRole(["Admin", "HR"]), getWorkforceAnalytics);
+router.get("/analytics/workforce", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), getWorkforceAnalytics);
 router.get("/analytics/hiring", authenticateJWT, requireRole(["Admin", "HR"]), getHiringAnalytics);
 router.get("/analytics/attendance", authenticateJWT, getAttendanceAnalytics);
 router.get("/analytics/departments", authenticateJWT, getDepartmentAnalytics);

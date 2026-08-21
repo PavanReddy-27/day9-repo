@@ -109,7 +109,7 @@ const HRAnalytics = () => {
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
                 <Typography sx={{ color: "var(--text-h)", fontSize: 14, fontWeight: 500 }}>{r.department}</Typography>
                 <Typography sx={{ fontSize: 13 }}>
-                  <span style={{ color: r.current >= r.target ? "#16A34A" : "#DC2626", fontWeight: 700 }}>{r.current}%</span>
+                  <span style={{ color: r.current >= r.target ? "var(--success)" : "var(--error)", fontWeight: 700 }}>{r.current}%</span>
                   <span style={{ color: "var(--text-light)" }}> / target {r.target}%</span>
                 </Typography>
               </Box>
@@ -120,7 +120,7 @@ const HRAnalytics = () => {
                   height: 8,
                   borderRadius: 4,
                   bgcolor: "var(--hover)",
-                  "& .MuiLinearProgress-bar": { bgcolor: r.current >= r.target ? "#16A34A" : "#DC2626", borderRadius: 4 },
+                  "& .MuiLinearProgress-bar": { bgcolor: r.current >= r.target ? "var(--success)" : "var(--error)", borderRadius: 4 },
                 }}
               />
               <Divider sx={{ borderColor: "var(--border)", mt: 1.5 }} />

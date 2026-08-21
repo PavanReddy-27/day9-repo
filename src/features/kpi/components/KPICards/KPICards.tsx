@@ -45,17 +45,17 @@ interface KPIConfig {
 }
 
 const KPI_CONFIG: Partial<Record<KPIType, KPIConfig>> = {
-  totalEmployees: { icon: <PeopleAltIcon />, color: "#4f46e5" }, 
-  activeEmployees: { icon: <PersonIcon />, color: "#10b981" }, 
-  newHires: { icon: <PersonAddAlt1Icon />, color: "#f59e0b" }, 
-  attritionRate: { icon: <TrendingDownIcon />, color: "#ef4444" }, 
-  trainingCompletion: { icon: <SchoolIcon />, color: "#8b5cf6" }, 
-  skillCoverage: { icon: <WorkspacePremiumIcon />, color: "#3b82f6" },
-  highRiskEmployees: { icon: <WarningAmberIcon />, color: "#ef4444" }, 
-  performanceScore: { icon: <TrendingUpIcon />, color: "#8b5cf6" }, 
-  attendanceRate: { icon: <EventAvailableIcon />, color: "#f59e0b" }, 
-  departments: { icon: <BusinessCenterIcon />, color: "#64748b" },
-  engagementScore: { icon: <WorkspacePremiumIcon />, color: "#8b5cf6" },
+  totalEmployees: { icon: <PeopleAltIcon />, color: "#3b6978" }, // Primary
+  activeEmployees: { icon: <PersonIcon />, color: "#5b9279" }, // Success
+  newHires: { icon: <PersonAddAlt1Icon />, color: "#c99b5b" }, // Warning (Mustard)
+  attritionRate: { icon: <TrendingDownIcon />, color: "#b35c5c" }, // Error
+  trainingCompletion: { icon: <SchoolIcon />, color: "#5b9279" }, // Success
+  skillCoverage: { icon: <WorkspacePremiumIcon />, color: "#537f96" }, // Info
+  highRiskEmployees: { icon: <WarningAmberIcon />, color: "#b35c5c" }, // Error
+  performanceScore: { icon: <TrendingUpIcon />, color: "#537f96" }, // Info
+  attendanceRate: { icon: <EventAvailableIcon />, color: "#5b9279" }, // Success
+  departments: { icon: <BusinessCenterIcon />, color: "#3b6978" }, // Primary
+  engagementScore: { icon: <WorkspacePremiumIcon />, color: "#537f96" }, // Info
 };
 // Procedural generation of a realistic wavy sparkline trend based on exact trend percentage
 const generateMockSparkline = (trend: number, baseValue: number) => {
