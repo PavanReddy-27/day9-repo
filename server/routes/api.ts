@@ -16,6 +16,7 @@ import {
   getSkillsAnalytics,
   getPerformanceAnalytics,
   getProductivityAnalytics,
+  streamAnalytics
 } from "../controllers/analyticsController.js";
 import {
   getAttendanceStatus,
@@ -77,6 +78,7 @@ router.get("/employees", authenticateJWT, getEmployees);
 router.get("/employees/:id", authenticateJWT, validateObjectId("id"), getEmployeeById);
 
 // Protected Analytics Routes
+router.get("/analytics/stream", authenticateJWT, streamAnalytics);
 router.get("/analytics/workforce", authenticateJWT, requireRole(["Admin", "HR"]), getWorkforceAnalytics);
 router.get("/analytics/hiring", authenticateJWT, requireRole(["Admin", "HR"]), getHiringAnalytics);
 router.get("/analytics/attendance", authenticateJWT, getAttendanceAnalytics);

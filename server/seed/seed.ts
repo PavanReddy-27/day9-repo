@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import connectDB, { closeDB } from "../config/db.js";
-
+import mongoose from "mongoose";
 import Company from "../models/Company.js";
 import Location from "../models/Location.js";
 import Department from "../models/Department.js";
@@ -79,8 +79,9 @@ const DEPARTMENTS_DEF = [
 
 export async function runSeed(reset = false) {
   console.log(`[Seed Engine] Starting deterministic seeding (Reset=${reset})...`);
-  await connectDB();
-
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
   if (reset) {
     if (process.env.NODE_ENV === "production") {
       console.error("[Seed Engine] ERROR: Cannot reset database in production environment!");
@@ -123,7 +124,9 @@ export async function runSeed(reset = false) {
   if (existingCompany && !reset) {
     console.log("[Seed Engine] Database already populated. Use --reset to re-seed.");
     await printCollectionCounts();
-    await closeDB();
+    if (process.argv[1]?.includes('seed.ts') || process.argv[1]?.includes('seedRoles.ts')) {
+      await closeDB();
+    }
     return;
   }
 
@@ -292,6 +295,7 @@ export async function runSeed(reset = false) {
       const AuthModel = roleAuthModel[role] || EmployeeAuth;
       const user = await AuthModel.create({
         employeeId: empIdStr,
+        companyId: company._id,
         email: email.toLowerCase(),
         password: passStr,
         role: role,
@@ -493,7 +497,9 @@ export async function runSeed(reset = false) {
 
   console.log("[Seed Engine] Seeding completed successfully!");
   await printCollectionCounts();
-  await closeDB();
+  if (process.argv[1]?.includes('seed.ts') || process.argv[1]?.includes('seedRoles.ts')) {
+    await closeDB();
+  }
 }
 
 async function printCollectionCounts() {

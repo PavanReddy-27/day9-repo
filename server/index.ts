@@ -60,6 +60,7 @@ async function startServer() {
 
 
 
+
   const currentPort = parseInt(PORT as string, 10);
 
   const tryListen = (portToTry) => {

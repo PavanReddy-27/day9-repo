@@ -33,10 +33,11 @@ class AuthApi {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData.message || errorData.error;
         if (res.status === 401) {
-          throw new Error(errorData.message || "Invalid username or password.");
+          throw new Error(errorMessage || "Invalid username or password.");
         }
-        throw new Error(errorData.message || `Server error (${res.status}).`);
+        throw new Error(errorMessage || `Server error (${res.status}).`);
       }
 
       const responseData = await res.json();
