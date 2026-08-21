@@ -138,7 +138,7 @@ export const logout = async (req: any, res: any, next: any) => {
     }
     if (accessToken) tokensToBlacklist.push({ token: accessToken });
     
-    const { refreshToken } = req.body;
+    const { refreshToken } = req.body || {};
     if (refreshToken) tokensToBlacklist.push({ token: refreshToken });
     
     if (tokensToBlacklist.length > 0) {
