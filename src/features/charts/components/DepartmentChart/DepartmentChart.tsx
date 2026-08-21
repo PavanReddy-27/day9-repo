@@ -70,15 +70,7 @@ const DepartmentChart = ({
             labelLine={false}
           >
             {data.map((department, index) => {
-              let color = colors[index % colors.length] ?? colors[0];
-              const name = department.name.toLowerCase();
-              if (name.includes('engineering')) color = '#2563eb'; // Blue
-              else if (name.includes('finance')) color = '#8b5cf6'; // Purple
-              else if (name.includes('hr') || name.includes('human')) color = '#10b981'; // Green
-              else if (name.includes('marketing')) color = '#ef4444'; // Red
-              else if (name.includes('operations')) color = '#06b6d4'; // Cyan
-              else if (name.includes('sales')) color = '#f59e0b'; // Yellow/Orange
-
+              const color = colors[index % colors.length] ?? colors[0];
               return (
                 <Cell
                   key={department.id}

@@ -69,14 +69,8 @@ const StatusChart = ({
             }
             labelLine={false}
           >
-            {data.map((item) => {
-              let color;
-              if (item.status === 'Active') color = paletteMode === 'dark' ? '#34d399' : 'var(--success)';
-              else if (item.status === 'Inactive') color = paletteMode === 'dark' ? '#fb7185' : 'var(--error)';
-              else if (item.status === 'Notice Period') color = paletteMode === 'dark' ? '#60a5fa' : 'var(--primary)';
-              else if (item.status === 'On Leave') color = paletteMode === 'dark' ? '#fbbf24' : '#f9a825';
-              else color = colors[data.findIndex((entry) => entry.id === item.id) % colors.length];
-
+            {data.map((item, index) => {
+              const color = colors[index % colors.length] ?? colors[0];
               return (
                 <Cell
                   key={item.id}

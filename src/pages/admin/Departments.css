@@ -18,11 +18,7 @@
 .departments-header h1 {
   margin: 0;
   font-size: 36px;
-  color: var(--text);
-  background: linear-gradient(90deg, #4f46e5, #ec4899);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary) !important;
   display: inline-block;
 }
 

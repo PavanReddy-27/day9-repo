@@ -1,118 +1,182 @@
 .welcome-banner {
-    padding: 2rem;
-    border-radius: 18px !important;
-    background: transparent;
-    color: var(--text-h);
-    overflow: hidden;
-  }
-  
-  .welcome-content {
-    flex: 1;
-  }
-  
-  .welcome-title {
-    font-weight: 700 !important;
-    color: var(--text-h);
-  }
-  
-  .welcome-subtitle {
-    margin-top: 10px !important;
-    opacity: 0.95;
-    color: var(--text-h);
-  }
-  
-  .welcome-description {
-    margin-top: 18px !important;
-    max-width: 650px;
-    line-height: 1.7;
-    opacity: 0.9;
-    color: var(--text-light);
-  }
-  
-  /* ---------- Chips ---------- */
-  
-  .welcome-chip-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-top: 28px;
-  }
-  
-  .welcome-chip {
-    margin: 0 !important;
-  }
-  
-  .welcome-chip .MuiChip-label {
-    padding: 0 14px;
-    font-weight: 600;
-    color: var(--text-h) !important;
-  }
-  
-  .welcome-chip.MuiChip-root {
-    height: 38px;
-    border-radius: 20px;
-  }
-  
-  /* ---------- Buttons ---------- */
-  
-  .welcome-buttons {
-    margin-top: 34px !important;
-  }
-  
-  .btn-primary {
-    background: var(--surface) !important;
-    color: var(--primary) !important;
-    font-weight: 600 !important;
-    text-transform: none !important;
-    border-radius: 10px !important;
-    padding: 10px 22px !important;
-  }
-  
-  .btn-primary:hover {
-    background: var(--surface-solid) !important;
-  }
-  
-  .btn-outline {
-    color: var(--text-h) !important;
-    border: 1px solid var(--surface) !important;
-    text-transform: none !important;
-    border-radius: 10px !important;
-    padding: 10px 22px !important;
-  }
-  
-  .btn-outline:hover {
-    background: rgba(255, 255, 255, 0.15) !important;
-    border-color: var(--text-h) !important;
-  }
-  
-  /* ---------- Profile ---------- */
-  
-  .welcome-profile {
-    min-width: 260px;
-    text-align: center;
-  }
-  
-  .manager-avatar {
-    width: 90px !important;
-    height: 90px !important;
-    margin: 0 auto 16px !important;
-    background: var(--surface) !important;
-    color: var(--primary) !important;
-    font-size: 34px !important;
-    font-weight: 700 !important;
-  }
-  
-  .manager-role {
-    margin-top: 6px;
-    opacity: 0.9;
-    color: var(--text-light);
-  }
-  
-  .login-title {
-    margin-top: 18px !important;
-    opacity: 0.8;
-    color: var(--text-light);
-  }
+  padding: 2.5rem;
+  border-radius: 24px !important;
+  background: linear-gradient(135deg, var(--surface) 0%, #f8fafc 100%) !important;
+  box-shadow: 0 10px 40px -10px rgba(59, 105, 120, 0.08) !important;
+  border: 1px solid rgba(59, 105, 120, 0.08);
+  color: var(--text-h);
+  overflow: hidden;
+  position: relative;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(59, 105, 120, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: 15%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(91, 146, 121, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.welcome-content, .welcome-profile {
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-content {
+  flex: 1;
+}
+
+.welcome-title {
+  font-weight: 800 !important;
+  color: var(--primary);
+  font-size: 2.2rem !important;
+  letter-spacing: -0.5px;
+}
+
+.welcome-subtitle {
+  margin-top: 8px !important;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+  color: var(--text-h);
+}
+
+.welcome-description {
+  margin-top: 16px !important;
+  max-width: 650px;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+/* ---------- Chips ---------- */
+
+.welcome-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.welcome-chip {
+  margin: 0 !important;
+  height: 34px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.welcome-chip .MuiChip-label {
+  padding: 0 16px;
+  color: var(--surface) !important;
+}
+
+/* Make specific chips use their theme colors better */
+.welcome-chip.MuiChip-colorDefault .MuiChip-label {
+  color: var(--text-h) !important;
+}
+.welcome-chip.MuiChip-colorDefault {
+  background: var(--bg) !important;
+  border: 1px solid var(--border);
+}
+
+/* ---------- Buttons ---------- */
+
+.welcome-buttons {
+  margin-top: 32px !important;
+}
+
+.btn-primary {
+  background: var(--primary) !important;
+  color: var(--surface) !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  border-radius: 12px !important;
+  padding: 10px 24px !important;
+  box-shadow: 0 4px 14px rgba(59, 105, 120, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover {
+  background: var(--info) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 105, 120, 0.3) !important;
+}
+
+.btn-outline {
+  color: var(--primary) !important;
+  border: 1.5px solid rgba(59, 105, 120, 0.2) !important;
+  background: var(--surface) !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  border-radius: 12px !important;
+  padding: 10px 24px !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-outline:hover {
+  background: rgba(59, 105, 120, 0.05) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-2px);
+}
+
+/* ---------- Profile ---------- */
+
+.welcome-profile {
+  min-width: 260px;
+  text-align: center;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(10px);
+}
+
+.manager-avatar {
+  width: 80px !important;
+  height: 80px !important;
+  margin: 0 auto 16px !important;
+  background: linear-gradient(135deg, var(--primary), var(--info)) !important;
+  color: var(--surface) !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 24px rgba(59, 105, 120, 0.3) !important;
+  border: 3px solid var(--surface);
+}
+
+.manager-role {
+  margin-top: 4px;
+  font-weight: 500;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.login-title {
+  margin-top: 20px !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-light);
+  font-weight: 600;
+}
   
   /* ---------- Tablet ---------- */
   
