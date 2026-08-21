@@ -16,10 +16,7 @@
 
 .leave-title {
   font-weight: 800 !important;
-  color: #8b5cf6 !important;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary) !important;
   display: inline-block;
 }
 

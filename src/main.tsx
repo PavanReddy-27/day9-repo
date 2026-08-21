@@ -19,13 +19,17 @@ import { ThemeProvider } from './context/ThemeContext';
 import './index.css';
 import './styles/theme.css';
 
+import { AppThemeProvider } from './theme/AppThemeProvider';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
         <AuthProvider>
           <ThemeProvider>
-            <App />
+            <AppThemeProvider>
+              <App />
+            </AppThemeProvider>
           </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>

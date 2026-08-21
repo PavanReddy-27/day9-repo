@@ -16,15 +16,12 @@
 
 .leave-title {
   font-weight: 800 !important;
-  color: #0ea5e9 !important;
-  background: linear-gradient(90deg, #4f46e5, #0ea5e9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary) !important;
   display: inline-block;
 }
 
 .apply-leave-btn {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+  color: var(--primary) !important;
   border-radius: 12px !important;
   text-transform: none !important;
   font-weight: 600 !important;

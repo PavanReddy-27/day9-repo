@@ -182,12 +182,16 @@ button {
 
 [data-theme="dark"] .MuiDataGrid-root,
 [data-theme="dark"] .MuiDataGrid-main,
+[data-theme="dark"] .MuiDataGrid-virtualScroller,
+[data-theme="dark"] .MuiDataGrid-footerContainer {
+  background-color: transparent !important;
+  color: var(--text-h) !important;
+}
+
 [data-theme="dark"] .MuiDataGrid-columnHeaders,
 [data-theme="dark"] .MuiDataGrid-columnHeadersInner,
 [data-theme="dark"] .MuiDataGrid-topContainer,
 [data-theme="dark"] .MuiDataGrid-filler,
-[data-theme="dark"] .MuiDataGrid-virtualScroller,
-[data-theme="dark"] .MuiDataGrid-footerContainer,
 [data-theme="dark"] .shared-data-grid .MuiDataGrid-columnHeaders,
 [data-theme="dark"] .shared-data-grid .MuiDataGrid-columnHeadersInner,
 [data-theme="dark"] .shared-data-grid .MuiDataGrid-topContainer,
@@ -196,7 +200,7 @@ button {
 [data-theme="dark"] .employee-data-grid .MuiDataGrid-columnHeadersInner,
 [data-theme="dark"] .employee-data-grid .MuiDataGrid-topContainer,
 [data-theme="dark"] .employee-data-grid .MuiDataGrid-filler {
-  background-color: transparent !important;
+  background-color: var(--surface-solid) !important;
   color: var(--text-h) !important;
 }
 

@@ -139,7 +139,10 @@ const EmployeeTrendChart = ({
             itemStyle={{ color: "var(--text)" }}
           />
 
-          <Legend />
+          <Legend
+            wrapperStyle={{ color: "var(--text)" }}
+            formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>}
+          />
 
           <Area
             type="monotone"
