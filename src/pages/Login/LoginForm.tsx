@@ -257,7 +257,7 @@ const LoginForm = () => {
           <p className="form-subtitle">Enter the 6-digit code from Google Authenticator.</p>
         </Box>
         {error && <Alert severity="error">{error}</Alert>}
-        
+
         <TextField
           autoFocus
           fullWidth
@@ -270,7 +270,7 @@ const LoginForm = () => {
           }}
           slotProps={{ htmlInput: { maxLength: 6, style: { textAlign: 'center', letterSpacing: '8px', fontSize: '24px' } } }}
         />
-        
+
         <Button
           type="submit"
           variant="contained"
