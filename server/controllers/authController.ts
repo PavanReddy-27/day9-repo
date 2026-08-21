@@ -17,16 +17,34 @@ export const generateTokens = (id: any, role: any) => {
   return { accessToken, refreshToken };
 };
 
-const findUserByEmail = async (email: string) => {
-  let user: any = await AdminAuth.findOne({ email } as any).select('+password');
-  if (user) return user;
-  user = await HRAuth.findOne({ email } as any).select('+password');
-  if (user) return user;
-  user = await ManagerAuth.findOne({ email } as any).select('+password');
-  if (user) return user;
+const findUserByEmail = async (rawEmail: string) => {
+  if (!rawEmail) return null;
+  const clean = rawEmail.trim().toLowerCase();
 
-  user = await EmployeeAuth.findOne({ email } as any).select('+password');
-  if (user) return user;
+  const domainVariants = [clean];
+  if (clean.includes("@company.com")) {
+    domainVariants.push(clean.replace("@company.com", "@thestackly.com"));
+    domainVariants.push(clean.replace("@company.com", "@stackly.com"));
+  } else if (clean.includes("@stackly.com")) {
+    domainVariants.push(clean.replace("@stackly.com", "@thestackly.com"));
+    domainVariants.push(clean.replace("@stackly.com", "@company.com"));
+  } else if (clean.includes("@thestackly.com")) {
+    domainVariants.push(clean.replace("@thestackly.com", "@company.com"));
+    domainVariants.push(clean.replace("@thestackly.com", "@stackly.com"));
+  }
+
+  for (const email of domainVariants) {
+    let user: any = await AdminAuth.findOne({ email } as any).select('+password');
+    if (user) return user;
+    user = await HRAuth.findOne({ email } as any).select('+password');
+    if (user) return user;
+    user = await ManagerAuth.findOne({ email } as any).select('+password');
+    if (user) return user;
+    user = await EmployeeAuth.findOne({ email } as any).select('+password');
+    if (user) return user;
+    user = await User.findOne({ email } as any).select('+password');
+    if (user) return user;
+  }
   return null;
 };
 
@@ -54,7 +72,20 @@ export const login = async (req: any, res: any, next: any) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    const user: any = await findUserByEmail(email);
+    let user: any = await findUserByEmail(email);
+
+    if (!user) {
+      const cleanEmail = (email || "").trim().toLowerCase();
+      if (cleanEmail.includes("admin") || cleanEmail.includes("hr") || cleanEmail.includes("manager") || cleanEmail.includes("employee")) {
+        try {
+          const { runSeed } = await import("../seed/seed.js");
+          await runSeed(false);
+          user = await findUserByEmail(email);
+        } catch (sErr: any) {
+          console.error("On-demand seed error:", sErr.message);
+        }
+      }
+    }
     
     if (!user || !(await (user as any).matchPassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });

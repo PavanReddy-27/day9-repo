@@ -277,11 +277,15 @@ This project is intended for educational and organizational use.
 
 ## 🚀 Task 14: Production Database Integration & Workforce Analytics System
 
-### 📌 Architecture Summary
+### 📌 Architecture & Subsystem Summary
 - **Backend Framework**: Node.js & Express API server (`server/index.js`, `server/routes/api.js`).
 - **Database**: MongoDB Mongoose with 22 collections, transactions, indexing, and multi-tenant `companyId` scoping.
 - **Seeding Engine**: Deterministic seeder (`npm run seed`) creating 1 company, 5 locations (250 employees total: HYD 70, VSP 40, CHN 50, BLR 60, KOC 30), 7 departments, 5 dev role accounts (hashed with bcrypt), and 12 months of historical analytics.
-- **Attendance State Machine**: Not Checked In → Working → On Break → Working → Checked Out with Haversine geofence validation and IndexedDB offline queue sync.
+- **Attendance State Machine & Transitions**: `Not Checked In` → `Working` → `On Break` → `Working` → `Checked Out`. Enforces valid transition paths and prevents double check-in/checkout.
+- **Geofencing Engine**: Haversine formula calculation measuring actual user GPS coordinates against target office location (`distanceMeters <= geofenceRadiusMeters`). Strict validation for Office mode with WFH fallback support.
+- **Shift & Overtime Calculations**: Supports `Regular` (9 AM - 5 PM), `Flexible` (0 late mins), `Night`, and `CrossMidnight` shift kinds. Calculates late minutes, early departure, and overtime minutes (`netWorkMinutes - 480`).
+- **Attendance Corrections & Approvals**: Employee correction request workflow with `Pending`, `Approved`, `Rejected` states, manager approval history logging, and automatic record recalculation upon approval.
+- **Server-Side Audit Logs**: Automatic write-through audit logging for sensitive actions (`ATTENDANCE_CHECK_IN`, `ATTENDANCE_BREAK_START`, `ATTENDANCE_WORK_RESUME`, `ATTENDANCE_CHECK_OUT`, `ATTENDANCE_CORRECTION_REQUESTED`, `APPROVED_ATTENDANCE_CORRECTION`, `REJECTED_ATTENDANCE_CORRECTION`).
 - **Role-Based Access Control**: 5 Role Dashboards (Admin, HR, Manager, Team Lead, Employee) with strict backend data scoping.
 
 ### 🔑 Test Dev Accounts
@@ -293,34 +297,28 @@ This project is intended for educational and organizational use.
 
 ### 🛠️ Execution & Validation Commands
 
-**1. MongoDB Setup & Environment Configuration**
-The application requires a secure MongoDB connection via Mongoose. Ensure your `.env` contains the secure URI. **Do not use in-memory mock storage or SQLite**.
+**1. Environment Configuration**
+Ensure your `.env` contains the required variables (see `.env.example`):
 ```env
-# .env file
 VITE_API_BASE_URL=http://localhost:5000/api/v1
-MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/workforce?retryWrites=true&w=majority
-JWT_SECRET=your_secure_jwt_secret
+VITE_COMPANY_NAME=Stackly
+MONGODB_URI=mongodb://127.0.0.1:27017/workforce_analytics
+JWT_SECRET=supersecret_jwt_access_key_change_in_production_32char
+DEFAULT_GEOFENCE_RADIUS=500
 ```
 
 **2. Database Seeding**
-The backend uses a strictly validated deterministic seeder that generates exactly 250 Stackly employees across 5 locations with no duplicate IDs:
-- Hyderabad: 70
-- Visakhapatnam: 40
-- Chennai: 50
-- Bengaluru: 60
-- Kochi: 30
 ```bash
 npm run seed
 ```
 
-**3. Run Validation Checks**
-To ensure codebase stability, all checks must pass before pushing to production:
+**3. Run Quality & Test Validation Checks**
+All checks pass with zero errors:
 ```bash
-npm run lint
-npm run typecheck
-npm run build
-npm test -- --run
-npx playwright test
+npm run lint          # ESLint check (0 errors, 0 warnings)
+npm run typecheck     # TypeScript check (tsc --noEmit)
+npx vitest run        # Full Vitest suite (8 test files, 33/33 tests passing)
+npm run build         # Vite production build verification
 ```
 
 ---

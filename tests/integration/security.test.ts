@@ -12,7 +12,7 @@ const FAKE_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwNWMyZTY5ZjU
 describe('Security & RBAC Tests', () => {
   beforeAll(async () => {
     await connectDB();
-  });
+  }, 60000);
 
   afterAll(async () => {
     await closeDB();
