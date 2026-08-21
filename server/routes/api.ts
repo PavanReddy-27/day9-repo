@@ -101,13 +101,13 @@ router.get("/attendance/global", authenticateJWT, getGlobalAttendance);
 // Attendance Corrections Routes
 router.post("/attendance/corrections", authenticateJWT, validateRequest(correctionSchema), createCorrection);
 router.get("/attendance/corrections", authenticateJWT, getCorrections);
-router.patch("/attendance/corrections/:id/approve", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), approveCorrection);
-router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), rejectCorrection);
+router.patch("/attendance/corrections/:id/approve", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), approveCorrection);
+router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), rejectCorrection);
 
 // Leave Requests Routes
 router.get("/leaves", authenticateJWT, getLeaveRequests);
 router.post("/leaves", authenticateJWT, requireRole(["Employee"]), createLeaveRequest);
-router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager", "HR", "Admin"]), validateObjectId("id"), updateLeaveStatus);
+router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), updateLeaveStatus);
 
 // Audit Logs (Admin / HR only)
 router.get("/audit-logs", authenticateJWT, requireRole(["Admin", "HR"]), getAuditLogs);

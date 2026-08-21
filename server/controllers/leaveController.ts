@@ -114,10 +114,10 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
     }
 
     const role = (req as any).user?.role || (req as any).role;
-    if (!["Manager", "HR", "Admin"].includes(role)) {
+    if (role !== "Manager") {
       await session.abortTransaction();
       session.endSession();
-      res.status(403).json({ error: "Only managers, HR, or admins may approve or reject leave requests" });
+      res.status(403).json({ error: "Only managers may approve or reject leave requests" });
       return;
     }
 

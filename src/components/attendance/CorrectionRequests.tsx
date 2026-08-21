@@ -98,33 +98,33 @@ export const CorrectionRequests = () => {
         <Table sx={{ '& th, & td': { color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' } }}>
           <TableHead>
             <TableRow>
-              <TableCell>Date/Record ID</TableCell>
-              {user.role !== 'Employee' && <TableCell>Employee</TableCell>}
-              <TableCell>Req. Check In</TableCell>
-              <TableCell>Req. Check Out</TableCell>
-              <TableCell>Status</TableCell>
-              {user.role !== 'Employee' && <TableCell>Action</TableCell>}
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Date/Record ID</TableCell>
+              {user.role !== 'Employee' && <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Employee</TableCell>}
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Req. Check In</TableCell>
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Req. Check Out</TableCell>
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Status</TableCell>
+              {user.role === 'Manager' && <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Action</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
             {corrections.length === 0 ? (
-              <TableRow><TableCell colSpan={6} align="center">No requests found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} align="center" sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>No requests found.</TableCell></TableRow>
             ) : (
               corrections.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell>{c.date || c.recordId}</TableCell>
-                  {user.role !== 'Employee' && <TableCell>{c.employeeName}</TableCell>}
-                  <TableCell>{c.requestedCheckIn || '-'}</TableCell>
-                  <TableCell>{c.requestedCheckOut || '-'}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.date || c.recordId}</TableCell>
+                  {user.role !== 'Employee' && <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.employeeName}</TableCell>}
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.requestedCheckIn || '-'}</TableCell>
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.requestedCheckOut || '-'}</TableCell>
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>
                     <Chip 
                       label={c.status} 
                       size="small" 
                       color={c.status === 'Approved' ? 'success' : c.status === 'Rejected' ? 'error' : 'warning'} 
                     />
                   </TableCell>
-                  {user.role !== 'Employee' && (
-                    <TableCell>
+                  {user.role === 'Manager' && (
+                    <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>
                       <Button size="small" onClick={() => { setSelectedCorrection(c); setReviewOpen(true); }}>Review</Button>
                     </TableCell>
                   )}
