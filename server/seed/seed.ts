@@ -81,51 +81,41 @@ export async function runSeed(reset = false) {
   console.log(`[Seed Engine] Starting deterministic seeding (Reset=${reset})...`);
   await connectDB();
 
-  if (reset) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("[Seed Engine] ERROR: Cannot reset database in production environment!");
-      process.exit(1);
-    }
-    console.log("[Seed Engine] Reset flag detected. Clearing collections...");
-    await Promise.all([
-      Company.deleteMany({}),
-      Location.deleteMany({}),
-      Department.deleteMany({}),
-      Team.deleteMany({}),
-      User.deleteMany({}),
-      Employee.deleteMany({}),
-      AdminAuth.deleteMany({}),
-      HRAuth.deleteMany({}),
-      ManagerAuth.deleteMany({}),
-      EmployeeAuth.deleteMany({}),
-      Shift.deleteMany({}),
-      ShiftAssignment.deleteMany({}),
-      AttendanceRecord.deleteMany({}),
-      AttendanceEvent.deleteMany({}),
-      BreakSession.deleteMany({}),
-      CorrectionRequest.deleteMany({}),
-      ApprovalHistory.deleteMany({}),
-      PerformanceRecord.deleteMany({}),
-      ProductivityRecord.deleteMany({}),
-      Skill.deleteMany({}),
-      EmployeeSkill.deleteMany({}),
-      Task.deleteMany({}),
-      LeaveRequest.deleteMany({}),
-      Notification.deleteMany({}),
-      AuditLog.deleteMany({}),
-      IdempotencyRecord.deleteMany({}),
-    ]);
-    await PerformanceRecord.collection.dropIndexes().catch(() => {});
+  if (process.env.NODE_ENV === "production") {
+    console.error("[Seed Engine] ERROR: Cannot reset database in production environment!");
+    process.exit(1);
   }
-
-  // Check if company already exists to prevent duplicate runs without reset
-  const existingCompany = await Company.findOne({ code: "STACKLY" });
-  if (existingCompany && !reset) {
-    console.log("[Seed Engine] Database already populated. Use --reset to re-seed.");
-    await printCollectionCounts();
-    await closeDB();
-    return;
-  }
+  
+  console.log("[Seed Engine] Clearing collections to ensure idempotency and remove duplicates/orphans...");
+  await Promise.all([
+    Company.deleteMany({}),
+    Location.deleteMany({}),
+    Department.deleteMany({}),
+    Team.deleteMany({}),
+    User.deleteMany({}),
+    Employee.deleteMany({}),
+    AdminAuth.deleteMany({}),
+    HRAuth.deleteMany({}),
+    ManagerAuth.deleteMany({}),
+    EmployeeAuth.deleteMany({}),
+    Shift.deleteMany({}),
+    ShiftAssignment.deleteMany({}),
+    AttendanceRecord.deleteMany({}),
+    AttendanceEvent.deleteMany({}),
+    BreakSession.deleteMany({}),
+    CorrectionRequest.deleteMany({}),
+    ApprovalHistory.deleteMany({}),
+    PerformanceRecord.deleteMany({}),
+    ProductivityRecord.deleteMany({}),
+    Skill.deleteMany({}),
+    EmployeeSkill.deleteMany({}),
+    Task.deleteMany({}),
+    LeaveRequest.deleteMany({}),
+    Notification.deleteMany({}),
+    AuditLog.deleteMany({}),
+    IdempotencyRecord.deleteMany({}),
+  ]);
+  await PerformanceRecord.collection.dropIndexes().catch(() => {});
 
   // 1. Create Company (Stackly — the code doubles as the human-readable id)
   const company = await Company.create({
