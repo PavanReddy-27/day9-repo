@@ -6,6 +6,10 @@ import TokenBlacklist from '../models/TokenBlacklist.js';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 
+// Google Authenticator uses 30s TOTP steps. Allow ±1 step (±30s) so small clock
+// drift between the phone and the server doesn't reject otherwise-valid codes.
+authenticator.options = { window: 1 };
+
 // Helper to generate tokens
 export const generateTokens = (id: any, role: any) => {
   const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET!, { expiresIn: '15m' });
@@ -27,14 +31,17 @@ const findUserByEmail = async (email: string) => {
 };
 
 const findUserById = async (id: string) => {
-  let user: any = await AdminAuth.findById(id as any);
+  // +mfaSecret is select:false on the schema; MFA verification needs it, so
+  // explicitly include it here (without it, verifyLoginMfa always sees an
+  // undefined secret and rejects every Google Authenticator code).
+  let user: any = await AdminAuth.findById(id as any).select('+mfaSecret');
   if (user) return user;
-  user = await HRAuth.findById(id as any);
+  user = await HRAuth.findById(id as any).select('+mfaSecret');
   if (user) return user;
-  user = await ManagerAuth.findById(id as any);
+  user = await ManagerAuth.findById(id as any).select('+mfaSecret');
   if (user) return user;
 
-  user = await EmployeeAuth.findById(id as any);
+  user = await EmployeeAuth.findById(id as any).select('+mfaSecret');
   if (user) return user;
   return null;
 };
