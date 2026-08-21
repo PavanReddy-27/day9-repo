@@ -75,7 +75,7 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
       status: "Pending",
     });
 
-    const populatedLeave = await (LeaveRequest as any).findById(newLeave._id as any).populate("employeeId", "firstName lastName employeeId");
+    const populatedLeave = await (LeaveRequest as any).findOne({ _id: newLeave._id, companyId }).populate("employeeId", "firstName lastName employeeId");
 
     await writeAuditLog(req, "LEAVE_REQUESTED", `Requested ${type} leave (${startDate} to ${endDate})`, "LeaveRequest", newLeave._id);
 
@@ -107,8 +107,8 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
 
     const reviewerId = (req as any).employee?._id || (req as any).user?.id;
 
-    const leave = await (LeaveRequest as any).findByIdAndUpdate(
-      id,
+    const leave = await (LeaveRequest as any).findOneAndUpdate(
+      { _id: id, companyId: (req as any).companyId },
       {
         status,
         reviewedBy: reviewerId || null,
