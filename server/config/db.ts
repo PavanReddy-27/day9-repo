@@ -1,8 +1,5 @@
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { execSync } from 'child_process';
-
-let mongoServer: MongoMemoryServer | null = null;
 
 const connectDB = async () => {
   try {
@@ -13,25 +10,8 @@ const connectDB = async () => {
     }
     throw new Error('No MONGODB_URI provided');
   } catch (error) {
-    console.warn(`Real MongoDB connection failed (${error.message}). Falling back to In-Memory DB...`);
-    
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    
-    const conn = await mongoose.connect(uri);
-    console.log(`In-Memory MongoDB Connected: ${conn.connection.host}`);
-    
-    console.log(`Running automatic seed for In-Memory DB...`);
-    try {
-      const { exec } = await import('child_process');
-      const { promisify } = await import('util');
-      const execAsync = promisify(exec);
-      await execAsync('npm run seed', { env: { ...process.env, MONGODB_URI: uri } });
-      console.log('Automatic seed complete!');
-    } catch (e) {
-      console.error('Failed to run seed script automatically:', e);
-    }
-    return conn;
+    console.error(`Real MongoDB connection failed (${error.message}). Exiting...`);
+    process.exit(1);
   }
 };
 
@@ -49,16 +29,12 @@ export const getDBHealth = () => {
     state: READY_STATES[readyState] ?? "unknown",
     host: mongoose.connection.host,
     name: mongoose.connection.name,
-    inMemory: mongoServer !== null,
+    inMemory: false,
   };
 };
 
 export const closeDB = async () => {
   await mongoose.connection.close();
-  if (mongoServer) {
-    await mongoServer.stop();
-    mongoServer = null;
-  }
 };
 
 export default connectDB;
