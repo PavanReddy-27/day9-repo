@@ -292,7 +292,7 @@ export const startBreak = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "BREAK_STARTED", recordId: record._id });
-    void writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString(), { session });
+    void writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error) {
     if (session.inTransaction()) await session.abortTransaction();
