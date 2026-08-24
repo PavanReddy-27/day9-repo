@@ -41,8 +41,11 @@ export const authenticateJWT = async (req, res, next) => {
     
     // Also set employee/company info for controllers
     const userDoc = await findUserById(decoded.id) as any;
-    if (userDoc) {
-      let employeeDoc: any = null;
+    if (!userDoc) {
+      return res.status(401).json({ success: false, message: 'User no longer exists. Please log in again.' });
+    }
+    
+    let employeeDoc: any = null;
       
       // Try matching by employeeId, userId (_id), or email
       employeeDoc = await Employee.findOne({
@@ -76,7 +79,6 @@ export const authenticateJWT = async (req, res, next) => {
       req.companyId = employeeDoc ? employeeDoc.companyId : userDoc.companyId;
       req.role = userDoc.role;
       req.userEmail = userDoc.email;
-    }
 
     next();
   } catch (error) {

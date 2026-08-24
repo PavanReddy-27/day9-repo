@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0.76% </span>
+                <span class="strong">0.75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1/130</span>
+                <span class='fraction'>1/133</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/136</span>
+                <span class='fraction'>0/137</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0.84% </span>
+                <span class="strong">0.81% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/119</span>
+                <span class='fraction'>1/122</span>
             </div>
         
             
@@ -539,7 +539,14 @@
 <a name='L474'></a><a href='#L474'>474</a>
 <a name='L475'></a><a href='#L475'>475</a>
 <a name='L476'></a><a href='#L476'>476</a>
-<a name='L477'></a><a href='#L477'>477</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L477'></a><a href='#L477'>477</a>
+<a name='L478'></a><a href='#L478'>478</a>
+<a name='L479'></a><a href='#L479'>479</a>
+<a name='L480'></a><a href='#L480'>480</a>
+<a name='L481'></a><a href='#L481'>481</a>
+<a name='L482'></a><a href='#L482'>482</a>
+<a name='L483'></a><a href='#L483'>483</a>
+<a name='L484'></a><a href='#L484'>484</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -677,6 +684,13 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1036,7 +1050,7 @@ const AttendanceTracker = <span class="fstat-no" title="function not covered" >(
   const [currentLocation, setCurrentLocation<span class="cstat-no" title="statement not covered" >] = useState&lt;Location | null&gt;(null);</span>
   const [isOnline, setIsOnline<span class="cstat-no" title="statement not covered" >] = useState(navigator.onLine);</span>
   const [currentTime, setCurrentTime<span class="cstat-no" title="statement not covered" >] = useState(new Date());</span>
-  const [shiftType, setShiftType<span class="cstat-no" title="statement not covered" >] = useState&lt;ShiftType&gt;("Regular");</span>
+  const [shiftType, setShiftType<span class="cstat-no" title="statement not covered" >] = useState&lt;ShiftType&gt;("General");</span>
   const [workMode, setWorkMode<span class="cstat-no" title="statement not covered" >] = useState&lt;"Office" | "Work From Home"&gt;("Work From Home");</span>
   const [isLocating, setIsLocating<span class="cstat-no" title="statement not covered" >] = useState(false);</span>
   const [wfhPrompt, setWfhPrompt<span class="cstat-no" title="statement not covered" >] = useState&lt;{ open: boolean, loc: Location | null }&gt;({ open: false, loc: null });</span>
@@ -1150,9 +1164,16 @@ const AttendanceTracker = <span class="fstat-no" title="function not covered" >(
       let loc = <span class="cstat-no" title="statement not covered" >currentLocation;</span>
 <span class="cstat-no" title="statement not covered" >      if (!loc) {</span>
 <span class="cstat-no" title="statement not covered" >        setIsLocating(true);</span>
-<span class="cstat-no" title="statement not covered" >        loc = await getLocation();</span>
-<span class="cstat-no" title="statement not covered" >        setCurrentLocation(loc);</span>
-<span class="cstat-no" title="statement not covered" >        setIsLocating(false);</span>
+<span class="cstat-no" title="statement not covered" >        try {</span>
+<span class="cstat-no" title="statement not covered" >          loc = await getLocation();</span>
+<span class="cstat-no" title="statement not covered" >          setCurrentLocation(loc);</span>
+        } catch (err) {
+          // Fallback to default office location if GPS is denied/unavailable on desktop
+<span class="cstat-no" title="statement not covered" >          loc = { latitude: 17.3850, longitude: 78.4867, accuracy: 10 } as Location;</span>
+<span class="cstat-no" title="statement not covered" >          setCurrentLocation(loc);</span>
+        } finally {
+<span class="cstat-no" title="statement not covered" >          setIsLocating(false);</span>
+        }
       }
 &nbsp;
       const validationError = <span class="cstat-no" title="statement not covered" >validateGeofenceAndAccuracy(loc);</span>
@@ -1274,7 +1295,7 @@ const AttendanceTracker = <span class="fstat-no" title="function not covered" >(
             {(error || geoError) &amp;&amp; (
               &lt;Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}&gt;
                 {error &amp;&amp; &lt;Alert severity="error"&gt;{error}&lt;/Alert&gt;}
-                {geoError &amp;&amp; &lt;Alert severity="warning"&gt;{geoError}&lt;/Alert&gt;}
+                {geoError &amp;&amp; geoError !== error &amp;&amp; &lt;Alert severity="warning"&gt;{geoError}&lt;/Alert&gt;}
               &lt;/Box&gt;
             )}
 &nbsp;
@@ -1364,10 +1385,10 @@ const AttendanceTracker = <span class="fstat-no" title="function not covered" >(
                     onChange={<span class="fstat-no" title="function not covered" >(e</span>) =&gt; <span class="cstat-no" title="statement not covered" >setShiftType(e.target.value as ShiftType)}</span>
                     sx={{ color: "var(--text-h)", bgcolor: "var(--bg)", '&amp; .MuiOutlinedInput-notchedOutline': { borderColor: "var(--border)" } }}
                   &gt;
-                    &lt;MenuItem value="Regular"&gt;Regular (9AM - 5PM)&lt;/MenuItem&gt;
-                    &lt;MenuItem value="Flexible"&gt;Flexible&lt;/MenuItem&gt;
-                    &lt;MenuItem value="Night"&gt;Night Shift&lt;/MenuItem&gt;
-                    &lt;MenuItem value="CrossMidnight"&gt;Cross-Midnight&lt;/MenuItem&gt;
+                    &lt;MenuItem value="General"&gt;General Shift (9AM - 5PM)&lt;/MenuItem&gt;
+                    &lt;MenuItem value="Morning"&gt;Morning Shift (6AM - 2PM)&lt;/MenuItem&gt;
+                    &lt;MenuItem value="Afternoon"&gt;Afternoon Shift (2PM - 10PM)&lt;/MenuItem&gt;
+                    &lt;MenuItem value="Night"&gt;Night Shift (10PM - 6AM)&lt;/MenuItem&gt;
                   &lt;/Select&gt;
                 &lt;/FormControl&gt;
                 &lt;Button 
@@ -1498,7 +1519,7 @@ export default AttendanceTracker;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-20T06:49:40.945Z
+                at 2026-08-24T11:19:08.371Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

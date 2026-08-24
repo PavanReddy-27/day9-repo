@@ -20,8 +20,7 @@ const connectDB = async () => {
         memoryServer = await MongoMemoryServer.create({
           instance: {
             dbName: "workforce_analytics",
-            launchTimeoutMS: 120000,
-          },
+          } as any,
         });
       }
       const uri = memoryServer.getUri();

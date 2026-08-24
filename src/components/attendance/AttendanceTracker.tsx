@@ -264,7 +264,7 @@ const AttendanceTracker = () => {
             {(error || geoError) && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
                 {error && <Alert severity="error">{error}</Alert>}
-                {geoError && <Alert severity="warning">{geoError}</Alert>}
+                {geoError && geoError !== error && <Alert severity="warning">{geoError}</Alert>}
               </Box>
             )}
 

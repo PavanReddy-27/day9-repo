@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">35.71% </span>
+                <span class="strong">38.46% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>5/14</span>
+                <span class='fraction'>5/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">16.66% </span>
+                <span class="strong">18.18% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/12</span>
+                <span class='fraction'>2/11</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">35.71% </span>
+                <span class="strong">38.46% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/14</span>
+                <span class='fraction'>5/13</span>
             </div>
         
             
@@ -450,29 +450,7 @@
 <a name='L385'></a><a href='#L385'>385</a>
 <a name='L386'></a><a href='#L386'>386</a>
 <a name='L387'></a><a href='#L387'>387</a>
-<a name='L388'></a><a href='#L388'>388</a>
-<a name='L389'></a><a href='#L389'>389</a>
-<a name='L390'></a><a href='#L390'>390</a>
-<a name='L391'></a><a href='#L391'>391</a>
-<a name='L392'></a><a href='#L392'>392</a>
-<a name='L393'></a><a href='#L393'>393</a>
-<a name='L394'></a><a href='#L394'>394</a>
-<a name='L395'></a><a href='#L395'>395</a>
-<a name='L396'></a><a href='#L396'>396</a>
-<a name='L397'></a><a href='#L397'>397</a>
-<a name='L398'></a><a href='#L398'>398</a>
-<a name='L399'></a><a href='#L399'>399</a>
-<a name='L400'></a><a href='#L400'>400</a>
-<a name='L401'></a><a href='#L401'>401</a>
-<a name='L402'></a><a href='#L402'>402</a>
-<a name='L403'></a><a href='#L403'>403</a>
-<a name='L404'></a><a href='#L404'>404</a>
-<a name='L405'></a><a href='#L405'>405</a>
-<a name='L406'></a><a href='#L406'>406</a>
-<a name='L407'></a><a href='#L407'>407</a>
-<a name='L408'></a><a href='#L408'>408</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L388'></a><a href='#L388'>388</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -548,8 +526,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -559,22 +535,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -901,7 +861,7 @@ import AdminRoles from "../pages/admin/Roles";
 import AdminDepartments from "../pages/admin/Departments";
 import AdminReports from "../pages/admin/Reports";
 import AdminAuditLogs from "../pages/admin/AuditLogs";
-import AdminSettings from "../pages/admin/Settings";
+import Settings from "../pages/Settings";
 &nbsp;
 // HR Pages
 import HRDashboard from "../pages/HR/Dashboard";
@@ -916,8 +876,6 @@ import ManagerTeam from "../manager/pages/Team";
 import ManagerPerformance from "../manager/pages/Performance";
 import ManagerAnalytics from "../manager/pages/Analytics";
 &nbsp;
-// Team Lead Pages
-import TeamLeadDashboard from "../pages/TeamLead/Dashboard";
 &nbsp;
 import SharedLeaveRequests from "../pages/shared/LeaveRequests/LeaveRequests";
 &nbsp;
@@ -954,8 +912,6 @@ const AppRoutes = () =&gt; {
       case "Manager":
 <span class="cstat-no" title="statement not covered" >        return "/manager/dashboard";</span>
 &nbsp;
-      case "Team Lead":
-<span class="cstat-no" title="statement not covered" >        return "/teamlead/dashboard";</span>
 &nbsp;
       case "Employee":
 <span class="cstat-no" title="statement not covered" >        return "/employee/dashboard";</span>
@@ -1063,7 +1019,7 @@ const AppRoutes = () =&gt; {
 &nbsp;
           &lt;Route
             path="/admin/settings"
-            element={&lt;AdminSettings /&gt;}
+            element={&lt;Settings /&gt;}
           /&gt;
 &nbsp;
           {/* === HR Pages for Admin === */}
@@ -1156,6 +1112,11 @@ const AppRoutes = () =&gt; {
             path="/hr/analytics"
             element={&lt;HRAnalytics /&gt;}
           /&gt;
+&nbsp;
+          &lt;Route
+            path="/hr/settings"
+            element={&lt;Settings /&gt;}
+          /&gt;
         &lt;/Route&gt;
       &lt;/Route&gt;
 &nbsp;
@@ -1205,42 +1166,16 @@ const AppRoutes = () =&gt; {
             path="/manager/analytics"
             element={&lt;ManagerAnalytics /&gt;}
           /&gt;
+&nbsp;
+          &lt;Route
+            path="/manager/settings"
+            element={&lt;Settings /&gt;}
+          /&gt;
         &lt;/Route&gt;
       &lt;/Route&gt;
 &nbsp;
 &nbsp;
 &nbsp;
-      {/* ===========================
-          TEAM LEAD
-      ============================ */}
-&nbsp;
-      &lt;Route
-        element={
-          &lt;ProtectedRoute
-            allowedRoles={[
-              "Team Lead",
-              "Admin",
-            ]}
-          /&gt;
-        }
-      &gt;
-        &lt;Route
-          element={&lt;DashboardLayout /&gt;}
-        &gt;
-          &lt;Route
-            path="/teamlead/dashboard"
-            element={&lt;TeamLeadDashboard /&gt;}
-          /&gt;
-          &lt;Route
-            path="/teamlead/attendance"
-            element={&lt;EmployeeAttendance /&gt;}
-          /&gt;
-          &lt;Route
-            path="/teamlead/leave-requests"
-            element={&lt;EmployeeLeaveRequests /&gt;}
-          /&gt;
-        &lt;/Route&gt;
-      &lt;/Route&gt;
 &nbsp;
       {/* ===========================
           EMPLOYEE
@@ -1271,6 +1206,11 @@ const AppRoutes = () =&gt; {
             path="/employee/leave-requests"
             element={&lt;EmployeeLeaveRequests /&gt;}
           /&gt;
+&nbsp;
+          &lt;Route
+            path="/employee/settings"
+            element={&lt;Settings /&gt;}
+          /&gt;
         &lt;/Route&gt;
       &lt;/Route&gt;
 &nbsp;
@@ -1291,7 +1231,7 @@ export default AppRoutes;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-08-20T06:49:40.945Z
+                at 2026-08-24T11:19:08.371Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

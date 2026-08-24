@@ -208,7 +208,7 @@ export const getSkillsAnalytics = async (req, res) => {
       },
     ]);
 
-    const employeesWithSkills = await EmployeeSkill.find({ companyId: new mongoose.Types.ObjectId(req.companyId), employeeId: { $in: validEmployeeIds } }).distinct("employeeId");
+    const employeesWithSkills = await EmployeeSkill.find({ companyId: new mongoose.Types.ObjectId(req.companyId), employeeId: { $in: validEmployeeIds } } as any).distinct("employeeId");
     const coveragePercentage = validEmployeeIds.length > 0 ? Math.round((employeesWithSkills.length / validEmployeeIds.length) * 100) : 0;
 
     return res.status(200).json({

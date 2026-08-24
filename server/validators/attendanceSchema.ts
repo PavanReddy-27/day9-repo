@@ -11,7 +11,7 @@ const locationSchema = z.object({
 export const checkInSchema = z.object({
   location: locationSchema.optional().nullable(),
   source: z.string().optional(),
-  shiftType: z.enum(["Regular", "Night", "CrossMidnight", "Flexible"]).optional(),
+  shiftType: z.enum(["Regular", "Night", "CrossMidnight", "Flexible", "General", "Morning", "Afternoon"]).optional(),
   idempotencyKey: z.string().optional(),
   isWFH: z.boolean().optional(),
   workMode: z.string().optional(),
