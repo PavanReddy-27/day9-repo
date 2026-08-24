@@ -15,7 +15,7 @@ export const getNotifications = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    const notifications = await Notification.find({ userId, companyId })
+    const notifications = await Notification.find({ userId, companyId } as any)
       .sort({ createdAt: -1 })
       .limit(50); // Limit to recent 50 notifications
 
@@ -36,7 +36,7 @@ export const markAsRead = async (req: Request, res: Response): Promise<void> => 
     const companyId = (req as any).companyId;
 
     const notification = await Notification.findOneAndUpdate(
-      { _id: id, userId, companyId },
+      { _id: id, userId, companyId } as any,
       { isRead: true },
       { new: true }
     );
@@ -62,7 +62,7 @@ export const markAllAsRead = async (req: Request, res: Response): Promise<void> 
     const companyId = (req as any).companyId;
 
     await Notification.updateMany(
-      { userId, companyId, isRead: false },
+      { userId, companyId, isRead: false } as any,
       { $set: { isRead: true } }
     );
 

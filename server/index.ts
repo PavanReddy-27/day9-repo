@@ -15,27 +15,50 @@ const PORT = process.env.PORT || 5000;
 
 // Security & Middleware
 app.use(helmet());
+
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  process.env.CLIENT_URL,
+].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
 app.use(express.json({ limit: "2mb" }));
 
-// Rate Limiting
+// Global Rate Limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { success: false, message: "Too many requests from this IP, please try again later." },
 });
 app.use("/api/v1", apiLimiter);
 
-import path from "path";
-import { fileURLToPath } from "url";
+// Strict Auth Rate Limiter — prevents brute-force login attacks
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many login attempts, please try again after 15 minutes." },
+});
+app.use("/api/v1/auth/login", authLimiter);
+app.use("/api/v1/auth/refresh", authLimiter);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import path from "path";
 
 // Ensure DB Connection Middleware
 app.use(async (req, res, next) => {
@@ -60,12 +83,13 @@ app.get(/.*/, (req, res, next) => {
   res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
-// Centralized Error Handler
+// Centralized Error Handler — never leak stack traces or internal messages in production
 app.use((err: any, req, res, next) => {
   console.error("[Backend Error]", err.message, err.stack);
+  const isProduction = process.env.NODE_ENV === 'production';
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || "Internal Server Error",
+    message: isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
   });
 });
 

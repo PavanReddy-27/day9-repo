@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User.js';
 import Employee from '../models/Employee.js';
 import jwt from 'jsonwebtoken';
@@ -167,7 +168,11 @@ export const refresh = async (req, res) => {
 };
 
 export const logout = async (req: any, res: any, next: any) => {
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    
     const tokensToBlacklist = [];
     
     let accessToken;
@@ -180,10 +185,13 @@ export const logout = async (req: any, res: any, next: any) => {
     if (refreshToken) tokensToBlacklist.push({ token: refreshToken });
     
     if (tokensToBlacklist.length > 0) {
-      await TokenBlacklist.insertMany(tokensToBlacklist);
+      await TokenBlacklist.insertMany(tokensToBlacklist, { session });
     }
     
-    // Close SSE connection for this user
+    await session.commitTransaction();
+    session.endSession();
+
+    // Close SSE connection for this user (fire-and-forget, outside transaction)
     if (req.user && req.user.id) {
       const { closeSSEConnection } = await import('../utils/sse.js');
       // For SSE clients, the id is typically the employee _id (or user _id if employee not found).
@@ -192,9 +200,12 @@ export const logout = async (req: any, res: any, next: any) => {
     
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
     next(error);
   }
 };
+
 
 export const verifyLoginMfa = async (req: any, res: any, next: any) => {
   try {
