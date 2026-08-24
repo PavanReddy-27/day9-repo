@@ -6,6 +6,7 @@ import ApprovalHistory from "../models/ApprovalHistory.js";
 import AuditLog from "../models/AuditLog.js";
 import LocationModel from "../models/Location.js";
 import Employee from "../models/Employee.js";
+import Notification from "../models/Notification.js";
 import mongoose from "mongoose";
 
 import IdempotencyRecord from "../models/IdempotencyRecord.js";
@@ -524,7 +525,7 @@ export const getGlobalAttendance = async (req, res) => {
     }
 
     // Return the authorized employees dataset
-    let rows = await Employee.aggregate([
+    const rows = await Employee.aggregate([
       { $match: empMatch },
       {
         $lookup: {
@@ -842,6 +843,22 @@ export const approveCorrection = async (req, res) => {
 
     void writeAuditLog(req, "APPROVED_ATTENDANCE_CORRECTION", `Approved attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id), { session });
 
+    await correction.populate("employeeId");
+    if (correction.employeeId?.userId) {
+      const reviewedByName = req.employee?.firstName || "your manager";
+      const message = `Your attendance correction request for ${correction.date} has been approved by ${reviewedByName}.`;
+      const notifArr: any = await Notification.create([{
+        companyId: req.companyId,
+        userId: correction.employeeId.userId,
+        title: "Correction Request Approved",
+        message,
+        type: "SUCCESS",
+        linkUrl: "/employee/attendance"
+      }], { session });
+
+      broadcastSSE("NOTIFICATION_UPDATE", { userId: correction.employeeId.userId.toString(), notificationId: notifArr[0]._id }, req.companyId);
+    }
+
     await session.commitTransaction();
     session.endSession();
     return res.status(200).json({ success: true, data: correction });
@@ -882,6 +899,22 @@ export const rejectCorrection = async (req, res) => {
     }], { session });
 
     void writeAuditLog(req, "REJECTED_ATTENDANCE_CORRECTION", `Rejected attendance correction for employee ${correction.employeeId}`, "CorrectionRequest", String(correction._id), { session });
+
+    await correction.populate("employeeId");
+    if (correction.employeeId?.userId) {
+      const reviewedByName = req.employee?.firstName || "your manager";
+      const message = `Your attendance correction request for ${correction.date} has been rejected by ${reviewedByName}.`;
+      const notifArr: any = await Notification.create([{
+        companyId: req.companyId,
+        userId: correction.employeeId.userId,
+        title: "Correction Request Rejected",
+        message,
+        type: "WARNING",
+        linkUrl: "/employee/attendance"
+      }], { session });
+
+      broadcastSSE("NOTIFICATION_UPDATE", { userId: correction.employeeId.userId.toString(), notificationId: notifArr[0]._id }, req.companyId);
+    }
 
     await session.commitTransaction();
     session.endSession();

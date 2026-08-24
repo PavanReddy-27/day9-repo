@@ -60,6 +60,7 @@ const EmployeeLeaveRequests = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLeaves();
   }, []);
 
@@ -162,7 +163,7 @@ const EmployeeLeaveRequests = () => {
       </Box>
 
       {/* Table */}
-      <Paper elevation={0} sx={{ flexGrow: 1, border: "1px solid var(--border)", borderRadius: 2, bgcolor: "var(--surface)", overflow: "hidden" }}>
+      <Paper elevation={0} sx={{ flexGrow: 1, display: "flex", flexDirection: "column", border: "1px solid var(--border)", borderRadius: 2, bgcolor: "var(--surface)", overflow: "hidden" }}>
         <DataGrid
           rows={filteredRows}
           columns={columns}
@@ -175,6 +176,7 @@ const EmployeeLeaveRequests = () => {
           disableRowSelectionOnClick
           sx={{
             border: 0,
+            flexGrow: 1,
             '& .MuiDataGrid-cell': { borderColor: "var(--border)", color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' },
             '& .MuiDataGrid-columnHeaders': { bgcolor: "var(--bg)", borderBottom: "1px solid var(--border)", color: "var(--text-light)" },
             '& .MuiDataGrid-footerContainer': { borderTop: "1px solid var(--border)", color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-light)' },

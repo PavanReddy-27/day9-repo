@@ -1,6 +1,9 @@
 .shared-leave-page {
   padding: 24px;
   animation: fadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px); /* Assuming there's a header */
 }
 
 @keyframes fadeIn {
@@ -119,12 +122,16 @@
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05) !important;
   background-color: var(--surface) !important;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .shared-data-grid {
   border: none !important;
   min-height: 400px;
   background-color: transparent !important;
+  flex-grow: 1;
 }
 .shared-data-grid .MuiDataGrid-root {
   background-color: transparent !important;
