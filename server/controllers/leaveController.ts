@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import LeaveRequest from "../models/LeaveRequest.js";
 import Employee from "../models/Employee.js";
 import { writeAuditLog } from "../utils/audit.js";
+import mongoose from "mongoose";
 
 // @desc    Get all leave requests
 // @route   GET /api/v1/leaves
@@ -50,12 +51,16 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
 // @route   POST /api/v1/leaves
 // @access  Private (Employee)
 export const createLeaveRequest = async (req: Request, res: Response): Promise<void> => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const companyId = (req as any).companyId;
     const { type, startDate, endDate, reason } = req.body;
 
     const empId = (req as any).employee?._id;
     if (!empId) {
+      await session.abortTransaction();
+      session.endSession();
       res.status(404).json({ error: "Employee profile not found" });
       return;
     }
@@ -64,7 +69,7 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
     const toDate = new Date(endDate);
     const durationDays = Math.max(1, Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 3600 * 24)) + 1);
 
-    const newLeave: any = await LeaveRequest.create({
+    const newLeaveArr: any = await LeaveRequest.create([{
       companyId,
       employeeId: empId,
       type,
@@ -73,14 +78,19 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
       durationDays,
       reason,
       status: "Pending",
-    });
+    }], { session });
+    const newLeave = newLeaveArr[0];
 
-    const populatedLeave = await (LeaveRequest as any).findById(newLeave._id as any).populate("employeeId", "firstName lastName employeeId");
+    const populatedLeave = await (LeaveRequest as any).findById(newLeave._id as any).session(session).populate("employeeId", "firstName lastName employeeId");
 
-    await writeAuditLog(req, "LEAVE_REQUESTED", `Requested ${type} leave (${startDate} to ${endDate})`, "LeaveRequest", newLeave._id);
+    await writeAuditLog(req, "LEAVE_REQUESTED", `Requested ${type} leave (${startDate} to ${endDate})`, "LeaveRequest", String(newLeave._id), { session });
 
+    await session.commitTransaction();
+    session.endSession();
     res.status(201).json(populatedLeave);
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
     console.error("Error creating leave request:", error);
     res.status(500).json({ error: "Server error" });
   }
@@ -90,42 +100,54 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
 // @route   PATCH /api/v1/leaves/:id/status
 // @access  Private (Manager / HR / Admin)
 export const updateLeaveStatus = async (req: Request, res: Response): Promise<void> => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { id } = req.params;
     const { status } = req.body;
 
     if (!["Approved", "Rejected"].includes(status)) {
+      await session.abortTransaction();
+      session.endSession();
       res.status(400).json({ error: "Invalid status" });
       return;
     }
 
     const role = (req as any).user?.role || (req as any).role;
-    if (!["Manager", "HR", "Admin"].includes(role)) {
-      res.status(403).json({ error: "Only managers, HR, or admins may approve or reject leave requests" });
+    if (role !== "Manager") {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(403).json({ error: "Only managers may approve or reject leave requests" });
       return;
     }
 
     const reviewerId = (req as any).employee?._id || (req as any).user?.id;
 
-    const leave = await (LeaveRequest as any).findByIdAndUpdate(
-      id,
+    const leave = await (LeaveRequest as any).findOneAndUpdate(
+      { _id: id, companyId: (req as any).companyId },
       {
         status,
         reviewedBy: reviewerId || null,
         reviewedAt: new Date()
       },
-      { new: true }
+      { new: true, session }
     ).populate("employeeId", "firstName lastName employeeId").populate("reviewedBy", "firstName lastName");
 
     if (!leave) {
+      await session.abortTransaction();
+      session.endSession();
       res.status(404).json({ error: "Leave request not found" });
       return;
     }
 
-    await writeAuditLog(req, `LEAVE_${status.toUpperCase()}`, `${status} leave request ${String(id)}`, "LeaveRequest", String(id));
+    await writeAuditLog(req, `LEAVE_${status.toUpperCase()}`, `${status} leave request ${String(id)}`, "LeaveRequest", String(id), { session });
 
+    await session.commitTransaction();
+    session.endSession();
     res.json(leave);
   } catch (error) {
+    if (session.inTransaction()) await session.abortTransaction();
+    session.endSession();
     console.error("Error updating leave status:", error);
     res.status(500).json({ error: "Server error" });
   }

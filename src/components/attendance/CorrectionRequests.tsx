@@ -12,7 +12,7 @@ export const CorrectionRequests = () => {
   const { user } = useAppSelector(state => state.auth);
   const [corrections, setCorrections] = useState<CorrectionRequest[]>([]);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ recordId: '', checkIn: '', checkOut: '', reason: '' });
+  const [form, setForm] = useState({ recordId: '', date: '', checkIn: '', checkOut: '', reason: '' });
   
   // Manager Approval State
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -42,24 +42,40 @@ export const CorrectionRequests = () => {
 
   const handleSubmit = async () => {
     if (!user) return;
-    await attendanceApi.submitCorrection({
-      recordId: form.recordId,
-      employeeId: user.id,
-      employeeName: user.fullName,
-      requestedCheckIn: form.checkIn || null,
-      requestedCheckOut: form.checkOut || null,
-      reason: form.reason
-    });
-    setOpen(false);
-    setForm({ recordId: '', checkIn: '', checkOut: '', reason: '' });
+    try {
+      await attendanceApi.submitCorrection({
+        attendanceRecordId: form.recordId || undefined,
+        date: form.date,
+        employeeId: user.id,
+        employeeName: user.fullName,
+        requestedCheckIn: form.checkIn || null,
+        requestedCheckOut: form.checkOut || null,
+        reason: form.reason
+      } as any);
+      setOpen(false);
+      setForm({ recordId: '', date: '', checkIn: '', checkOut: '', reason: '' });
+      window.dispatchEvent(new Event('corrections_updated'));
+    } catch (error: any) {
+      if (error.data && error.data.errors) {
+        const errorDetails = error.data.errors.map((e: any) => `${e.field}: ${e.message}`).join("\n");
+        alert("Failed to submit:\n" + errorDetails);
+      } else {
+        alert("Failed to submit: " + (error.message || "Unknown error"));
+      }
+    }
   };
 
   const handleReview = async (status: "Approved" | "Rejected") => {
     if (selectedCorrection) {
-       await attendanceApi.reviewCorrection(selectedCorrection.id, status, managerComment);
-       setReviewOpen(false);
-       setSelectedCorrection(null);
-       setManagerComment('');
+       try {
+         await attendanceApi.reviewCorrection(selectedCorrection.id, status, managerComment);
+         setReviewOpen(false);
+         setSelectedCorrection(null);
+         setManagerComment('');
+         window.dispatchEvent(new Event('corrections_updated'));
+       } catch (error: any) {
+         alert("Failed to review: " + (error.message || "Unknown error"));
+       }
     }
   };
 
@@ -68,7 +84,7 @@ export const CorrectionRequests = () => {
   return (
     <Box sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: "var(--text-h)" }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>
           {user.role === 'Employee' ? 'My Correction Requests' : 'Pending Approvals'}
         </Typography>
         {user.role === 'Employee' && (
@@ -79,36 +95,36 @@ export const CorrectionRequests = () => {
       </Box>
 
       <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid var(--border)", borderRadius: 2, bgcolor: "var(--surface)" }}>
-        <Table>
+        <Table sx={{ '& th, & td': { color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' } }}>
           <TableHead>
             <TableRow>
-              <TableCell>Date/Record ID</TableCell>
-              {user.role !== 'Employee' && <TableCell>Employee</TableCell>}
-              <TableCell>Req. Check In</TableCell>
-              <TableCell>Req. Check Out</TableCell>
-              <TableCell>Status</TableCell>
-              {user.role !== 'Employee' && <TableCell>Action</TableCell>}
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Date/Record ID</TableCell>
+              {user.role !== 'Employee' && <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Employee</TableCell>}
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Req. Check In</TableCell>
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Req. Check Out</TableCell>
+              <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Status</TableCell>
+              {user.role === 'Manager' && <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' }}>Action</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
             {corrections.length === 0 ? (
-              <TableRow><TableCell colSpan={6} align="center">No requests found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} align="center" sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>No requests found.</TableCell></TableRow>
             ) : (
               corrections.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell>{c.recordId}</TableCell>
-                  {user.role !== 'Employee' && <TableCell>{c.employeeName}</TableCell>}
-                  <TableCell>{c.requestedCheckIn || '-'}</TableCell>
-                  <TableCell>{c.requestedCheckOut || '-'}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.date || c.recordId}</TableCell>
+                  {user.role !== 'Employee' && <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.employeeName}</TableCell>}
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.requestedCheckIn || '-'}</TableCell>
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>{c.requestedCheckOut || '-'}</TableCell>
+                  <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>
                     <Chip 
                       label={c.status} 
                       size="small" 
                       color={c.status === 'Approved' ? 'success' : c.status === 'Rejected' ? 'error' : 'warning'} 
                     />
                   </TableCell>
-                  {user.role !== 'Employee' && (
-                    <TableCell>
+                  {user.role === 'Manager' && (
+                    <TableCell sx={{ color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'inherit' }}>
                       <Button size="small" onClick={() => { setSelectedCorrection(c); setReviewOpen(true); }}>Review</Button>
                     </TableCell>
                   )}
@@ -123,9 +139,10 @@ export const CorrectionRequests = () => {
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Request Attendance Correction</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField label="Record ID (Date or ID)" size="small" value={form.recordId} onChange={e => setForm({...form, recordId: e.target.value})} />
-          <TextField label="Requested Check In Time (ISO/Time)" size="small" value={form.checkIn} onChange={e => setForm({...form, checkIn: e.target.value})} />
-          <TextField label="Requested Check Out Time (ISO/Time)" size="small" value={form.checkOut} onChange={e => setForm({...form, checkOut: e.target.value})} />
+          <TextField label="Date (YYYY-MM-DD)" type="date" focused size="small" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+          <TextField label="Record ID (Optional)" size="small" value={form.recordId} onChange={e => setForm({...form, recordId: e.target.value})} />
+          <TextField label="Requested Check In Time (HH:MM)" type="time" focused size="small" value={form.checkIn} onChange={e => setForm({...form, checkIn: e.target.value})} />
+          <TextField label="Requested Check Out Time (HH:MM)" type="time" focused size="small" value={form.checkOut} onChange={e => setForm({...form, checkOut: e.target.value})} />
           <TextField label="Reason" size="small" multiline rows={3} value={form.reason} onChange={e => setForm({...form, reason: e.target.value})} />
         </DialogContent>
         <DialogActions>

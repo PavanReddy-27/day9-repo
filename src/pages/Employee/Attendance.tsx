@@ -8,6 +8,7 @@ import AttendanceTracker from "../../components/Attendance/AttendanceTracker";
 import AttendanceChart from "../../components/Attendance/AttendanceChart";
 import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
 import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const EmployeeAttendance = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -168,6 +169,11 @@ const EmployeeAttendance = () => {
           <Box sx={{ flex: 1, minWidth: 300, display: "flex", flexDirection: "column" }}>
             <SmartAttendanceTable records={filteredRecords} role="Employee" defaultSort="asc" hidePagination={true} />
           </Box>
+        </Box>
+        
+        {/* Row 5: Corrections */}
+        <Box sx={{ mt: 2 }}>
+          <CorrectionRequests />
         </Box>
       </Box>
     </Box>

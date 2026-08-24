@@ -24,12 +24,20 @@ import type { GridColDef } from "@mui/x-data-grid";
 
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
+import { EventAvailable, CheckCircle, HourglassEmpty, Cancel } from "@mui/icons-material";
 
 import leaveApi, { LeaveRequestData } from "../../services/leaveApi";
-import "./LeaveRequests.css";
+
+const STATUS_BUTTONS = [
+  { id: "Approved", label: "Approved", color: "#16A34A", bg: "#16A34A1A", icon: CheckCircle },
+  { id: "Pending", label: "Pending", color: "#D97706", bg: "#D977061A", icon: HourglassEmpty },
+  { id: "Rejected", label: "Rejected", color: "#DC2626", bg: "#DC26261A", icon: Cancel },
+];
 
 const EmployeeLeaveRequests = () => {
   const [search, setSearch] = useState("");
+  // Default to showing all records unless a specific status is clicked
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   const [rows, setRows] = useState<LeaveRequestData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,7 +65,6 @@ const EmployeeLeaveRequests = () => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLeaves();
   }, []);
 
@@ -87,41 +94,19 @@ const EmployeeLeaveRequests = () => {
       const matchesSearch =
         item.type.toLowerCase().includes(search.toLowerCase()) ||
         item.reason.toLowerCase().includes(search.toLowerCase());
+      
+      const matchesStatus = !statusFilter || item.status === statusFilter;
 
-      return matchesSearch;
+      return matchesSearch && matchesStatus;
     });
-  }, [rows, search]);
+  }, [rows, search, statusFilter]);
 
   const columns: GridColDef<LeaveRequestData>[] = [
-    {
-      field: "type",
-      headerName: "Leave Type",
-      flex: 1,
-      minWidth: 150,
-    },
-    {
-      field: "startDate",
-      headerName: "From",
-      width: 140,
-    },
-    {
-      field: "endDate",
-      headerName: "To",
-      width: 140,
-    },
-    {
-      field: "durationDays",
-      headerName: "Days",
-      width: 90,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "reason",
-      headerName: "Reason",
-      flex: 1,
-      minWidth: 200,
-    },
+    { field: "type", headerName: "Leave Type", flex: 1, minWidth: 150 },
+    { field: "startDate", headerName: "From", width: 140 },
+    { field: "endDate", headerName: "To", width: 140 },
+    { field: "durationDays", headerName: "Days", width: 90, align: "center", headerAlign: "center" },
+    { field: "reason", headerName: "Reason", flex: 1, minWidth: 200 },
     {
       field: "status",
       headerName: "Status",
@@ -131,8 +116,8 @@ const EmployeeLeaveRequests = () => {
         return (
           <Chip
             label={value}
-            className={`status-chip ${value.toLowerCase()}`}
             size="small"
+            color={value === "Approved" ? "success" : value === "Rejected" ? "error" : "warning"}
           />
         );
       },
@@ -140,46 +125,49 @@ const EmployeeLeaveRequests = () => {
   ];
 
   return (
-    <Box className="employee-leave-page">
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h4" className="leave-title">
-          My Leave Requests
-        </Typography>
+    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+        <Box>
+          <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> My Leave Requests
+          </Typography>
+          <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+            Apply for leave, track your requests, and monitor your time off.
+          </Typography>
+        </Box>
         <Button
           variant="contained"
+          color="primary"
           startIcon={<AddIcon />}
-          className="apply-leave-btn"
           onClick={() => setIsApplyModalOpen(true)}
+          sx={{ borderRadius: 2, textTransform: "none", fontWeight: 600, px: 3, py: 1 }}
         >
           Apply Leave
         </Button>
       </Box>
 
-      <Paper elevation={3} className="leave-filter-card">
-        <Stack
-          className="leave-filter-stack"
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-        >
-          <TextField
-            fullWidth
-            placeholder="Search by Leave Type or Reason"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        </Stack>
-      </Paper>
+      {/* Controls */}
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+        <TextField
+          size="small"
+          placeholder="Search by Leave Type or Reason..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ flex: 1, maxWidth: 400, bgcolor: "var(--surface)", '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "var(--text-light)" }} />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+      </Box>
 
-      <Paper elevation={3} className="leave-table-card">
+      {/* Table */}
+      <Paper elevation={0} sx={{ flexGrow: 1, border: "1px solid var(--border)", borderRadius: 2, bgcolor: "var(--surface)", overflow: "hidden" }}>
         <DataGrid
           rows={filteredRows}
           columns={columns}
@@ -187,26 +175,31 @@ const EmployeeLeaveRequests = () => {
           pageSizeOptions={[5, 10, 20]}
           loading={isLoading}
           initialState={{
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 },
-            },
+            pagination: { paginationModel: { page: 0, pageSize: 10 } },
           }}
           disableRowSelectionOnClick
-          className="employee-data-grid"
+          sx={{
+            border: 0,
+            '& .MuiDataGrid-cell': { borderColor: "var(--border)", color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' },
+            '& .MuiDataGrid-columnHeaders': { bgcolor: "var(--bg)", borderBottom: "1px solid var(--border)", color: "var(--text-light)" },
+            '& .MuiDataGrid-footerContainer': { borderTop: "1px solid var(--border)", color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-light)' },
+            '& .MuiTablePagination-root': { color: (theme) => theme.palette.mode === 'dark' ? '#fff' : 'var(--text-h)' },
+          }}
         />
       </Paper>
 
       {/* Apply Leave Modal */}
       <Dialog open={isApplyModalOpen} onClose={() => setIsApplyModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Apply for Leave</DialogTitle>
-        <DialogContent dividers>
+        <DialogTitle sx={{ fontWeight: 600 }}>Apply for Leave</DialogTitle>
+        <DialogContent dividers sx={{ borderColor: "var(--border)" }}>
           <Stack spacing={3} sx={{ mt: 1 }}>
-            <FormControl fullWidth>
+            <FormControl fullWidth size="small">
               <InputLabel>Leave Type</InputLabel>
               <Select
                 value={newLeave.type}
                 label="Leave Type"
                 onChange={(e) => setNewLeave({ ...newLeave, type: e.target.value })}
+                sx={{ borderRadius: 2 }}
               >
                 <MenuItem value="Casual">Casual Leave</MenuItem>
                 <MenuItem value="Sick">Sick Leave</MenuItem>
@@ -218,27 +211,23 @@ const EmployeeLeaveRequests = () => {
             <Stack direction="row" spacing={2}>
               <TextField
                 fullWidth
+                size="small"
                 label="From Date"
                 type="date"
                 value={newLeave.from}
                 onChange={(e) => setNewLeave({ ...newLeave, from: e.target.value })}
-                slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
-                }}
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
               <TextField
                 fullWidth
+                size="small"
                 label="To Date"
                 type="date"
                 value={newLeave.to}
                 onChange={(e) => setNewLeave({ ...newLeave, to: e.target.value })}
-                slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
-                }}
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Stack>
 
@@ -249,18 +238,20 @@ const EmployeeLeaveRequests = () => {
               rows={3}
               value={newLeave.reason}
               onChange={(e) => setNewLeave({ ...newLeave, reason: e.target.value })}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setIsApplyModalOpen(false)} color="inherit" disabled={isSubmitting}>
+          <Button onClick={() => setIsApplyModalOpen(false)} color="inherit" disabled={isSubmitting} sx={{ textTransform: "none", borderRadius: 2 }}>
             Cancel
           </Button>
           <Button 
             onClick={handleApplyLeave} 
             variant="contained" 
-            className="apply-leave-btn"
+            color="primary"
             disabled={!newLeave.from || !newLeave.to || !newLeave.reason || isSubmitting}
+            sx={{ textTransform: "none", borderRadius: 2, fontWeight: 600, px: 3 }}
           >
             {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Submit Request"}
           </Button>

@@ -4,13 +4,13 @@ const correctionRequestSchema = new mongoose.Schema(
   {
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true, index: true },
     employeeId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", required: true, index: true },
-    attendanceRecordId: { type: mongoose.Schema.Types.ObjectId, ref: "AttendanceRecord", required: true },
+    attendanceRecordId: { type: mongoose.Schema.Types.ObjectId, ref: "AttendanceRecord", default: null },
     date: { type: String, required: true },
     
     originalCheckIn: { type: Date, default: null },
     originalCheckOut: { type: Date, default: null },
-    requestedCheckIn: { type: Date, required: true },
-    requestedCheckOut: { type: Date, required: true },
+    requestedCheckIn: { type: Date, default: null },
+    requestedCheckOut: { type: Date, default: null },
     
     reason: { type: String, required: true, trim: true },
     status: {

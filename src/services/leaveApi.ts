@@ -1,4 +1,4 @@
-import authApi from "./authApi";
+import { apiClient } from "./apiClient";
 
 export interface LeaveRequestData {
   _id: string;
@@ -33,58 +33,28 @@ export interface ApplyLeavePayload {
 
 const leaveApi = {
   getLeaves: async (status?: string): Promise<LeaveRequestData[]> => {
-    let url = "/api/v1/leaves";
+    let url = "/leaves";
     if (status) {
       url += `?status=${encodeURIComponent(status)}`;
     }
-    const token = authApi.getAccessToken();
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to fetch leave requests");
-    }
-    return response.json();
+    return apiClient<LeaveRequestData[]>(url);
   },
 
   applyLeave: async (payload: ApplyLeavePayload): Promise<LeaveRequestData> => {
-    const token = authApi.getAccessToken();
-    const response = await fetch("/api/v1/leaves", {
+    return apiClient<LeaveRequestData>("/leaves", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to apply for leave");
-    }
-    return response.json();
   },
 
   updateLeaveStatus: async (
     id: string,
     status: "Approved" | "Rejected"
   ): Promise<LeaveRequestData> => {
-    const token = authApi.getAccessToken();
-    const response = await fetch(`/api/v1/leaves/${id}/status`, {
+    return apiClient<LeaveRequestData>(`/leaves/${id}/status`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify({ status }),
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to update leave status");
-    }
-    return response.json();
   },
 };
 

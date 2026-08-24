@@ -94,7 +94,7 @@ const Header = ({
           </div>
 
           <div className="profile-info">
-            <h4>{user.fullName || user.username}</h4>
+            <h4>{user.role === "Manager" ? "Sridhika" : (user.fullName || user.username)}</h4>
             <p>{user.role}</p>
           </div>
 

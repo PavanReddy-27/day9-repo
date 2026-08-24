@@ -43,6 +43,7 @@ export interface AttendanceRecord {
 export interface CorrectionRequest {
   id: string;
   recordId: string;
+  date?: string;
   employeeId: string;
   employeeName: string;
   department: string;

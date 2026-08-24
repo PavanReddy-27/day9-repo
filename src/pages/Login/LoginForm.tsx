@@ -115,12 +115,9 @@ const LoginForm = () => {
   ) => {
     switch (role) {
       case "Admin":
-        navigate(
-          "/admin/dashboard",
-          {
-            replace: true,
-          }
-        );
+        navigate("/admin/dashboard", {
+          replace: true,
+        });
         break;
 
       case "HR":
@@ -133,12 +130,9 @@ const LoginForm = () => {
         break;
 
       case "Manager":
-        navigate(
-          "/manager/dashboard",
-          {
-            replace: true,
-          }
-        );
+        navigate("/manager/dashboard", {
+          replace: true,
+        });
         break;
 
       case "Employee":
