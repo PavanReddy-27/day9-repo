@@ -152,14 +152,164 @@
     color: white;
   }
   
+  .notification-wrapper {
+    position: relative;
+  }
+  
   .notification-dot {
     position: absolute;
-    width: 10px;
-    height: 10px;
+    min-width: 18px;
+    height: 18px;
     background: var(--error);
+    border-radius: 9px;
+    top: -4px;
+    right: -4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 0 4px;
+    border: 2px solid var(--surface-solid);
+  }
+
+  /* ==========================================
+     NOTIFICATION POPUP
+  ========================================== */
+
+  .notification-popup {
+    position: absolute;
+    top: 62px;
+    right: -80px; /* offset slightly so it aligns nicely */
+    width: 320px;
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-solid);
+  }
+
+  .notification-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .mark-all-read {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .mark-all-read:hover {
+    text-decoration: underline;
+  }
+
+  .notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notification-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+
+  .notification-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    background: transparent;
+  }
+
+  .notification-item:hover {
+    background: var(--hover);
+  }
+
+  .notification-item.unread {
+    background: rgba(99, 102, 241, 0.04);
+    border-left: 3px solid var(--primary);
+  }
+
+  .notification-item.unread:hover {
+    background: rgba(99, 102, 241, 0.08);
+  }
+
+  .notification-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    padding-right: 12px;
+  }
+
+  .notification-content strong {
+    font-size: 13px;
+    color: var(--text-h);
+  }
+
+  .notification-content p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .notification-time {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+
+  .mark-read-btn {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 4px;
     border-radius: 50%;
-    top: 10px;
-    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+  }
+
+  .mark-read-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+  }
+
+  @media (max-width: 480px) {
+    .notification-popup {
+      right: -100px;
+      width: 280px;
+    }
   }
   
   /* ==========================================

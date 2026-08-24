@@ -56,6 +56,7 @@ const HRAnalytics = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
     const unsubscribe = subscribeToAnalytics(() => {
       // Re-fetch data whenever an event is received

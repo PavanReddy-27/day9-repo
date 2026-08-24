@@ -1,5 +1,9 @@
 /* index.css handles typography resets and layout foundation. All colors come from theme.css */
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   font: 16px/1.5 var(--sans);
   letter-spacing: 0.18px;
@@ -8,6 +12,26 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth, modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-light);
 }
 
 #root {

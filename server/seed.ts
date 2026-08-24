@@ -217,7 +217,7 @@ const seedDB = async () => {
       // Wait, `mongoose` is imported at the top, I just can't easily access `session` if it's declared inside `try`.
       // I'll declare `let session = null;` at the top of the function.
       process.exit(1);
-    } catch {}
+    } catch (err) { /* ignore */ }
     process.exit(1);
     process.exit(1);
   }

@@ -1,0 +1,43 @@
+.employee-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.employee-dashboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.employee-dashboard__header h4 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.chart-card {
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.chart-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 300px;
+}

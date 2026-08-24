@@ -84,7 +84,7 @@ export const getProductivityAnalytics = async (): Promise<ProductivityAnalyticsR
 
 export const subscribeToAnalytics = (onUpdate: (data: any) => void) => {
   const token = localStorage.getItem("accessToken");
-  let abortController = new AbortController();
+  const abortController = new AbortController();
   let reconnectTimeout: ReturnType<typeof setTimeout>;
 
   const connect = async () => {
