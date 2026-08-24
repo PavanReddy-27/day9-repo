@@ -15,17 +15,15 @@ const connectDB = async () => {
   } catch (error: any) {
     console.warn(`Primary MongoDB connection failed (${error.message}). Initializing In-Memory MongoDB fallback...`);
     try {
-      const { MongoMemoryServer } = await import('mongodb-memory-server');
-      const fs = await import('fs');
-      const os = await import('os');
-      const path = await import('path');
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mongo-mem-'));
-      memoryServer = await MongoMemoryServer.create({
-        instance: {
-          dbName: "workforce_analytics",
-          launchTimeoutMS: 120000,
-        },
-      });
+      if (!memoryServer) {
+        const { MongoMemoryServer } = await import('mongodb-memory-server');
+        memoryServer = await MongoMemoryServer.create({
+          instance: {
+            dbName: "workforce_analytics",
+            launchTimeoutMS: 120000,
+          },
+        });
+      }
       const uri = memoryServer.getUri();
       const conn = await mongoose.connect(uri);
       console.log(`In-Memory MongoDB Connected successfully for server execution`);

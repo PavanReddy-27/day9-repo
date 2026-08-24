@@ -5,7 +5,7 @@ export interface Location {
   name?: string;
 }
 
-export type ShiftType = "Regular" | "Flexible" | "Night" | "CrossMidnight";
+export type ShiftType = "General" | "Morning" | "Afternoon" | "Night" | "Regular" | "Flexible" | "CrossMidnight";
 export type AttendanceSource = "Web" | "Mobile" | "Offline";
 export type AttendancePolicyType = "Office" | "Remote" | "Hybrid";
 

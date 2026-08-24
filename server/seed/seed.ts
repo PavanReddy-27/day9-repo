@@ -77,7 +77,7 @@ const DEPARTMENTS_DEF = [
   { code: "CS", name: "Customer Support" },
 ];
 
-export async function runSeed(reset = false) {
+export async function runSeed(reset = false, shouldCloseDB = false) {
   console.log(`[Seed Engine] Starting deterministic seeding (Reset=${reset})...`);
   await connectDB();
 
@@ -125,36 +125,56 @@ export async function runSeed(reset = false) {
     settings: { defaultGeofenceRadiusMeters: 500, timezone: "Asia/Kolkata" },
   });
 
-  // 2. Create Shifts
-  const regularShift = await Shift.create({
+  // 2. Create Shifts (General, Morning, Afternoon, Night)
+  const generalShift = await Shift.create({
     companyId: company._id,
-    name: "Regular General Shift",
-    code: "REG-01",
-    type: "Regular",
+    name: "General Shift (9AM - 5PM)",
+    code: "GENERAL-01",
+    type: "General",
     startTime: "09:00",
-    endTime: "18:00",
+    endTime: "17:00",
     breakDurationMinutes: 60,
+    workDurationMinutes: 480,
+    workingHours: 8,
+  });
+
+  const morningShift = await Shift.create({
+    companyId: company._id,
+    name: "Morning Shift (6AM - 2PM)",
+    code: "MORNING-01",
+    type: "Morning",
+    startTime: "06:00",
+    endTime: "14:00",
+    breakDurationMinutes: 60,
+    workDurationMinutes: 480,
+    workingHours: 8,
+  });
+
+  const afternoonShift = await Shift.create({
+    companyId: company._id,
+    name: "Afternoon Shift (2PM - 10PM)",
+    code: "AFTERNOON-01",
+    type: "Afternoon",
+    startTime: "14:00",
+    endTime: "22:00",
+    breakDurationMinutes: 60,
+    workDurationMinutes: 480,
+    workingHours: 8,
   });
 
   const nightShift = await Shift.create({
     companyId: company._id,
-    name: "US Night Shift",
+    name: "Night Shift (10PM - 6AM)",
     code: "NIGHT-01",
     type: "Night",
-    startTime: "21:00",
+    startTime: "22:00",
     endTime: "06:00",
     breakDurationMinutes: 60,
+    workDurationMinutes: 480,
+    workingHours: 8,
   });
 
-  const flexShift = await Shift.create({
-    companyId: company._id,
-    name: "Flexible Core Shift",
-    code: "FLEX-01",
-    type: "Flexible",
-    startTime: "10:00",
-    endTime: "19:00",
-    breakDurationMinutes: 60,
-  });
+  const allShifts = [generalShift, morningShift, afternoonShift, nightShift];
 
   // 3. Create Locations
   const locationDocs = {};
@@ -295,7 +315,7 @@ export async function runSeed(reset = false) {
       const assignedTeam = assignedTeams[i % assignedTeams.length];
 
       const workMode = prng.choice(["Office", "Office", "Office", "Hybrid", "Remote"]);
-      const shift = prng.choice([regularShift, flexShift, nightShift]);
+      const shift = allShifts[i % allShifts.length];
       const riskLevel = prng.choice(["Low", "Low", "Low", "Medium", "High"]);
 
       const emp = await Employee.create({
@@ -320,6 +340,14 @@ export async function runSeed(reset = false) {
         employmentStatus: "Active",
         riskLevel: riskLevel,
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${empIdStr}`,
+      });
+
+      await ShiftAssignment.create({
+        companyId: company._id,
+        employeeId: emp._id,
+        shiftId: shift._id,
+        startDate: emp.joiningDate,
+        status: "Active",
       });
 
       createdEmployees.push(emp);
@@ -391,6 +419,9 @@ export async function runSeed(reset = false) {
   // the current day: today must begin as "Not Checked In" so employees can
   // actually check in / out through the app each day. Writing today here would
   // leave every employee already "Checked Out" and block real check-ins.
+  const shiftMap = new Map();
+  allShifts.forEach((s) => shiftMap.set(s._id.toString(), s));
+
   for (let dayOffset = 1; dayOffset <= 30; dayOffset++) {
     const dateObj = new Date(now.getTime() - dayOffset * 24 * 60 * 60 * 1000);
     if (dateObj.getDay() === 0 || dateObj.getDay() === 6) continue; // Skip weekends
@@ -398,17 +429,42 @@ export async function runSeed(reset = false) {
     const dateStr = dateObj.toISOString().split("T")[0];
 
     for (const emp of createdEmployees) {
+      // 10-min grace rule: 8% absent or excessively late (>30 mins)
       const isAbsent = prng.range(1, 100) > 92;
-      const status = isAbsent ? "Not Checked In" : "Checked Out";
-      const checkInHour = prng.range(8, 10);
-      const checkInMin = prng.range(0, 59);
+      const empShift = shiftMap.get(emp.shiftId?.toString()) || generalShift;
+      const shiftType = empShift.type || "General";
 
-      const checkInTime = isAbsent ? null : new Date(dateObj.setHours(checkInHour, checkInMin, 0));
-      const checkOutTime = isAbsent ? null : new Date(dateObj.setHours(checkInHour + 9, checkInMin, 0));
+      let checkInTime: Date | null = null;
+      let checkOutTime: Date | null = null;
+      let isNightShift = false;
+      const status = isAbsent ? "Not Checked In" : "Checked Out";
+
+      if (!isAbsent) {
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
+        const day = dateObj.getDate();
+        // 10 mins late grace period: random delay 0 to 10 mins for Present employees
+        const randomMin = prng.range(0, 10);
+
+        if (shiftType === "Morning") {
+          checkInTime = new Date(year, month, day, 6, randomMin, 0);
+          checkOutTime = new Date(year, month, day, 14, randomMin, 0);
+        } else if (shiftType === "Afternoon") {
+          checkInTime = new Date(year, month, day, 14, randomMin, 0);
+          checkOutTime = new Date(year, month, day, 22, randomMin, 0);
+        } else if (shiftType === "Night") {
+          checkInTime = new Date(year, month, day, 22, randomMin, 0);
+          const nextDay = new Date(dateObj.getTime() + 24 * 3600 * 1000);
+          checkOutTime = new Date(nextDay.getFullYear(), nextDay.getMonth(), nextDay.getDate(), 6, randomMin, 0);
+          isNightShift = true;
+        } else { // General
+          checkInTime = new Date(year, month, day, 9, randomMin, 0);
+          checkOutTime = new Date(year, month, day, 17, randomMin, 0);
+        }
+      }
 
       const workDurationMinutes = isAbsent ? 0 : 480;
       const breakDurationMinutes = isAbsent ? 0 : 60;
-      const lateMinutes = checkInHour >= 10 ? 30 : 0;
 
       const locDoc = locationDocs[LOCATION_DEFS.find(l => l.code === emp.locationCode)?.code || "HYD"];
       const baseLat = locDoc?.coordinates?.latitude || 17.3850;
@@ -425,10 +481,11 @@ export async function runSeed(reset = false) {
         workingHours: Number((workDurationMinutes / 60).toFixed(2)),
         breakDurationMinutes,
         overtimeMinutes: 0,
-        lateMinutes,
+        lateMinutes: 0,
         earlyDepartureMinutes: 0,
         status,
-        shiftKind: "Regular",
+        shiftKind: shiftType,
+        isNightShift,
         checkInCoordinates: isAbsent ? undefined : { lat: baseLat + (prng.range(-20, 20) / 10000), lng: baseLng + (prng.range(-20, 20) / 10000) },
         checkOutCoordinates: isAbsent ? undefined : { lat: baseLat + (prng.range(-20, 20) / 10000), lng: baseLng + (prng.range(-20, 20) / 10000) },
       });
@@ -485,7 +542,9 @@ export async function runSeed(reset = false) {
 
   console.log("[Seed Engine] Seeding completed successfully!");
   await printCollectionCounts();
-  await closeDB();
+  if (shouldCloseDB) {
+    await closeDB();
+  }
 }
 
 async function printCollectionCounts() {
@@ -508,7 +567,7 @@ async function printCollectionCounts() {
 // CLI runner
 if (process.argv[1]?.includes("seed.ts")) {
   const resetFlag = process.argv.includes("--reset");
-  runSeed(resetFlag).catch((err) => {
+  runSeed(resetFlag, true).catch((err) => {
     console.error("[Seed Engine] Fatal Error:", err);
     process.exit(1);
   });

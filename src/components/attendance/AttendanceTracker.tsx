@@ -19,7 +19,7 @@ const AttendanceTracker = () => {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [shiftType, setShiftType] = useState<ShiftType>("Regular");
+  const [shiftType, setShiftType] = useState<ShiftType>("General");
   const [workMode, setWorkMode] = useState<"Office" | "Work From Home">("Work From Home");
   const [isLocating, setIsLocating] = useState(false);
   const [wfhPrompt, setWfhPrompt] = useState<{ open: boolean, loc: Location | null }>({ open: false, loc: null });
@@ -354,10 +354,10 @@ const AttendanceTracker = () => {
                     onChange={(e) => setShiftType(e.target.value as ShiftType)}
                     sx={{ color: "var(--text-h)", bgcolor: "var(--bg)", '& .MuiOutlinedInput-notchedOutline': { borderColor: "var(--border)" } }}
                   >
-                    <MenuItem value="Regular">Regular (9AM - 5PM)</MenuItem>
-                    <MenuItem value="Flexible">Flexible</MenuItem>
-                    <MenuItem value="Night">Night Shift</MenuItem>
-                    <MenuItem value="CrossMidnight">Cross-Midnight</MenuItem>
+                    <MenuItem value="General">General Shift (9AM - 5PM)</MenuItem>
+                    <MenuItem value="Morning">Morning Shift (6AM - 2PM)</MenuItem>
+                    <MenuItem value="Afternoon">Afternoon Shift (2PM - 10PM)</MenuItem>
+                    <MenuItem value="Night">Night Shift (10PM - 6AM)</MenuItem>
                   </Select>
                 </FormControl>
                 <Button 

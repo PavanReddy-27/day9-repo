@@ -26,7 +26,7 @@ const attendanceRecordSchema = new mongoose.Schema(
       index: true,
     },
     
-    shiftKind: { type: String, enum: ["Regular", "Flexible", "Night", "CrossMidnight"], default: "Regular" },
+    shiftKind: { type: String, enum: ["General", "Morning", "Afternoon", "Night", "Regular", "Flexible", "CrossMidnight"], default: "General" },
     isNightShift: { type: Boolean, default: false },
     workMode: { type: String, enum: ["Office", "WFH"], default: "Office" },
     checkInCoordinates: {

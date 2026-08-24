@@ -8,8 +8,8 @@ const shiftSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["Regular", "Flexible", "Night", "CrossMidnight"],
-      default: "Regular",
+      enum: ["General", "Morning", "Afternoon", "Night", "Regular", "Flexible", "CrossMidnight"],
+      default: "General",
     },
     startTime: { type: String, required: true }, // Format "HH:mm" e.g., "09:00"
     endTime: { type: String, required: true },   // Format "HH:mm" e.g., "17:00"
