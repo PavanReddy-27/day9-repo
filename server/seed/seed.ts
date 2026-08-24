@@ -203,6 +203,7 @@ export async function runSeed(reset = false) {
       // Create 2 Teams per department
       for (let t = 1; t <= 2; t++) {
         const team = await Team.create({
+          companyId: company._id,
           department: dept._id,
           name: `${deptDef.name} Team ${t} (${locDef.code})`,
         });

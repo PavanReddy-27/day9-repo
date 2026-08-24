@@ -288,7 +288,7 @@ export const checkIn = async (req, res) => {
     
     await commitAndEndSession(session);
     
-    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_IN", recordId: record._id });
+    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_IN", recordId: record._id }, req.companyId);
     void writeAuditLog(req, "ATTENDANCE_CHECK_IN", "Employee checked in for the day", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
@@ -357,7 +357,7 @@ export const startBreak = async (req, res) => {
     await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
 
     await commitAndEndSession(session);
-    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "BREAK_STARTED", recordId: record._id });
+    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "BREAK_STARTED", recordId: record._id }, req.companyId);
     void writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
@@ -422,7 +422,7 @@ export const resumeWork = async (req, res) => {
     const responseBody = { success: true, message: "Resumed work.", data: record };
     await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
     await commitAndEndSession(session);
-    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "WORK_RESUMED", recordId: record._id });
+    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "WORK_RESUMED", recordId: record._id }, req.companyId);
     void writeAuditLog(req, "ATTENDANCE_WORK_RESUME", "Employee resumed work from break", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
@@ -551,7 +551,7 @@ export const checkOut = async (req: any, res: any) => {
     await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
     await commitAndEndSession(session);
 
-    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_OUT", recordId: record._id });
+    broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_OUT", recordId: record._id }, req.companyId);
     void writeAuditLog(req, "ATTENDANCE_CHECK_OUT", "Employee checked out for the day", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {

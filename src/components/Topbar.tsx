@@ -1,6 +1,7 @@
 import type {
   User,
 } from "../types/auth";
+import NotificationBell from "./notifications/NotificationBell";
 
 interface TopbarProps {
   user: User;
@@ -20,6 +21,7 @@ function Topbar({
       </div>
 
       <div className="user-info">
+        <NotificationBell />
 
         <span>
           {user.fullName || user.username}

@@ -37,6 +37,11 @@ import {
   updateLeaveStatus,
 } from "../controllers/leaveController.js";
 import { getAuditLogs } from "../controllers/auditController.js";
+import {
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+} from "../controllers/notificationController.js";
 import { authenticateJWT, requireRole, applyRoleDataScope, validateObjectId } from "../middleware/authMiddleware.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import { loginSchema, refreshSchema } from "../validators/authSchema.js";
@@ -47,7 +52,7 @@ import { sseMiddleware } from "../utils/sse.js";
 const router = express.Router();
 
 // Server-Sent Events Endpoint
-router.get("/events/stream", sseMiddleware);
+router.get("/events/stream", authenticateJWT, sseMiddleware);
 
 
 // Health Check
@@ -110,6 +115,11 @@ router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(
 router.get("/leaves", authenticateJWT, getLeaveRequests);
 router.post("/leaves", authenticateJWT, requireRole(["Employee"]), createLeaveRequest);
 router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), updateLeaveStatus);
+
+// Notifications Routes
+router.get("/notifications", authenticateJWT, getNotifications);
+router.patch("/notifications/read-all", authenticateJWT, markAllAsRead);
+router.patch("/notifications/:id/read", authenticateJWT, validateObjectId("id"), markAsRead);
 
 // Audit Logs (Admin / HR only)
 router.get("/audit-logs", authenticateJWT, requireRole(["Admin", "HR"]), getAuditLogs);

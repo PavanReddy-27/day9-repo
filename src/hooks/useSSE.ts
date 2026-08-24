@@ -12,7 +12,8 @@ export const useSSE = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    const url = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"}/events/stream`;
+    const token = localStorage.getItem("accessToken") || "";
+    const url = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"}/events/stream?token=${token}`;
     const eventSource = new EventSource(url);
 
     eventSource.onopen = () => {
@@ -25,6 +26,16 @@ export const useSSE = () => {
       dispatch(fetchEmployees());
       // Trigger custom window event for independent components (like Attendance tables)
       window.dispatchEvent(new Event("attendance_updated"));
+    });
+
+    eventSource.addEventListener("NOTIFICATION_UPDATE", (event) => {
+      console.log("Received Notification SSE Event:", event.data);
+      window.dispatchEvent(new Event("notification_updated"));
+    });
+
+    eventSource.addEventListener("LEAVE_UPDATE", (event) => {
+      console.log("Received Leave SSE Event:", event.data);
+      window.dispatchEvent(new Event("leave_updated"));
     });
 
     eventSource.onerror = (error) => {
