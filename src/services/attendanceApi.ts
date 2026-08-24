@@ -42,7 +42,7 @@ export const attendanceApi = {
             checkOutTime: null,
             workingHours: 0,
             status: "Present",
-            shiftType: (latest.payload as any).shiftType || "Regular",
+            shiftType: (latest.payload as any).shiftType || "General",
             source: "Offline",
             location: (latest.payload as any).location,
           } as AttendanceRecord;
@@ -59,7 +59,7 @@ export const attendanceApi = {
     employeeName: string,
     location?: Location,
     source: AttendanceSource = "Web",
-    shiftType: ShiftType = "Regular",
+    shiftType: ShiftType = "General",
     idempotencyKey?: string,
     _department?: string,
     isWFH?: boolean

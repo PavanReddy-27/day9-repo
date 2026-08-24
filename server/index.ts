@@ -37,6 +37,18 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Ensure DB Connection Middleware
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();
+    } catch (dbErr: any) {
+      console.error("[DB Connection Error]", dbErr.message);
+    }
+  }
+  next();
+});
+
 // API Routes
 app.use("/api/v1", apiRoutes);
 
@@ -67,7 +79,7 @@ async function startServer() {
     if (userCount === 0) {
       console.log("[Server] Database is empty. Seeding initial accounts...");
       const { runSeed } = await import("./seed/seed.js");
-      await runSeed(false);
+      await runSeed(false, false);
     }
   } catch (seedErr: any) {
     console.error("[Server] Auto-seed check error:", seedErr.message);
