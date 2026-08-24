@@ -93,7 +93,9 @@ export const getEmployees = async (req, res) => {
     const query: Record<string, any> = {};
 
     if (search) {
-      const searchRegex = new RegExp(String(search).trim(), "i");
+      // Escape regex special characters to prevent ReDoS attacks
+      const escaped = String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(escaped, "i");
       query.$or = [
         { firstName: searchRegex },
         { lastName: searchRegex },

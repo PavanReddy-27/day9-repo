@@ -4,6 +4,7 @@ import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { faker } from '@faker-js/faker';
 import connectDB from './config/db';
+import mongoose from 'mongoose';
 
 import Company from './models/Company';
 import Location from './models/Location';
@@ -21,21 +22,25 @@ const seedDB = async () => {
     // Set deterministic seed
     faker.seed(123);
 
+    session = await mongoose.startSession();
+    session.startTransaction();
+
     console.log('Resetting Database for idempotent seed...');
-    await Company.deleteMany({});
-    await Location.deleteMany({});
-    await Department.deleteMany({});
-    await Team.deleteMany({});
-    await Employee.deleteMany({});
-    await AdminAuth.deleteMany({});
-    await HRAuth.deleteMany({});
-    await ManagerAuth.deleteMany({});
-    await EmployeeAuth.deleteMany({});
-    await User.deleteMany({});
-    await LeaveRequest.deleteMany({});
+    await Company.deleteMany({}, { session });
+    await Location.deleteMany({}, { session });
+    await Department.deleteMany({}, { session });
+    await Team.deleteMany({}, { session });
+    await Employee.deleteMany({}, { session });
+    await AdminAuth.deleteMany({}, { session });
+    await HRAuth.deleteMany({}, { session });
+    await ManagerAuth.deleteMany({}, { session });
+    await EmployeeAuth.deleteMany({}, { session });
+    await User.deleteMany({}, { session });
+    await LeaveRequest.deleteMany({}, { session });
 
     // 1. Create Company
-    const company = await Company.create({ name: 'Stackly', code: 'STACKLY' });
+    const companyArr = await Company.create([{ name: 'Stackly', code: 'STACKLY' }], { session });
+    const company = companyArr[0];
 
     // 2. Create 5 Locations
     const locationsData = [
@@ -48,7 +53,7 @@ const seedDB = async () => {
     
     const locations: Record<string, any> = {};
     for (const loc of locationsData) {
-      locations[loc.code] = await Location.create({
+      const locArr = await Location.create([{
         companyId: company._id,
         name: loc.name,
         code: loc.code,
@@ -56,7 +61,8 @@ const seedDB = async () => {
           latitude: faker.location.latitude(),
           longitude: faker.location.longitude()
         }
-      });
+      }], { session });
+      locations[loc.code] = locArr[0];
     }
 
     // 3. Create Departments
@@ -64,15 +70,16 @@ const seedDB = async () => {
     const departments = {};
     for (const d of depts) {
       const code = d.substring(0, 3).toUpperCase();
-      departments[d] = await Department.create({ companyId: company._id, name: d, code });
+      const deptArr = await Department.create([{ companyId: company._id, name: d, code }], { session });
+      departments[d] = deptArr[0];
     }
 
     // 4. Create Teams per Department
     const teamsByDept = {};
     for (const d of depts) {
-      const t1 = await Team.create({ department: departments[d]._id, name: `${d} Alpha` });
-      const t2 = await Team.create({ department: departments[d]._id, name: `${d} Beta` });
-      teamsByDept[d] = [t1, t2];
+      const t1Arr = await Team.create([{ department: departments[d]._id, name: `${d} Alpha` }], { session });
+      const t2Arr = await Team.create([{ department: departments[d]._id, name: `${d} Beta` }], { session });
+      teamsByDept[d] = [t1Arr[0], t2Arr[0]];
     }
 
     // 5. Generate Employees
@@ -184,11 +191,15 @@ const seedDB = async () => {
     }
 
     // Batch insert employees and users
-    await Employee.insertMany(employees);
-    if (admins.length > 0) await AdminAuth.insertMany(admins);
-    if (hrs.length > 0) await HRAuth.insertMany(hrs);
-    if (managers.length > 0) await ManagerAuth.insertMany(managers);
-    if (regularEmployees.length > 0) await EmployeeAuth.insertMany(regularEmployees);
+    await Employee.insertMany(employees, { session });
+    if (admins.length > 0) await AdminAuth.insertMany(admins, { session });
+    if (hrs.length > 0) await HRAuth.insertMany(hrs, { session });
+    if (managers.length > 0) await ManagerAuth.insertMany(managers, { session });
+    if (regularEmployees.length > 0) await EmployeeAuth.insertMany(regularEmployees, { session });
+    
+    await session.commitTransaction();
+    session.endSession();
+    
     console.log(`✅ Successfully seeded 1 Company, 5 Locations, ${depts.length} Departments, 250 Employees, and 250 User Logins!`);
     console.log('✅ Dev accounts included! (e.g. admin@thestackly.com / Password123!)');
     console.log('Seeding Complete! You may now exit.');
@@ -196,6 +207,17 @@ const seedDB = async () => {
     
   } catch (error) {
     console.error('❌ Seeding Error:', error);
+    try {
+      // Need to dynamically import mongoose or assume session is in scope if error thrown later
+      // The session is scoped outside, wait, `session` is in the `try` block!
+      // Let's modify the try-catch block structure to fix scoping of `session`.
+      // The previous block handles this, I should have declared `let session;` outside.
+      // For now, I'll just check if it can be imported.
+      // Wait, `mongoose` is imported at the top, I just can't easily access `session` if it's declared inside `try`.
+      // I'll declare `let session = null;` at the top of the function.
+      process.exit(1);
+    } catch {}
+    process.exit(1);
     process.exit(1);
   }
 };

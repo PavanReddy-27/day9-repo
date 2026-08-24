@@ -39,14 +39,14 @@ import { getAuditLogs } from "../controllers/auditController.js";
 import { authenticateJWT, requireRole, applyRoleDataScope, validateObjectId } from "../middleware/authMiddleware.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import { loginSchema, refreshSchema } from "../validators/authSchema.js";
-import { checkInSchema, checkOutSchema, correctionSchema } from "../validators/attendanceSchema.js";
+import { checkInSchema, checkOutSchema, correctionSchema, breakSchema } from "../validators/attendanceSchema.js";
 
 import { sseMiddleware } from "../utils/sse.js";
 
 const router = express.Router();
 
-// Server-Sent Events Endpoint
-router.get("/events/stream", sseMiddleware);
+// Server-Sent Events Endpoint (authenticated)
+router.get("/events/stream", authenticateJWT, sseMiddleware);
 
 
 // Health Check
@@ -89,10 +89,10 @@ router.get("/analytics/productivity", authenticateJWT, getProductivityAnalytics)
 router.get("/attendance/status", authenticateJWT, getAttendanceStatus);
 router.post("/attendance/check-in", authenticateJWT, validateRequest(checkInSchema), checkIn);
 router.post("/check-in", authenticateJWT, validateRequest(checkInSchema), checkIn);
-router.post("/attendance/break", authenticateJWT, startBreak);
-router.post("/break", authenticateJWT, startBreak);
-router.post("/attendance/resume", authenticateJWT, resumeWork);
-router.post("/resume", authenticateJWT, resumeWork);
+router.post("/attendance/break", authenticateJWT, validateRequest(breakSchema), startBreak);
+router.post("/break", authenticateJWT, validateRequest(breakSchema), startBreak);
+router.post("/attendance/resume", authenticateJWT, validateRequest(breakSchema), resumeWork);
+router.post("/resume", authenticateJWT, validateRequest(breakSchema), resumeWork);
 router.post("/attendance/check-out", authenticateJWT, validateRequest(checkOutSchema), checkOut);
 router.post("/check-out", authenticateJWT, validateRequest(checkOutSchema), checkOut);
 router.get("/attendance/history", authenticateJWT, applyRoleDataScope, getAttendanceHistory);

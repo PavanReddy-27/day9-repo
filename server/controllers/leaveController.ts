@@ -51,9 +51,10 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
 // @route   POST /api/v1/leaves
 // @access  Private (Employee)
 export const createLeaveRequest = async (req: Request, res: Response): Promise<void> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const companyId = (req as any).companyId;
     const { type, startDate, endDate, reason } = req.body;
 
@@ -89,8 +90,8 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
     session.endSession();
     res.status(201).json(populatedLeave);
   } catch (error) {
-    if (session.inTransaction()) await session.abortTransaction();
-    session.endSession();
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     console.error("Error creating leave request:", error);
     res.status(500).json({ error: "Server error" });
   }
@@ -100,9 +101,10 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
 // @route   PATCH /api/v1/leaves/:id/status
 // @access  Private (Manager / HR / Admin)
 export const updateLeaveStatus = async (req: Request, res: Response): Promise<void> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { id } = req.params;
     const { status } = req.body;
 
@@ -146,8 +148,8 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
     session.endSession();
     res.json(leave);
   } catch (error) {
-    if (session.inTransaction()) await session.abortTransaction();
-    session.endSession();
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     console.error("Error updating leave status:", error);
     res.status(500).json({ error: "Server error" });
   }

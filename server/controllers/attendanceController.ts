@@ -28,44 +28,6 @@ export function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 const getTodayDateStr = () => new Date().toISOString().split("T")[0];
-
-async function safeStartSession() {
-  if (mongoose.connection.readyState !== 1) return null;
-  try {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    return session;
-  } catch {
-    return null;
-  }
-}
-
-async function commitAndEndSession(session: any) {
-  if (!session) return;
-  try {
-    if (session.inTransaction()) {
-      await session.commitTransaction();
-    }
-  } catch {
-    // ignore if already committed
-  } finally {
-    try { session.endSession(); } catch {}
-  }
-}
-
-async function abortAndEndSession(session: any) {
-  if (!session) return;
-  try {
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-  } catch {
-    // ignore if already aborted
-  } finally {
-    try { session.endSession(); } catch {}
-  }
-}
-
 // Idempotency Middleware helper
 async function checkIdempotency(req: any, res: any, idempotencyKey: string, session?: any) {
   if (!idempotencyKey) return null;
@@ -135,35 +97,38 @@ export const getAttendanceStatus = async (req, res) => {
 };
 
 export const checkIn = async (req, res) => {
-  const session = await safeStartSession();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { location: coordinates, source = "Web", shiftType = "Regular", idempotencyKey, isWFH } = req.body;
 
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return;
     }
 
     const today = getTodayDateStr();
-    let query = AttendanceRecord.findOne({
+    let record: any = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any).sort({ createdAt: -1 });
-    if (session) query = query.session(session);
-    let record: any = await query;
+    } as any).sort({ createdAt: -1 }).session(session);
 
     if (record && record.status !== "Not Checked In") {
       const resp = { success: false, message: `Cannot check in: You have already checked in today (Status: ${record.status}).` };
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json(resp);
     }
 
     // Reject GPS readings too imprecise to trust before doing anything else with them.
     const MAX_GPS_ACCURACY_METERS = 500;
     if (coordinates?.accuracy != null && coordinates.accuracy > MAX_GPS_ACCURACY_METERS) {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         success: false,
         message: `GPS reading is too inaccurate (±${Math.round(coordinates.accuracy)}m) to verify your location. Please try again with a stronger signal.`,
@@ -201,7 +166,8 @@ export const checkIn = async (req, res) => {
               message: `OUTSIDE_GEOFENCE`,
               distance: Math.round(distanceMeters)
             };
-            await abortAndEndSession(session);
+            await session.abortTransaction();
+            session.endSession();
             return res.status(403).json(resp);
           }
         } else if (isWFHMode) {
@@ -253,81 +219,72 @@ export const checkIn = async (req, res) => {
       }
     }
 
-    if (session) {
-      await record.save({ session });
-      await AttendanceEvent.create([{
-        companyId: req.companyId,
-        attendanceRecordId: record._id,
-        employeeId: req.employee._id,
-        eventType: "CHECK_IN",
-        timestamp: now,
-        locationCoordinates: coordinates,
-        gpsAccuracy: coordinates?.accuracy || 0,
-        isGeofenced,
-        distanceMeters,
-        idempotencyKey,
-      }], { session });
-    } else {
-      await record.save();
-      await AttendanceEvent.create({
-        companyId: req.companyId,
-        attendanceRecordId: record._id,
-        employeeId: req.employee._id,
-        eventType: "CHECK_IN",
-        timestamp: now,
-        locationCoordinates: coordinates,
-        gpsAccuracy: coordinates?.accuracy || 0,
-        isGeofenced,
-        distanceMeters,
-        idempotencyKey,
-      });
-    }
+    await record.save({ session });
+    await AttendanceEvent.create([{
+      companyId: req.companyId,
+      attendanceRecordId: record._id,
+      employeeId: req.employee._id,
+      eventType: "CHECK_IN",
+      timestamp: now,
+      locationCoordinates: coordinates,
+      gpsAccuracy: coordinates?.accuracy || 0,
+      isGeofenced,
+      distanceMeters,
+      idempotencyKey,
+    }], { session });
 
     const responseBody = { success: true, message: "Check-in successful.", data: record };
     await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
-    
-    await commitAndEndSession(session);
+    await writeAuditLog(req, "ATTENDANCE_CHECK_IN", "Employee checked in for the day", "AttendanceRecord", record._id.toString(), { session });
+
+    await session.commitTransaction();
+    session.endSession();
     
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_IN", recordId: record._id });
-    void writeAuditLog(req, "ATTENDANCE_CHECK_IN", "Employee checked in for the day", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
-    await abortAndEndSession(session);
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
+
 export const startBreak = async (req, res) => {
-  const session = await safeStartSession();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { idempotencyKey } = req.body;
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return;
     }
 
     const today = getTodayDateStr();
-    let query = AttendanceRecord.findOne({
+    const record: any = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any);
-    if (session) query = query.session(session);
-    const record: any = await query;
+    } as any).session(session);
 
     if (!record || record.status === "Not Checked In") {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot start break: Employee has not checked in yet." });
     }
 
     if (record.status === "On Break") {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Already on break." });
     }
 
     if (record.status === "Checked Out") {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot start break: Shift has already ended." });
     }
 
@@ -335,161 +292,143 @@ export const startBreak = async (req, res) => {
     record.status = "On Break";
     record.breakStartTime = now;
     
-    if (session) {
-      await record.save({ session });
-      await BreakSession.create([{
-        companyId: req.companyId,
-        attendanceRecordId: record._id,
-        employeeId: req.employee._id,
-        startTime: now,
-      }], { session });
-    } else {
-      await record.save();
-      await BreakSession.create({
-        companyId: req.companyId,
-        attendanceRecordId: record._id,
-        employeeId: req.employee._id,
-        startTime: now,
-      });
-    }
+    await record.save({ session });
+    await BreakSession.create([{
+      companyId: req.companyId,
+      attendanceRecordId: record._id,
+      employeeId: req.employee._id,
+      startTime: now,
+    }], { session });
 
     const responseBody = { success: true, message: "Break started.", data: record };
     await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
+    await writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString(), { session });
 
-    await commitAndEndSession(session);
+    await session.commitTransaction();
+    session.endSession();
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "BREAK_STARTED", recordId: record._id });
-    void writeAuditLog(req, "ATTENDANCE_BREAK_START", "Employee started a break", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
-    await abortAndEndSession(session);
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const resumeWork = async (req, res) => {
-  const session = await safeStartSession();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { idempotencyKey } = req.body;
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return;
     }
 
     const today = getTodayDateStr();
-    let query = AttendanceRecord.findOne({
+    const record: any = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any);
-    if (session) query = query.session(session);
-    const record: any = await query;
+    } as any).session(session);
 
     if (!record || record.status !== "On Break") {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Must be in 'On Break' state to resume work." });
     }
 
     const now = new Date();
-    let breakQuery = BreakSession.findOne({
+    const activeBreak: any = await BreakSession.findOne({
       companyId: req.companyId,
       attendanceRecordId: record._id,
       endTime: null,
-    } as any);
-    if (session) breakQuery = breakQuery.session(session);
-    const activeBreak: any = await breakQuery;
+    } as any).session(session);
 
     if (activeBreak) {
       activeBreak.endTime = now;
       activeBreak.durationMinutes = Math.round((now.getTime() - new Date(activeBreak.startTime).getTime()) / (1000 * 60));
-      if (session) {
-        await activeBreak.save({ session });
-      } else {
-        await activeBreak.save();
-      }
+      await activeBreak.save({ session });
 
       record.breakDurationMinutes = (record.breakDurationMinutes || 0) + activeBreak.durationMinutes;
     }
 
     record.status = "Working";
     record.breakStartTime = null;
-    if (session) {
-      await record.save({ session });
-    } else {
-      await record.save();
-    }
+    await record.save({ session });
 
     const responseBody = { success: true, message: "Resumed work.", data: record };
     await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
-    await commitAndEndSession(session);
+    await writeAuditLog(req, "ATTENDANCE_WORK_RESUME", "Employee resumed work from break", "AttendanceRecord", record._id.toString(), { session });
+
+    await session.commitTransaction();
+    session.endSession();
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "WORK_RESUMED", recordId: record._id });
-    void writeAuditLog(req, "ATTENDANCE_WORK_RESUME", "Employee resumed work from break", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
-    await abortAndEndSession(session);
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const checkOut = async (req: any, res: any) => {
-  const session = await safeStartSession();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { location: coordinates, idempotencyKey } = req.body;
 
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return;
     }
 
     const today = getTodayDateStr();
 
-    let query1 = AttendanceRecord.findOne({
+    let record: any = await AttendanceRecord.findOne({
       companyId: req.companyId,
       employeeId: req.employee._id,
       date: today,
-    } as any).sort({ createdAt: -1 });
-    if (session) query1 = query1.session(session);
-    let record: any = await query1;
+    } as any).sort({ createdAt: -1 }).session(session);
 
     if (!record || record.status === "Checked Out") {
-      let query2 = AttendanceRecord.findOne({
+      record = await AttendanceRecord.findOne({
         companyId: req.companyId,
         employeeId: req.employee._id,
         status: { $in: ["Working", "On Break"] }
-      } as any).sort({ createdAt: -1 });
-      if (session) query2 = query2.session(session);
-      record = await query2;
+      } as any).sort({ createdAt: -1 }).session(session);
     }
 
     if (!record || record.status === "Not Checked In") {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot check out: Employee has not checked in yet." });
     }
 
     if (record.status === "Checked Out") {
-      await abortAndEndSession(session);
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cannot check out: Employee has already checked out." });
     }
 
     const now = new Date();
 
     if (record.status === "On Break") {
-      let breakQ = BreakSession.findOne({
+      const activeBreak: any = await BreakSession.findOne({
         companyId: req.companyId,
         attendanceRecordId: record._id,
         endTime: null,
-      } as any);
-      if (session) breakQ = breakQ.session(session);
-      const activeBreak: any = await breakQ;
+      } as any).session(session);
       if (activeBreak) {
         activeBreak.endTime = now;
         activeBreak.durationMinutes = Math.round((now.getTime() - new Date(activeBreak.startTime).getTime()) / (1000 * 60));
-        if (session) {
-          await activeBreak.save({ session });
-        } else {
-          await activeBreak.save();
-        }
+        await activeBreak.save({ session });
         record.breakDurationMinutes = (record.breakDurationMinutes || 0) + activeBreak.durationMinutes;
       }
     }
@@ -521,27 +460,15 @@ export const checkOut = async (req: any, res: any) => {
     record.overtimeMinutes = overtimeMinutes;
     record.earlyDepartureMinutes = earlyDepartureMinutes;
 
-    if (session) {
-      await record.save({ session });
-      await AttendanceEvent.create([{
-        companyId: req.companyId,
-        attendanceRecordId: record._id,
-        employeeId: req.employee._id,
-        eventType: "CHECK_OUT",
-        timestamp: now,
-        idempotencyKey,
-      }], { session });
-    } else {
-      await record.save();
-      await AttendanceEvent.create({
-        companyId: req.companyId,
-        attendanceRecordId: record._id,
-        employeeId: req.employee._id,
-        eventType: "CHECK_OUT",
-        timestamp: now,
-        idempotencyKey,
-      });
-    }
+    await record.save({ session });
+    await AttendanceEvent.create([{
+      companyId: req.companyId,
+      attendanceRecordId: record._id,
+      employeeId: req.employee._id,
+      eventType: "CHECK_OUT",
+      timestamp: now,
+      idempotencyKey,
+    }], { session });
 
     const responseBody = {
       success: true,
@@ -549,13 +476,16 @@ export const checkOut = async (req: any, res: any) => {
       data: record,
     };
     await saveIdempotency(req, idempotencyKey, 200, responseBody, session);
-    await commitAndEndSession(session);
+    await writeAuditLog(req, "ATTENDANCE_CHECK_OUT", "Employee checked out for the day", "AttendanceRecord", record._id.toString(), { session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     broadcastSSE("ATTENDANCE_UPDATE", { employeeId: req.employee._id, action: "CHECK_OUT", recordId: record._id });
-    void writeAuditLog(req, "ATTENDANCE_CHECK_OUT", "Employee checked out for the day", "AttendanceRecord", record._id.toString());
     return res.status(200).json(responseBody);
   } catch (error: any) {
-    await abortAndEndSession(session);
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     
     if ((error.message === "IDEMPOTENCY_CONFLICT" || error.code === 11000 || error.code === 112 || error.hasErrorLabel?.('TransientTransactionError')) && req.body?.idempotencyKey) {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -568,6 +498,7 @@ export const checkOut = async (req: any, res: any) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 import { buildEmployeeScopeFilter } from "../middleware/authMiddleware.js";
 
@@ -618,26 +549,8 @@ export const getGlobalAttendance = async (req, res) => {
       { $sort: { fullName: 1 } },
     ]);
 
-    // Fallback: If 0 rows match specific match criteria, query all employees
-    if (rows.length === 0) {
-      rows = await Employee.aggregate([
-        { $match: { role: 'Employee' } },
-        {
-          $lookup: {
-            from: "attendancerecords",
-            let: { empId: "$_id" },
-            pipeline: [
-              { $match: { $expr: { $and: [{ $eq: ["$employeeId", "$$empId"] }, { $eq: ["$date", dateStr] }] } } },
-              { $limit: 1 },
-            ],
-            as: "att",
-          },
-        },
-        { $lookup: { from: "locations", localField: "locationId", foreignField: "_id", as: "loc" } },
-        { $addFields: { att: { $arrayElemAt: ["$att", 0] }, loc: { $arrayElemAt: ["$loc", 0] } } },
-        { $sort: { fullName: 1 } },
-      ]);
-    }
+    // No unsafe fallback — if zero rows matched, return an empty list
+    // rather than bypassing company isolation.
 
     const data = rows.map((r: any) => {
       const att = r.att;
@@ -739,20 +652,7 @@ export const getAttendanceHistory = async (req, res) => {
       .limit(limitNum)
       .lean();
 
-    // Fallback 1: If strict companyId yielded no records, query without companyId restriction
-    if (records.length === 0 && filter.companyId) {
-      const fallbackFilter = { ...filter };
-      delete fallbackFilter.companyId;
-      records = await AttendanceRecord.find(fallbackFilter)
-        .populate({
-          path: "employeeId",
-          populate: { path: "departmentId" }
-        })
-        .populate("locationId")
-        .sort({ date: -1 })
-        .limit(limitNum)
-        .lean();
-    }
+    // Removed unsafe fallback that dropped companyId — company isolation must always be enforced.
 
     // Fallback 2: If Employee role and still no records, query for employee's ObjectId directly
     if (records.length === 0 && req.employee?._id) {
@@ -827,9 +727,10 @@ export const getAttendanceHistory = async (req, res) => {
 };
 
 export const createCorrection = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { attendanceRecordId, date, requestedCheckIn, requestedCheckOut, reason } = req.body;
 
     const checkInDate = requestedCheckIn ? new Date(`${date}T${requestedCheckIn}:00Z`) : null;
@@ -863,8 +764,8 @@ export const createCorrection = async (req, res) => {
     session.endSession();
     return res.status(201).json({ success: true, data: correction });
   } catch (error) {
-    if (session.inTransaction()) await session.abortTransaction();
-    session.endSession();
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -902,9 +803,10 @@ export const getCorrections = async (req, res) => {
 };
 
 export const approveCorrection = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { id } = req.params;
     const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
@@ -944,16 +846,17 @@ export const approveCorrection = async (req, res) => {
     session.endSession();
     return res.status(200).json({ success: true, data: correction });
   } catch (error) {
-    if (session.inTransaction()) await session.abortTransaction();
-    session.endSession();
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const rejectCorrection = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const { id } = req.params;
     const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
@@ -984,8 +887,8 @@ export const rejectCorrection = async (req, res) => {
     session.endSession();
     return res.status(200).json({ success: true, data: correction });
   } catch (error) {
-    if (session.inTransaction()) await session.abortTransaction();
-    session.endSession();
+    if (session && session.inTransaction()) await session.abortTransaction();
+    if (session) session.endSession();
     return res.status(500).json({ success: false, message: error.message });
   }
 };
