@@ -1,22 +1,11 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Box } from "@mui/material";
-import DashboardAnalytics from "../../features/dashboard/components/DashboardAnalytics/DashboardAnalytics";
-import { fetchEmployees, selectRestrictedDashboardEmployees } from "../../redux/dashboardSlice";
-import type { AppDispatch } from "../../redux/store";
+import EmployeeDashboardAnalytics from "../../features/dashboard/components/EmployeeDashboardAnalytics/EmployeeDashboardAnalytics";
 
 const EmployeeDashboard = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const employees = useSelector(selectRestrictedDashboardEmployees);
-
-  useEffect(() => {
-    dispatch(fetchEmployees());
-  }, [dispatch]);
-
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
-      {/* Render the DashboardAnalytics view for the employee */}
-      <DashboardAnalytics employees={employees} />
+      {/* Render the Employee personal dashboard analytics view */}
+      <EmployeeDashboardAnalytics />
     </Box>
   );
 };
