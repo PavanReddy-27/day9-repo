@@ -62,16 +62,17 @@ const seedDB = async () => {
     // 3. Create Departments
     const depts = ['Engineering', 'Human Resources', 'Finance', 'Sales', 'Marketing', 'Operations', 'Customer Support'];
     const departments = {};
+    const defaultLocationId = locations[locationsData[0].code]._id;
     for (const d of depts) {
       const code = d.substring(0, 3).toUpperCase();
-      departments[d] = await Department.create({ companyId: company._id, name: d, code });
+      departments[d] = await Department.create({ companyId: company._id, locationId: defaultLocationId, name: d, code });
     }
 
     // 4. Create Teams per Department
     const teamsByDept = {};
     for (const d of depts) {
-      const t1 = await Team.create({ department: departments[d]._id, name: `${d} Alpha` });
-      const t2 = await Team.create({ department: departments[d]._id, name: `${d} Beta` });
+      const t1 = await Team.create({ companyId: company._id, departmentId: departments[d]._id, name: `${d} Alpha` });
+      const t2 = await Team.create({ companyId: company._id, departmentId: departments[d]._id, name: `${d} Beta` });
       teamsByDept[d] = [t1, t2];
     }
 

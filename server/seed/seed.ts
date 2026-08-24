@@ -191,7 +191,7 @@ export async function runSeed(reset = false) {
       for (let t = 1; t <= 2; t++) {
         const team = await Team.create({
           companyId: company._id,
-          department: dept._id,
+          departmentId: dept._id,
           name: `${deptDef.name} Team ${t} (${locDef.code})`,
         });
         teamDocs.push(team);
@@ -291,7 +291,7 @@ export async function runSeed(reset = false) {
       });
 
       const assignedDept = locDepts[i % locDepts.length];
-      const assignedTeams = teamDocs.filter((t) => t.department.toString() === assignedDept._id.toString());
+      const assignedTeams = teamDocs.filter((t) => t.departmentId.toString() === assignedDept._id.toString());
       const assignedTeam = assignedTeams[i % assignedTeams.length];
 
       const workMode = prng.choice(["Office", "Office", "Office", "Hybrid", "Remote"]);
@@ -485,7 +485,6 @@ export async function runSeed(reset = false) {
 
   console.log("[Seed Engine] Seeding completed successfully!");
   await printCollectionCounts();
-  await closeDB();
 }
 
 async function printCollectionCounts() {
@@ -508,7 +507,10 @@ async function printCollectionCounts() {
 // CLI runner
 if (process.argv[1]?.includes("seed.ts")) {
   const resetFlag = process.argv.includes("--reset");
-  runSeed(resetFlag).catch((err) => {
+  runSeed(resetFlag).then(async () => {
+    await closeDB();
+    process.exit(0);
+  }).catch((err) => {
     console.error("[Seed Engine] Fatal Error:", err);
     process.exit(1);
   });
