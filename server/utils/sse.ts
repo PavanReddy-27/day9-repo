@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 interface SSEClient {
   id: string; // The employee _id string
+  companyId: string;
   res: Response;
 }
 
@@ -9,8 +10,7 @@ let clients: SSEClient[] = [];
 
 /**
  * SSE Middleware to handle incoming event stream connections.
- * Note: Should be used *after* authenticateJWT or similar so req.employee is available, 
- * or the client must send a token in the query params.
+ * Note: Uses authenticateJWT so req.employee and req.companyId are available.
  */
 export const sseMiddleware = (req: Request, res: Response) => {
   res.setHeader("Content-Type", "text/event-stream");
@@ -18,10 +18,10 @@ export const sseMiddleware = (req: Request, res: Response) => {
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders(); // Establish the connection immediately
 
-  // Fallback to query param if JWT middleware not applied
-  const employeeId = (req as any).employee?._id?.toString() || req.query.employeeId as string || "unknown";
+  const employeeId = (req as any).employee?._id?.toString() || "unknown";
+  const companyId = (req as any).companyId?.toString() || "unknown";
 
-  const client: SSEClient = { id: employeeId, res };
+  const client: SSEClient = { id: employeeId, companyId, res };
   clients.push(client);
 
   req.on("close", () => {
@@ -30,14 +30,17 @@ export const sseMiddleware = (req: Request, res: Response) => {
 };
 
 /**
- * Broadcasts an SSE event to all connected clients.
+ * Broadcasts an SSE event to all connected clients within a specific company.
  * @param eventName Name of the event (e.g., 'ATTENDANCE_UPDATE')
  * @param payload The data to send
+ * @param companyId The tenant ID to isolate the broadcast
  */
-export const broadcastSSE = (eventName: string, payload: any) => {
+export const broadcastSSE = (eventName: string, payload: any, companyId?: string) => {
   clients.forEach((c) => {
-    c.res.write(`event: ${eventName}\n`);
-    c.res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    if (!companyId || c.companyId === companyId.toString()) {
+      c.res.write(`event: ${eventName}\n`);
+      c.res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    }
   });
 };
 

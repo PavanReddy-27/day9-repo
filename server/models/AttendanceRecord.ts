@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { eventBus } from "../services/eventBus.js";
 
 const attendanceRecordSchema = new mongoose.Schema(
   {
@@ -46,5 +47,12 @@ const attendanceRecordSchema = new mongoose.Schema(
 
 attendanceRecordSchema.index({ companyId: 1, employeeId: 1, date: 1 }, { unique: true });
 attendanceRecordSchema.index({ companyId: 1, date: 1, status: 1 });
+
+attendanceRecordSchema.post('save', function(doc) {
+  eventBus.emit('analytics:update', { 
+    type: 'analytics_refresh', 
+    companyId: doc.companyId 
+  });
+});
 
 export default mongoose.models.AttendanceRecord || mongoose.model("AttendanceRecord", attendanceRecordSchema, "attendancerecords");

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { eventBus } from "../services/eventBus.js";
 
 const productivityRecordSchema = new mongoose.Schema(
   {
@@ -14,5 +15,12 @@ const productivityRecordSchema = new mongoose.Schema(
 );
 
 productivityRecordSchema.index({ companyId: 1, employeeId: 1, date: 1 }, { unique: true });
+
+productivityRecordSchema.post('save', function(doc) {
+  eventBus.emit('analytics:update', { 
+    type: 'analytics_refresh', 
+    companyId: doc.companyId 
+  });
+});
 
 export default mongoose.models.ProductivityRecord || mongoose.model("ProductivityRecord", productivityRecordSchema, "productivityrecords");

@@ -18,7 +18,10 @@ export type KPIType =
   | "performanceScore"
   | "highRiskEmployees"
   | "promotionRate"
-  | "departments";
+  | "departments"
+  | "totalOvertime"
+  | "productivityScore"
+  | "focusScore";
 
 export interface KPIItem {
   id: KPIType;

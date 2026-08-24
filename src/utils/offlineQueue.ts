@@ -34,10 +34,10 @@ const DB_VERSION = 1;
 
 let dbPromise: Promise<IDBPDatabase<WorkforceOfflineDB>> | null = null;
 
-const getDB = (): Promise<IDBPDatabase<WorkforceOfflineDB>> => {
+const getDB = async (): Promise<IDBPDatabase<WorkforceOfflineDB>> => {
   if (!dbPromise) {
     dbPromise = openDB<WorkforceOfflineDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
+      upgrade(db: IDBPDatabase<WorkforceOfflineDB>) {
         if (!db.objectStoreNames.contains("offlineActions")) {
           const store = db.createObjectStore("offlineActions", {
             keyPath: "id",

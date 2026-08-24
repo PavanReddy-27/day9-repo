@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { eventBus } from "../services/eventBus.js";
 
 const performanceRecordSchema = new mongoose.Schema(
   {
@@ -15,5 +16,12 @@ const performanceRecordSchema = new mongoose.Schema(
 );
 
 performanceRecordSchema.index({ companyId: 1, employeeId: 1, period: 1 }, { unique: true });
+
+performanceRecordSchema.post('save', function(doc) {
+  eventBus.emit('analytics:update', { 
+    type: 'analytics_refresh', 
+    companyId: doc.companyId 
+  });
+});
 
 export default mongoose.models.PerformanceRecord || mongoose.model("PerformanceRecord", performanceRecordSchema, "performancerecords");

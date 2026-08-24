@@ -24,20 +24,15 @@ import type { GridColDef } from "@mui/x-data-grid";
 
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
-import { EventAvailable, CheckCircle, HourglassEmpty, Cancel } from "@mui/icons-material";
+import { EventAvailable } from "@mui/icons-material";
 
 import leaveApi, { LeaveRequestData } from "../../services/leaveApi";
 
-const STATUS_BUTTONS = [
-  { id: "Approved", label: "Approved", color: "#16A34A", bg: "#16A34A1A", icon: CheckCircle },
-  { id: "Pending", label: "Pending", color: "#D97706", bg: "#D977061A", icon: HourglassEmpty },
-  { id: "Rejected", label: "Rejected", color: "#DC2626", bg: "#DC26261A", icon: Cancel },
-];
 
 const EmployeeLeaveRequests = () => {
   const [search, setSearch] = useState("");
   // Default to showing all records unless a specific status is clicked
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter] = useState<string | null>(null);
 
   const [rows, setRows] = useState<LeaveRequestData[]>([]);
   const [isLoading, setIsLoading] = useState(true);

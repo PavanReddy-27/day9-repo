@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { eventBus } from '../services/eventBus.js';
 
 // Field names here match what is actually stored in the `employees` collection
 // (companyId/locationId/departmentId-style refs), not the older `company`/`location`
@@ -34,6 +35,13 @@ const employeeSchema = new mongoose.Schema({
 
 employeeSchema.index({ companyId: 1, locationId: 1 });
 employeeSchema.index({ companyId: 1, departmentId: 1 });
+
+employeeSchema.post('save', function(doc) {
+  eventBus.emit('analytics:update', { 
+    type: 'analytics_refresh', 
+    companyId: doc.companyId 
+  });
+});
 
 const Employee = mongoose.models.Employee || mongoose.model('Employee', employeeSchema);
 export default Employee as typeof mongoose.Model;

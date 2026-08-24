@@ -10,6 +10,7 @@ import authReducer from "./authSlice";
 import dashboardReducer from "./dashboardSlice";
 import hrReducer from "./hrSlice";
 import attendanceReducer from "./attendanceSlice";
+import notificationReducer from "./notificationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     hr: hrReducer,
     attendance: attendanceReducer,
+    notifications: notificationReducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -56,3 +58,5 @@ export const selectDashboardState = (state: RootState) =>
   state.dashboard;
 
 export const selectHRState = (state: RootState) => state.hr;
+
+export const selectNotificationState = (state: RootState) => state.notifications;

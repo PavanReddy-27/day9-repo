@@ -1,7 +1,9 @@
 import type { Request, Response } from "express";
 import LeaveRequest from "../models/LeaveRequest.js";
 import Employee from "../models/Employee.js";
+import Notification from "../models/Notification.js";
 import { writeAuditLog } from "../utils/audit.js";
+import { broadcastSSE } from "../utils/sse.js";
 import mongoose from "mongoose";
 
 // @desc    Get all leave requests
@@ -57,6 +59,30 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
     const companyId = (req as any).companyId;
     const { type, startDate, endDate, reason } = req.body;
 
+    if (!type || !startDate || !endDate || !reason) {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(400).json({ error: "Missing required fields: type, startDate, endDate, reason" });
+      return;
+    }
+
+    const fromDate = new Date(startDate);
+    const toDate = new Date(endDate);
+
+    if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(400).json({ error: "Invalid date format provided" });
+      return;
+    }
+
+    if (fromDate > toDate) {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(400).json({ error: "Start date must be before or equal to end date" });
+      return;
+    }
+
     const empId = (req as any).employee?._id;
     if (!empId) {
       await session.abortTransaction();
@@ -65,8 +91,7 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const fromDate = new Date(startDate);
-    const toDate = new Date(endDate);
+
     const durationDays = Math.max(1, Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 3600 * 24)) + 1);
 
     const newLeaveArr: any = await LeaveRequest.create([{
@@ -131,7 +156,7 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
         reviewedAt: new Date()
       },
       { new: true, session }
-    ).populate("employeeId", "firstName lastName employeeId").populate("reviewedBy", "firstName lastName");
+    ).populate("employeeId", "firstName lastName employeeId userId").populate("reviewedBy", "firstName lastName");
 
     if (!leave) {
       await session.abortTransaction();
@@ -141,6 +166,25 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
     }
 
     await writeAuditLog(req, `LEAVE_${status.toUpperCase()}`, `${status} leave request ${String(id)}`, "LeaveRequest", String(id), { session });
+
+    if (leave.employeeId?.userId) {
+      const typeStr = leave.type || "Leave";
+      const reviewedByName = leave.reviewedBy?.firstName || "your manager";
+      const message = `Your ${typeStr} request from ${leave.startDate} to ${leave.endDate} has been ${status.toLowerCase()} by ${reviewedByName}.`;
+      const notifType = status === "Approved" ? "SUCCESS" : "WARNING";
+
+      const notifArr: any = await Notification.create([{
+        companyId: (req as any).companyId,
+        userId: leave.employeeId.userId,
+        title: `Leave Request ${status}`,
+        message,
+        type: notifType,
+        linkUrl: "/employee/leaves"
+      }], { session });
+
+      broadcastSSE("NOTIFICATION_UPDATE", { userId: leave.employeeId.userId.toString(), notificationId: notifArr[0]._id }, (req as any).companyId);
+      broadcastSSE("LEAVE_UPDATE", { employeeId: leave.employeeId._id.toString(), status, leaveId: leave._id }, (req as any).companyId);
+    }
 
     await session.commitTransaction();
     session.endSession();

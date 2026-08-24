@@ -73,6 +73,7 @@ async function startServer() {
     console.error("[Server] Auto-seed check error:", seedErr.message);
   }
 
+
   const currentPort = parseInt(PORT as string, 10);
 
   const tryListen = (portToTry) => {
