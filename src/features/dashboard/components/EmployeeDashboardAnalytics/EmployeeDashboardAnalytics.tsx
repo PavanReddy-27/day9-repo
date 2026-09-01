@@ -56,7 +56,6 @@ const EmployeeDashboardAnalytics = () => {
   const kpis = useMemo<KPIItem[]>(() => {
     if (loading || !attendanceData || !productivityData) return [];
 
-    const summary = attendanceData.summary || [];
     const trends = attendanceData.trends || [];
     
     // Attendance Rate (last 7 days average)
@@ -203,8 +202,8 @@ const EmployeeDashboardAnalytics = () => {
                       itemStyle={{ color: 'var(--text)' }}
                     />
                     <Legend wrapperStyle={{ paddingTop: 10 }} />
-                    <Bar dataKey="present" name="Present Days" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    <Bar dataKey="late" name="Late Days" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="present" name="Present Days" fill="var(--success)" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="late" name="Late Days" fill="var(--warning)" radius={[4, 4, 0, 0]} maxBarSize={40} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -229,7 +228,7 @@ const EmployeeDashboardAnalytics = () => {
                       itemStyle={{ color: 'var(--text)' }}
                     />
                     <Legend wrapperStyle={{ paddingTop: 10 }} />
-                    <Line type="monotone" dataKey="avgRating" name="Rating" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="avgRating" name="Rating" stroke="var(--primary)" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
