@@ -56,7 +56,6 @@ const EmployeeDashboardAnalytics = () => {
   const kpis = useMemo<KPIItem[]>(() => {
     if (loading || !attendanceData || !productivityData) return [];
 
-    const summary = attendanceData.summary || [];
     const trends = attendanceData.trends || [];
     
     // Attendance Rate (last 7 days average)

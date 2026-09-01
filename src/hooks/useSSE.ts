@@ -13,7 +13,11 @@ export const useSSE = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken") || "";
-    const url = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"}/events/stream?token=${token}`;
+    
+    if (!token) {
+      return;
+    }
+    const url = `${import.meta.env.VITE_API_BASE_URL || "/api/v1"}/events/stream?token=${token}`;
     const eventSource = new EventSource(url);
 
     eventSource.onopen = () => {

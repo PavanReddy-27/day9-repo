@@ -15,10 +15,13 @@ import {
 import { Notifications as NotificationsIcon, CheckCircleOutlined as CheckCircleOutlineIcon } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { fetchNotifications, markAsRead, markAllAsRead } from "../../redux/notificationSlice";
+import { useNavigate } from "react-router-dom";
 
 const NotificationBell = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.auth);
   const { notifications, unreadCount } = useAppSelector((state) => state.notifications);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
@@ -43,8 +46,39 @@ const NotificationBell = () => {
     setAnchorEl(null);
   };
 
-  const handleMarkAsRead = (id: string) => {
+  const handleMarkAsRead = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     dispatch(markAsRead(id));
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    if (!notification.isRead) {
+      dispatch(markAsRead(notification._id));
+    }
+    handleClose();
+    
+    // Dynamically route based on user role and notification content
+    if (notification.linkUrl || notification.title) {
+      let url = notification.linkUrl || "/";
+      const rolePrefix = user?.role ? `/${user.role.toLowerCase()}` : "/employee";
+      const titleLower = notification.title?.toLowerCase() || "";
+      const messageLower = notification.message?.toLowerCase() || "";
+      
+      if (titleLower.includes("leave") || messageLower.includes("leave")) {
+        url = `${rolePrefix}/leave-requests`;
+      } else if (titleLower.includes("attendance") || messageLower.includes("attendance")) {
+        url = `${rolePrefix}/attendance`;
+      } else if (url.startsWith("/employee/")) {
+        // Fallback: replace /employee with correct role prefix
+        url = url.replace("/employee", rolePrefix);
+      }
+      
+      if (url.endsWith("/leaves")) {
+        url = url.replace("/leaves", "/leave-requests");
+      }
+
+      navigate(url);
+    }
   };
 
   const handleMarkAllAsRead = () => {
@@ -115,7 +149,9 @@ const NotificationBell = () => {
             notifications.map((notification) => (
               <ListItem
                 key={notification._id}
+                onClick={() => handleNotificationClick(notification)}
                 sx={{
+                  cursor: "pointer",
                   bgcolor: notification.isRead ? "transparent" : "var(--bg-hover)",
                   borderBottom: "1px solid var(--border)",
                   py: 1.5,
@@ -156,7 +192,7 @@ const NotificationBell = () => {
                   disableTypography
                 />
                 {!notification.isRead && (
-                  <IconButton size="small" onClick={() => handleMarkAsRead(notification._id)} sx={{ alignSelf: "center", ml: 1 }}>
+                  <IconButton size="small" onClick={(e) => handleMarkAsRead(e, notification._id)} sx={{ alignSelf: "center", ml: 1 }}>
                     <CheckCircleOutlineIcon fontSize="small" color="action" />
                   </IconButton>
                 )}
