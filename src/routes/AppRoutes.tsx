@@ -1,4 +1,4 @@
-// ====================================
+﻿// ====================================
 // File: src/routes/AppRoutes.tsx
 // ====================================
 
@@ -39,11 +39,13 @@ import ManagerAnalytics from "../manager/pages/Analytics";
 
 
 import SharedLeaveRequests from "../pages/shared/LeaveRequests/LeaveRequests";
+import SharedPayroll from "../pages/shared/Payroll/Payroll";
 
 // Employee Pages
 import EmployeeDashboard from "../pages/Employee/Dashboard";
 import EmployeeAttendance from "../pages/Employee/Attendance";
 import EmployeeLeaveRequests from "../pages/Employee/LeaveRequests";
+import EmployeeMyPay from "../pages/Employee/MyPay";
 
 
 import Unauthorized from "../pages/Unauthorized/Unauthorized";
@@ -210,6 +212,11 @@ const AppRoutes = () => {
           />
 
           <Route
+            path="/admin/payroll"
+            element={<SharedPayroll />}
+          />
+
+          <Route
             path="/admin/performance"
             element={<HRPerformance />}
           />
@@ -262,6 +269,11 @@ const AppRoutes = () => {
           <Route
             path="/hr/leave-requests"
             element={<SharedLeaveRequests />}
+          />
+
+          <Route
+            path="/hr/payroll"
+            element={<SharedPayroll />}
           />
 
           <Route
@@ -319,6 +331,11 @@ const AppRoutes = () => {
           />
 
           <Route
+            path="/manager/payroll"
+            element={<SharedPayroll />}
+          />
+
+          <Route
             path="/manager/performance"
             element={<ManagerPerformance />}
           />
@@ -366,6 +383,11 @@ const AppRoutes = () => {
           <Route
             path="/employee/leave-requests"
             element={<EmployeeLeaveRequests />}
+          />
+          
+          <Route
+            path="/employee/payroll"
+            element={<EmployeeMyPay />}
           />
 
           <Route
