@@ -28,22 +28,55 @@ export const calculatePayroll = async (req: Request, res: Response): Promise<voi
     const employees = await Employee.find({ companyId, employmentStatus: { $in: ['Active', 'Notice Period'] } });
     console.log(`FOUND ${employees.length} EMPLOYEES FOR COMPANY ${companyId}`);
 
-    const records = [];
+    const employeeIds = employees.map(emp => emp._id);
+
+    // 1. Fetch all Approved Attendances for these employees in this period
+    const attendances = await AttendanceRecord.find({
+      employeeId: { $in: employeeIds },
+      date: { $gte: new Date(startDate).toISOString().split('T')[0], $lte: new Date(endDate).toISOString().split('T')[0] },
+      status: 'Checked Out' // only valid/completed attendance
+    } as any);
+
+    // Group attendances by employee
+    const attByEmp: Record<string, any[]> = {};
+    for (const att of attendances) {
+      const eid = att.employeeId.toString();
+      if (!attByEmp[eid]) attByEmp[eid] = [];
+      attByEmp[eid].push(att);
+    }
+
+    // 2. Fetch all Unpaid Leaves for these employees
+    const leaves = await LeaveRequest.find({
+      employeeId: { $in: employeeIds },
+      status: 'Approved',
+      type: 'Unpaid',
+      $or: [
+        { startDate: { $lte: endDate, $gte: startDate } },
+        { endDate: { $lte: endDate, $gte: startDate } }
+      ]
+    } as any);
+
+    // Group leaves by employee
+    const leavesByEmp: Record<string, any[]> = {};
+    for (const leave of leaves) {
+      const eid = leave.employeeId.toString();
+      if (!leavesByEmp[eid]) leavesByEmp[eid] = [];
+      leavesByEmp[eid].push(leave);
+    }
+
+    // 3. Prepare Bulk Operations
+    const bulkOps = [];
     
     for (const emp of employees) {
-      // 1. Fetch Approved Attendances (Checked Out)
-      const attendances = await AttendanceRecord.find({
-        employeeId: emp._id,
-        date: { $gte: new Date(startDate).toISOString().split('T')[0], $lte: new Date(endDate).toISOString().split('T')[0] },
-        status: 'Checked Out' // only valid/completed attendance
-      } as any);
+      const eid = emp._id.toString();
       
+      const empAttendances = attByEmp[eid] || [];
       let regularHours = 0;
       let overtimeHours = 0;
       let shiftAllowance = 0;
-      let payableDays = attendances.length;
+      let payableDays = empAttendances.length;
 
-      for (const att of attendances) {
+      for (const att of empAttendances) {
         regularHours += att.workingHours || 0;
         overtimeHours += (att.overtimeMinutes || 0) / 60;
         
@@ -52,19 +85,9 @@ export const calculatePayroll = async (req: Request, res: Response): Promise<voi
         }
       }
 
-      // 2. Fetch Unpaid Leaves (Approved)
-      const leaves = await LeaveRequest.find({
-        employeeId: emp._id,
-        status: 'Approved',
-        type: 'Unpaid',
-        $or: [
-          { startDate: { $lte: endDate, $gte: startDate } },
-          { endDate: { $lte: endDate, $gte: startDate } }
-        ]
-      } as any);
-
+      const empLeaves = leavesByEmp[eid] || [];
       let unpaidLeaveDays = 0;
-      for (const leave of leaves) {
+      for (const leave of empLeaves) {
         unpaidLeaveDays += leave.durationDays || 0;
       }
 
@@ -77,27 +100,35 @@ export const calculatePayroll = async (req: Request, res: Response): Promise<voi
       
       const netSalary = baseSalary + shiftAllowance + overtimePay - deductions;
 
-      // Upsert record
-      const record = await PayrollRecord.findOneAndUpdate(
-        { periodId: period._id, employeeId: emp._id },
-        {
-          companyId,
-          payableDays,
-          regularHours,
-          overtimeHours,
-          unpaidLeaveDays,
-          baseSalary,
-          shiftAllowance,
-          deductions,
-          netSalary,
-          status: 'Draft'
-        },
-        { new: true, upsert: true }
-      );
-      records.push(record);
+      // Prepare bulk upsert op
+      bulkOps.push({
+        updateOne: {
+          filter: { periodId: period._id, employeeId: emp._id },
+          update: {
+            $set: {
+              companyId,
+              payableDays,
+              regularHours,
+              overtimeHours,
+              unpaidLeaveDays,
+              baseSalary,
+              shiftAllowance,
+              deductions,
+              netSalary,
+              status: 'Draft'
+            }
+          },
+          upsert: true
+        }
+      });
     }
 
-    res.status(200).json({ message: 'Payroll calculated successfully', period, count: records.length });
+    // Execute bulk write if there are employees
+    if (bulkOps.length > 0) {
+      await PayrollRecord.bulkWrite(bulkOps);
+    }
+
+    res.status(200).json({ message: 'Payroll calculated successfully', period, count: employees.length });
   } catch (error) {
     console.error('Calculate Payroll Error:', error);
     res.status(500).json({ error: 'Failed to calculate payroll' });
