@@ -5,6 +5,7 @@ import EmployeeTrendChart from "../../features/charts/components/EmployeeTrendCh
 import RoleChart from "../../features/charts/components/RoleChart";
 import DepartmentChart from "../../features/charts/components/DepartmentChart";
 import type { TrendChartData, DepartmentChartData } from "../../types/chart";
+import { trendChartData } from "../../data/chartData";
 
 import { useEffect, useState } from "react";
 import {
@@ -97,7 +98,8 @@ const HRAnalytics = () => {
   }));
 
   // Attrition data is not yet available on the backend (requires leavingDate in Employee model)
-  const attritionTrend: TrendChartData[] = [];
+  // Fallback to mock data for now
+  const attritionTrend: TrendChartData[] = trendChartData;
 
   // Work Mode distribution for DepartmentChart
   const workModeData: DepartmentChartData[] = (workforceData.workModeDistribution || []).map((item, idx) => ({

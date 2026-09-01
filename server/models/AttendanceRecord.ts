@@ -55,4 +55,4 @@ attendanceRecordSchema.post('save', function(doc) {
   });
 });
 
-export default mongoose.models.AttendanceRecord || mongoose.model("AttendanceRecord", attendanceRecordSchema, "attendancerecords");
+export default (mongoose.models.AttendanceRecord || mongoose.model("AttendanceRecord", attendanceRecordSchema, "attendancerecords")) as mongoose.Model<any>;

@@ -1,0 +1,11 @@
+EmployeeID,Name,Designation,BaseSalary,PayableDays,RegularHours,OvertimeHours,ShiftAllowance,Deductions,NetSalary,Status
+E1,First1 Last1,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E2,First2 Last2,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E3,First3 Last3,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E4,First4 Last4,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E5,First5 Last5,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E6,First6 Last6,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E7,First7 Last7,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E8,First8 Last8,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E9,First9 Last9,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft
+E10,First10 Last10,,60000,22,176.00,5.00,1000,0.00,62875.00,Draft

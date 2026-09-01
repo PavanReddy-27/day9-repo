@@ -13,7 +13,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -22,9 +25,16 @@
             "url": {
               "raw": "http://localhost:5000/api/v1/auth/login",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "auth", "login"]
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -33,14 +43,24 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "url": {
               "raw": "http://localhost:5000/api/v1/auth/logout",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "auth", "logout"]
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
             }
           }
         }
@@ -54,14 +74,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/status",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "status"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "status"
+              ]
             }
           }
         },
@@ -70,8 +100,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -80,9 +116,16 @@
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/check-in",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "check-in"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "check-in"
+              ]
             }
           }
         },
@@ -91,15 +134,29 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/break/start",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "break", "start"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "break",
+                "start"
+              ]
             }
           }
         },
@@ -108,15 +165,29 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/break/resume",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "break", "resume"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "break",
+                "resume"
+              ]
             }
           }
         },
@@ -125,8 +196,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -135,9 +212,16 @@
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/check-out",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "check-out"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "check-out"
+              ]
             }
           }
         },
@@ -146,14 +230,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/global",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "global"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "global"
+              ]
             }
           }
         }
@@ -167,8 +261,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -177,9 +277,16 @@
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/corrections",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "corrections"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "corrections"
+              ]
             }
           }
         },
@@ -188,14 +295,24 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/corrections",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "corrections"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "corrections"
+              ]
             }
           }
         },
@@ -204,8 +321,14 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -214,9 +337,18 @@
             "url": {
               "raw": "http://localhost:5000/api/v1/attendance/corrections/:id/approve",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "attendance", "corrections", ":id", "approve"]
+              "path": [
+                "api",
+                "v1",
+                "attendance",
+                "corrections",
+                ":id",
+                "approve"
+              ]
             }
           }
         }
@@ -230,14 +362,168 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "url": {
               "raw": "http://localhost:5000/api/v1/audit-logs?page=1&limit=50",
               "protocol": "http",
-              "host": ["localhost"],
+              "host": [
+                "localhost"
+              ],
               "port": "5000",
-              "path": ["api", "v1", "audit-logs"]
+              "path": [
+                "api",
+                "v1",
+                "audit-logs"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payroll",
+      "item": [
+        {
+          "name": "Calculate Payroll",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"64dbf3b9c7b9a5231c8e1a12\",\n  \"name\": \"August 2026\",\n  \"startDate\": \"2026-08-01\",\n  \"endDate\": \"2026-08-31\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/v1/payroll/calculate",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "payroll",
+                "calculate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Adjust Payroll Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"addition\",\n  \"amount\": 1000,\n  \"reason\": \"Performance Bonus\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/v1/payroll/record/:recordId/adjust",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "payroll",
+                "record",
+                ":recordId",
+                "adjust"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lock Payroll Period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"64dbf3b9c7b9a5231c8e1a11\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/v1/payroll/period/:periodId/lock",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "payroll",
+                "period",
+                ":periodId",
+                "lock"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Payroll CSV",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/payroll/period/:periodId/export?format=csv",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "payroll",
+                "period",
+                ":periodId",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "csv"
+                }
+              ]
             }
           }
         }

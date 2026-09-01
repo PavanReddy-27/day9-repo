@@ -1,0 +1,73 @@
+=== Payroll Calculation Report ===
+Period: Evidence Period 2026
+
+Employee: First1 Last1 (E1)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First2 Last2 (E2)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First3 Last3 (E3)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First4 Last4 (E4)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First5 Last5 (E5)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First6 Last6 (E6)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First7 Last7 (E7)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First8 Last8 (E8)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First9 Last9 (E9)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+
+Employee: First10 Last10 (E10)
+- Base Salary: 60000
+- Overtime Hours: 5 (Pay: 1875.00)
+- Shift Allowance: 1000
+- Deductions: 0
+- Net Salary: 62875.00
+

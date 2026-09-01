@@ -2,10 +2,8 @@ import type { ReactNode } from "react";
 
 import {
   Card,
-  CardActionArea,
   Box,
   Typography,
-  IconButton,
 } from "@mui/material";
 
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -56,11 +54,9 @@ const KPICard = ({
     : [];
 
   return (
-    <Card className="kpi-card" elevation={0}>
-      <CardActionArea
-        onClick={onClick}
+    <Card className="kpi-card" elevation={0} onClick={onClick} sx={{ cursor: onClick ? 'pointer' : 'default' }}>
+      <Box
         className="kpi-card__action"
-        disableRipple
       >
         <Box className="kpi-card__header">
           <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
@@ -91,9 +87,9 @@ const KPICard = ({
             </Box>
           </Box>
           
-          <IconButton size="small" className="kpi-card__more">
+          <Box className="kpi-card__more">
              <MoreHorizIcon />
-          </IconButton>
+          </Box>
         </Box>
 
         <Box className="kpi-card__body">
@@ -140,7 +136,7 @@ const KPICard = ({
             </ResponsiveContainer>
           </Box>
         )}
-      </CardActionArea>
+      </Box>
     </Card>
   );
 };

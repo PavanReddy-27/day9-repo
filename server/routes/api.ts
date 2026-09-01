@@ -125,4 +125,7 @@ router.patch("/notifications/:id/read", authenticateJWT, validateObjectId("id"),
 // Audit Logs (Admin / HR only)
 router.get("/audit-logs", authenticateJWT, requireRole(["Admin", "HR"]), getAuditLogs);
 
+import payrollRoutes from "./payrollRoutes.js";
+router.use("/payroll", authenticateJWT, payrollRoutes);
+
 export default router;

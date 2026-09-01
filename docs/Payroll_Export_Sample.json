@@ -1,0 +1,122 @@
+[
+  {
+    "EmployeeID": "E1",
+    "Name": "First1 Last1",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E2",
+    "Name": "First2 Last2",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E3",
+    "Name": "First3 Last3",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E4",
+    "Name": "First4 Last4",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E5",
+    "Name": "First5 Last5",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E6",
+    "Name": "First6 Last6",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E7",
+    "Name": "First7 Last7",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E8",
+    "Name": "First8 Last8",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E9",
+    "Name": "First9 Last9",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  },
+  {
+    "EmployeeID": "E10",
+    "Name": "First10 Last10",
+    "BaseSalary": 60000,
+    "PayableDays": 22,
+    "RegularHours": "176.00",
+    "OvertimeHours": "5.00",
+    "ShiftAllowance": 1000,
+    "Deductions": "0.00",
+    "NetSalary": "62875.00",
+    "Status": "Draft"
+  }
+]
