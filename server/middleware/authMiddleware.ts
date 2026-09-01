@@ -125,11 +125,11 @@ export const buildEmployeeScopeFilter = (
   if (role === 'Manager') {
     // Managers are scoped to their own department.
     filter.departmentId = employee?.departmentId;
-  } else if (role !== 'Admin' && role !== 'HR') {
+  } else if (role === 'Employee') {
     // Standard employees can only see their own record.
     filter._id = employee?._id;
   }
-  // Admin / HR: company-wide.
+  // Admin / HR: company-wide (just companyId).
 
   return filter;
 };

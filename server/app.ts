@@ -32,13 +32,9 @@ app.use(morgan('dev'));
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 
+import { errorHandler } from './middleware/errorHandler.js';
+
 // Centralized Error Handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error',
-  });
-});
+app.use(errorHandler);
 
 export default app;

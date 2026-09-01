@@ -83,15 +83,10 @@ app.get(/.*/, (req, res, next) => {
   res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
+import { errorHandler } from './middleware/errorHandler.js';
+
 // Centralized Error Handler — never leak stack traces or internal messages in production
-app.use((err: any, req, res, next) => {
-  console.error("[Backend Error]", err.message, err.stack);
-  const isProduction = process.env.NODE_ENV === 'production';
-  res.status(err.status || 500).json({
-    success: false,
-    message: isProduction ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
-  });
-});
+app.use(errorHandler);
 
 let server;
 

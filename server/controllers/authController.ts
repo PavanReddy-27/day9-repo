@@ -3,21 +3,35 @@ import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/Us
 import Employee from '../models/Employee.js';
 import jwt from 'jsonwebtoken';
 import { writeAuditLog } from '../utils/audit.js';
-import TokenBlacklist from '../models/TokenBlacklist.js';
+import RefreshToken from '../models/RefreshToken.js';
+import TokenBlacklist from '../models/TokenBlacklist.js'; // Keep for now in case of legacy
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
+import crypto from 'crypto';
 
 // Google Authenticator uses 30s TOTP steps. Allow ±1 step (±30s) so small clock
 // drift between the phone and the server doesn't reject otherwise-valid codes.
 authenticator.options = { window: 1 };
 
-// Helper to generate tokens
-export const generateTokens = (id: any, role: any) => {
-  const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET!, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id }, process.env.JWT_REFRESH_SECRET!, { expiresIn: '7d' });
-  return { accessToken, refreshToken };
+export const generateAccessToken = (id: any, role: any) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET!, { expiresIn: '15m' });
 };
 
+export const createRefreshToken = async (userId: any, familyId?: string) => {
+  const token = crypto.randomBytes(40).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const actualFamilyId = familyId || crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+  await RefreshToken.create({
+    user: userId,
+    tokenHash,
+    familyId: actualFamilyId,
+    expiresAt,
+  });
+
+  return token;
+};
 const findUserByEmail = async (rawEmail: string) => {
   if (!rawEmail) return null;
   const clean = rawEmail.trim().toLowerCase();
@@ -105,7 +119,8 @@ export const login = async (req: any, res: any, next: any) => {
     }
 
     const employee: any = await Employee.findOne({ email } as any);
-    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = await createRefreshToken(user._id);
 
     // Sensitive-action audit trail (fire-and-forget).
     void writeAuditLog(
@@ -151,19 +166,38 @@ export const refresh = async (req, res) => {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(401).json({ success: false, message: 'Refresh token required' });
 
-    const isBlacklisted = await TokenBlacklist.findOne({ token: refreshToken });
-    if (isBlacklisted) return res.status(401).json({ success: false, message: 'Refresh token revoked' });
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+    const existingToken = await RefreshToken.findOne({ tokenHash });
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET) as any;
-    const user = await findUserById(decoded.id);
+    if (!existingToken) {
+      return res.status(401).json({ success: false, message: 'Invalid refresh token' });
+    }
 
+    if (existingToken.revoked) {
+      // Reuse detected! Revoke the entire family
+      await RefreshToken.updateMany({ familyId: existingToken.familyId }, { revoked: true });
+      return res.status(401).json({ success: false, message: 'Refresh token reuse detected. All tokens revoked.' });
+    }
+
+    // Check expiration
+    if (new Date() > existingToken.expiresAt) {
+      return res.status(401).json({ success: false, message: 'Refresh token expired' });
+    }
+
+    const user = await findUserById(existingToken.user.toString());
     if (!user) return res.status(401).json({ success: false, message: 'User not found' });
 
-    await TokenBlacklist.create({ token: refreshToken });
-    const tokens = generateTokens(user._id, user.role);
-    res.status(200).json({ success: true, data: tokens });
-  } catch {
-    res.status(403).json({ success: false, message: 'Invalid refresh token' });
+    // Revoke the current token
+    existingToken.revoked = true;
+    await existingToken.save();
+
+    // Create new tokens
+    const accessToken = generateAccessToken(user._id, user.role);
+    const newRefreshToken = await createRefreshToken(user._id, existingToken.familyId);
+
+    res.status(200).json({ success: true, data: { accessToken, refreshToken: newRefreshToken } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 
@@ -173,19 +207,28 @@ export const logout = async (req: any, res: any, next: any) => {
     session = await mongoose.startSession();
     session.startTransaction();
     
-    const tokensToBlacklist = [];
+    const { refreshToken } = req.body || {};
+    
+    if (refreshToken) {
+      const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      const rt = await RefreshToken.findOne({ tokenHash });
+      if (rt) {
+        // Revoke the family
+        await RefreshToken.updateMany({ familyId: rt.familyId }, { revoked: true }, { session });
+      }
+    }
+    
+    if (req.user && req.user.id) {
+       // Revoke all session tokens for the user
+       await RefreshToken.updateMany({ user: req.user.id }, { revoked: true }, { session });
+    }
     
     let accessToken;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       accessToken = req.headers.authorization.split(' ')[1];
     }
-    if (accessToken) tokensToBlacklist.push({ token: accessToken });
-    
-    const { refreshToken } = req.body || {};
-    if (refreshToken) tokensToBlacklist.push({ token: refreshToken });
-    
-    if (tokensToBlacklist.length > 0) {
-      await TokenBlacklist.insertMany(tokensToBlacklist, { session });
+    if (accessToken) {
+       await TokenBlacklist.create([{ token: accessToken }], { session });
     }
     
     await session.commitTransaction();
@@ -230,7 +273,8 @@ export const verifyLoginMfa = async (req: any, res: any, next: any) => {
     }
 
     const employee: any = await Employee.findOne({ email: user.email } as any);
-    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = await createRefreshToken(user._id);
 
     void writeAuditLog(
       { companyId: employee?.companyId ?? user.companyId, role: user.role, userEmail: user.email, ip: req.ip, headers: req.headers },

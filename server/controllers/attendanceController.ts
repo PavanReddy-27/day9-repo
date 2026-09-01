@@ -811,7 +811,17 @@ export const approveCorrection = async (req, res) => {
     const { id } = req.params;
     const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
-    if (!correction || correction.status !== "Pending") {
+    if (!correction) {
+      const crossCompanyLeak = await CorrectionRequest.findById(id).session(session);
+      if (crossCompanyLeak) {
+        const { logComplianceViolation } = await import('../utils/compliance.js');
+        await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company correction access: ${id}`, 'Critical', { id }, req);
+      }
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
+    }
+    if (correction.status !== "Pending") {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
@@ -823,7 +833,7 @@ export const approveCorrection = async (req, res) => {
     await correction.save({ session });
 
     // Update original attendance record
-    const record: any = await (AttendanceRecord as any).findById(correction.attendanceRecordId as any).session(session);
+    const record: any = await AttendanceRecord.findOne({ _id: correction.attendanceRecordId, companyId: req.companyId } as any).session(session);
     if (record) {
       record.checkInTime = correction.requestedCheckIn;
       record.checkOutTime = correction.requestedCheckOut;
@@ -877,7 +887,17 @@ export const rejectCorrection = async (req, res) => {
     const { id } = req.params;
     const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
-    if (!correction || correction.status !== "Pending") {
+    if (!correction) {
+      const crossCompanyLeak = await CorrectionRequest.findById(id).session(session);
+      if (crossCompanyLeak) {
+        const { logComplianceViolation } = await import('../utils/compliance.js');
+        await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company correction access: ${id}`, 'Critical', { id }, req);
+      }
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
+    }
+    if (correction.status !== "Pending") {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({ success: false, message: "Correction request not found or already processed." });

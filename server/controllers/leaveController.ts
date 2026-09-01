@@ -8,11 +8,11 @@ import mongoose from "mongoose";
 
 // @desc    Get all leave requests
 // @route   GET /api/v1/leaves
-// @access  Private (Role-based data scope applied via middleware)
+import type { Request, Response, NextFunction } from "express";
 // @desc    Get all leave requests
 // @route   GET /api/v1/leaves
 // @access  Private (Role-based data scope applied via middleware)
-export const getLeaveRequests = async (req: Request, res: Response): Promise<void> => {
+export const getLeaveRequests = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { role } = (req as any).user || { role: (req as any).role };
     const { status } = req.query;
@@ -28,8 +28,14 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
       }
       query.employeeId = empId;
     } else if (role === "Manager") {
-      // Remove department constraint so managers can see all leave requests across the company
-      // (same as Admin and HR)
+      // Managers can only see leave requests from their own department
+      const departmentId = (req as any).employee?.departmentId;
+      if (departmentId) {
+        // Find employees in this department
+        const employeesInDept = await Employee.find({ departmentId, companyId: (req as any).companyId }).select('_id');
+        const empIds = employeesInDept.map(e => e._id);
+        query.employeeId = { $in: empIds };
+      }
     }
     // HR / Admin: company-wide visibility (all statuses, incl. Pending to review).
 
@@ -44,15 +50,14 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
 
     res.json(leaves);
   } catch (error) {
-    console.error("Error fetching leave requests:", error);
-    res.status(500).json({ error: "Server error" });
+    next(error);
   }
 };
 
 // @desc    Apply for a leave request
 // @route   POST /api/v1/leaves
 // @access  Private (Employee)
-export const createLeaveRequest = async (req: Request, res: Response): Promise<void> => {
+export const createLeaveRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   let session;
   try {
     session = await mongoose.startSession();
@@ -117,15 +122,14 @@ export const createLeaveRequest = async (req: Request, res: Response): Promise<v
   } catch (error) {
     if (session && session.inTransaction()) await session.abortTransaction();
     if (session) session.endSession();
-    console.error("Error creating leave request:", error);
-    res.status(500).json({ error: "Server error" });
+    next(error);
   }
 };
 
 // @desc    Approve or Reject a leave request
 // @route   PATCH /api/v1/leaves/:id/status
 // @access  Private (Manager / HR / Admin)
-export const updateLeaveStatus = async (req: Request, res: Response): Promise<void> => {
+export const updateLeaveStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   let session;
   try {
     session = await mongoose.startSession();
@@ -161,6 +165,11 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
     ).populate("employeeId", "firstName lastName employeeId userId").populate("reviewedBy", "firstName lastName");
 
     if (!leave) {
+      const crossCompanyLeak = await (LeaveRequest as any).findById(id).session(session);
+      if (crossCompanyLeak) {
+        const { logComplianceViolation } = await import('../utils/compliance.js');
+        await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company leave access: ${id}`, 'Critical', { id }, req);
+      }
       await session.abortTransaction();
       session.endSession();
       res.status(404).json({ error: "Leave request not found" });
@@ -194,7 +203,6 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
   } catch (error) {
     if (session && session.inTransaction()) await session.abortTransaction();
     if (session) session.endSession();
-    console.error("Error updating leave status:", error);
-    res.status(500).json({ error: "Server error" });
+    next(error);
   }
 };

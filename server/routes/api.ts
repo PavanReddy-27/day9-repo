@@ -46,6 +46,7 @@ import { authenticateJWT, requireRole, applyRoleDataScope, validateObjectId } fr
 import { validateRequest } from "../middleware/validateRequest.js";
 import { loginSchema, refreshSchema } from "../validators/authSchema.js";
 import { checkInSchema, checkOutSchema, correctionSchema, breakSchema } from "../validators/attendanceSchema.js";
+import { leaveSchema } from "../validators/leaveSchema.js";
 
 import { sseMiddleware } from "../utils/sse.js";
 
@@ -113,7 +114,7 @@ router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(
 
 // Leave Requests Routes
 router.get("/leaves", authenticateJWT, getLeaveRequests);
-router.post("/leaves", authenticateJWT, requireRole(["Employee"]), createLeaveRequest);
+router.post("/leaves", authenticateJWT, requireRole(["Employee"]), validateRequest(leaveSchema), createLeaveRequest);
 router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), updateLeaveStatus);
 
 // Notifications Routes
