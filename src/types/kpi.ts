@@ -21,7 +21,11 @@ export type KPIType =
   | "departments"
   | "totalOvertime"
   | "productivityScore"
-  | "focusScore";
+  | "focusScore"
+  | "activeHours"
+  | "performanceRating"
+  | "tasksCompleted"
+  | "goalsAchieved";
 
 export interface KPIItem {
   id: KPIType;
@@ -35,6 +39,7 @@ export interface KPIItem {
   icon?: ReactNode;
   color?: string;
   sparklineData?: number[];
+  progress?: number;
 }
 
 export interface KPIStatistics {

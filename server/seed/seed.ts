@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+ 
 import bcrypt from "bcryptjs";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 import connectDB, { closeDB } from "../config/db.js";
 import mongoose from "mongoose";
 import Company from "../models/Company.js";
@@ -26,11 +25,15 @@ import LeaveRequest from "../models/LeaveRequest.js";
 import Notification from "../models/Notification.js";
 import AuditLog from "../models/AuditLog.js";
 import IdempotencyRecord from "../models/IdempotencyRecord.js";
+import Roster from "../models/Roster.js";
+import WeeklyOff from "../models/WeeklyOff.js";
+import ShiftSwap from "../models/ShiftSwap.js";
 
 dotenv.config();
 
 // Simple PRNG for deterministic seeding
 class PseudoRandom {
+  seed: number;
   constructor(seed = 42) {
     this.seed = seed;
   }
@@ -38,10 +41,10 @@ class PseudoRandom {
     this.seed = (this.seed * 9301 + 49297) % 233280;
     return this.seed / 233280;
   }
-  range(min, max) {
+  range(min: number, max: number) {
     return Math.floor(this.next() * (max - min + 1)) + min;
   }
-  choice(array) {
+  choice(array: any[]) {
     return array[this.range(0, array.length - 1)];
   }
 }
@@ -88,35 +91,19 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
       process.exit(1);
     }
     console.log("[Seed Engine] Reset flag detected. Clearing collections...");
-    await Promise.all([
-      Company.deleteMany({}),
-      Location.deleteMany({}),
-      Department.deleteMany({}),
-      Team.deleteMany({}),
-      User.deleteMany({}),
-      Employee.deleteMany({}),
-      AdminAuth.deleteMany({}),
-      HRAuth.deleteMany({}),
-      ManagerAuth.deleteMany({}),
-      EmployeeAuth.deleteMany({}),
-      Shift.deleteMany({}),
-      ShiftAssignment.deleteMany({}),
-      AttendanceRecord.deleteMany({}),
-      AttendanceEvent.deleteMany({}),
-      BreakSession.deleteMany({}),
-      CorrectionRequest.deleteMany({}),
-      ApprovalHistory.deleteMany({}),
-      PerformanceRecord.deleteMany({}),
-      ProductivityRecord.deleteMany({}),
-      Skill.deleteMany({}),
-      EmployeeSkill.deleteMany({}),
-      Task.deleteMany({}),
-      LeaveRequest.deleteMany({}),
-      Notification.deleteMany({}),
-      AuditLog.deleteMany({}),
-      IdempotencyRecord.deleteMany({}),
-    ]);
-    await PerformanceRecord.collection.dropIndexes().catch(() => {});
+    const modelsToClear = [
+      Company, Location, Department, Team, User, Employee,
+      AdminAuth, HRAuth, ManagerAuth, EmployeeAuth,
+      Shift, ShiftAssignment, AttendanceRecord, AttendanceEvent,
+      BreakSession, CorrectionRequest, ApprovalHistory,
+      PerformanceRecord, ProductivityRecord, Skill, EmployeeSkill,
+      Task, LeaveRequest, Notification, AuditLog,
+      IdempotencyRecord, Roster, WeeklyOff, ShiftSwap
+    ];
+    for (const model of modelsToClear) {
+      await model.deleteMany({});
+    }
+    await PerformanceRecord.collection.dropIndexes().catch(() => { });
   }
 
   // Check if company already exists to prevent duplicate runs without reset
@@ -131,12 +118,10 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
   }
 
   // 1. Create Company (Stackly — the code doubles as the human-readable id)
-  const company = await Company.create({
+  const company = (await Company.create({
     name: "Stackly",
     code: "STACKLY",
-    domain: "stackly.com",
-    settings: { defaultGeofenceRadiusMeters: 500, timezone: "Asia/Kolkata" },
-  });
+  })) as any;
 
   // 2. Create Shifts (General, Morning, Afternoon, Night)
   const generalShift = await Shift.create({
@@ -317,7 +302,6 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
       const user = await AuthModel.create({
         companyId: company._id,
         employeeId: empIdStr,
-        companyId: company._id,
         email: email.toLowerCase(),
         password: passStr,
         role: role,
@@ -380,6 +364,48 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
   }
 
   console.log(`[Seed Engine] Created 250 Employees across 5 locations.`);
+
+  // 6.5 Seed Rosters, WeeklyOffs, ShiftSwaps
+  const rostersBatch = [];
+  const weeklyOffsBatch = [];
+  const shiftSwapsBatch = [];
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  for (const emp of createdEmployees) {
+    const empShiftId = emp.shiftId || generalShift._id;
+    rostersBatch.push({
+      companyId: company._id,
+      employeeId: emp._id,
+      shiftId: empShiftId,
+      startDate: firstDay,
+      endDate: lastDay,
+      status: "Published",
+    });
+
+    weeklyOffsBatch.push({
+      companyId: company._id,
+      employeeId: emp._id,
+      dayOfWeek: 0, // Sunday
+    });
+  }
+  await Roster.insertMany(rostersBatch, { ordered: false });
+  await WeeklyOff.insertMany(weeklyOffsBatch, { ordered: false });
+
+  // Optional: Create a few sample shift swaps
+  if (createdEmployees.length > 2) {
+    shiftSwapsBatch.push({
+      companyId: company._id,
+      requestorId: createdEmployees[0]._id,
+      targetEmployeeId: createdEmployees[1]._id,
+      requestorShiftId: createdEmployees[0].shiftId || generalShift._id,
+      targetShiftId: createdEmployees[1].shiftId || afternoonShift._id,
+      date: new Date(),
+      status: "Pending",
+    });
+    await ShiftSwap.insertMany(shiftSwapsBatch, { ordered: false });
+  }
 
   // 7. Seed Employee Skills (Batch Insert)
   const empSkillsToInsert = [];
@@ -575,6 +601,9 @@ async function printCollectionCounts() {
   console.log(`Productivity Records: ${await ProductivityRecord.countDocuments()}`);
   console.log(`Skills & EmpSkills  : ${await Skill.countDocuments()} skills, ${await EmployeeSkill.countDocuments()} employee skills`);
   console.log(`Tasks               : ${await Task.countDocuments()}`);
+  console.log(`Rosters             : ${await Roster.countDocuments()}`);
+  console.log(`WeeklyOffs          : ${await WeeklyOff.countDocuments()}`);
+  console.log(`ShiftSwaps          : ${await ShiftSwap.countDocuments()}`);
   console.log("===========================================================\n");
 }
 
