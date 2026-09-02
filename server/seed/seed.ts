@@ -297,7 +297,6 @@ export async function runSeed(reset = false) {
       const user = await AuthModel.create({
         companyId: company._id,
         employeeId: empIdStr,
-        companyId: company._id,
         email: email.toLowerCase(),
         password: passStr,
         role: role,

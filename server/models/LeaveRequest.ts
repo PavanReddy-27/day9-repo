@@ -7,7 +7,7 @@ const leaveRequestSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["Annual", "Sick", "Casual", "Unpaid"],
+      enum: ["Annual", "Sick", "Casual", "Comp-Off", "Unpaid"],
       default: "Annual",
     },
     startDate: { type: String, required: true }, // Format "YYYY-MM-DD"
@@ -17,10 +17,11 @@ const leaveRequestSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ["Pending", "Approved", "Rejected"],
+      enum: ["Pending", "Approved", "Rejected", "Cancelled"],
       default: "Pending",
       index: true,
     },
+    payrollProcessed: { type: Boolean, default: false },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null },
     reviewedAt: { type: Date, default: null },
   },

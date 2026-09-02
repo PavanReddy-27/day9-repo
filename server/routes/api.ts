@@ -113,8 +113,8 @@ router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(
 
 // Leave Requests Routes
 router.get("/leaves", authenticateJWT, getLeaveRequests);
-router.post("/leaves", authenticateJWT, requireRole(["Employee"]), createLeaveRequest);
-router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), updateLeaveStatus);
+router.post("/leaves", authenticateJWT, createLeaveRequest);
+router.patch("/leaves/:id/status", authenticateJWT, validateObjectId("id"), updateLeaveStatus);
 
 // Notifications Routes
 router.get("/notifications", authenticateJWT, getNotifications);
