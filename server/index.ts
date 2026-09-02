@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import connectDB, { closeDB } from "./config/db.js";
 import apiRoutes from "./routes/api.js";
@@ -15,6 +17,8 @@ const PORT = process.env.PORT || 5000;
 
 // Security & Middleware
 app.use(helmet());
+app.use(cookieParser());
+app.use(morgan("dev"));
 
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',

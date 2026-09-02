@@ -9,10 +9,6 @@ export default function EmployeeMyPay() {
   const [records, setRecords] = useState<PayrollRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchMyPay();
-  }, []);
-
   const fetchMyPay = async () => {
     try {
       setLoading(true);
@@ -24,6 +20,18 @@ export default function EmployeeMyPay() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let ignore = false;
+    Promise.resolve().then(() => {
+      if (!ignore) {
+        fetchMyPay();
+      }
+    });
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -54,8 +62,7 @@ export default function EmployeeMyPay() {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {/* @ts-ignore - populated field */}
-                        {record.periodId?.name || 'Unknown Period'}
+                        {(record.periodId as any)?.name || 'Unknown Period'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Status: <Chip size="small" label={record.status} color={record.status === 'Approved' ? 'success' : 'default'} sx={{ ml: 1, height: 20 }} />

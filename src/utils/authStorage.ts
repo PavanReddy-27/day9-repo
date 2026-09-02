@@ -19,7 +19,12 @@ const SESSION_STORAGE_KEY = "workforce_session";
  */
 export const saveSession = (session: AuthSession): void => {
   try {
-    const serialized = JSON.stringify(session);
+    const safeSession = {
+      ...session,
+      accessToken: undefined,
+      refreshToken: undefined,
+    };
+    const serialized = JSON.stringify(safeSession);
 
     if (session.rememberMe) {
       localStorage.setItem(LOCAL_STORAGE_KEY, serialized);

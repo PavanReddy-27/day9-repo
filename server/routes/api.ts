@@ -125,6 +125,11 @@ router.patch("/notifications/:id/read", authenticateJWT, validateObjectId("id"),
 // Audit Logs (Admin / HR only)
 router.get("/audit-logs", authenticateJWT, requireRole(["Admin", "HR"]), getAuditLogs);
 
+// Recruitment Routes (HR / Admin)
+import { getJobPosts, createJobPost } from "../controllers/recruitmentController.js";
+router.get("/recruitment/jobs", authenticateJWT, getJobPosts);
+router.post("/recruitment/jobs", authenticateJWT, requireRole(["Admin", "HR"]), createJobPost);
+
 import payrollRoutes from "./payrollRoutes.js";
 router.use("/payroll", authenticateJWT, payrollRoutes);
 

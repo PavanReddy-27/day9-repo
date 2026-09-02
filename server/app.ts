@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import healthRoutes from './routes/healthRoutes';
 import authRoutes from './routes/authRoutes';
 
@@ -11,7 +12,7 @@ const app = express();
 // Security Middlewares
 app.use(helmet());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : 'http://localhost:5173',
+  origin: process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : (origin, callback) => callback(null, true),
   credentials: true,
 }));
 
@@ -25,6 +26,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Parsers & Logging
+app.use(cookieParser());
 app.use(express.json());
 app.use(morgan('dev'));
 

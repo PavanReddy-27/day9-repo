@@ -47,6 +47,7 @@ export const apiClient = async <T = any>(
 
   const config: RequestInit = {
     ...options,
+    credentials: "include",
     headers,
   };
 

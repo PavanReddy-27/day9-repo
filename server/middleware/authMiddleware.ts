@@ -20,7 +20,9 @@ const findUserById = async (id: string) => {
 export const authenticateJWT = async (req, res, next) => {
   try {
     let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     } else if (req.query.token) {
       token = req.query.token;

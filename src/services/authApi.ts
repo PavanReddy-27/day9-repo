@@ -129,15 +129,14 @@ class AuthApi {
   logout(): void {
     const user = this.getCurrentUser();
     if (user) {
-      auditService.log(user.username, user.role, "User Logout");
+      auditService.log(user.username || user.email, user.role, "User Logout");
     }
     const token = localStorage.getItem("accessToken");
-    if (token) {
-      fetch(`${this.ApiBase}/auth/logout`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => { });
-    }
+    fetch(`${this.ApiBase}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    }).catch(() => { });
     localStorage.removeItem("accessToken");
     clearSession();
   }

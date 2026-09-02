@@ -101,8 +101,7 @@ const MyPay = () => {
     try {
       setIsCalculating(true);
       await payrollApi.calculatePayroll({
-        // @ts-ignore
-        companyId: user?.companyId || "",
+        companyId: (user as any)?.companyId || "",
         name,
         startDate,
         endDate,

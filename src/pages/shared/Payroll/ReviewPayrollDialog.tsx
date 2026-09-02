@@ -18,12 +18,6 @@ export const ReviewPayrollDialog = ({ open, onClose, periodId }: ReviewPayrollDi
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<PayrollRecord>>({});
 
-  useEffect(() => {
-    if (open && periodId) {
-      fetchRecords();
-    }
-  }, [open, periodId]);
-
   const fetchRecords = async () => {
     setLoading(true);
     try {
@@ -35,6 +29,20 @@ export const ReviewPayrollDialog = ({ open, onClose, periodId }: ReviewPayrollDi
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let ignore = false;
+    if (open && periodId) {
+      Promise.resolve().then(() => {
+        if (!ignore) {
+          fetchRecords();
+        }
+      });
+    }
+    return () => {
+      ignore = true;
+    };
+  }, [open, periodId]);
 
   const handleEditClick = (record: PayrollRecord) => {
     setEditingId(record._id);
@@ -90,8 +98,7 @@ export const ReviewPayrollDialog = ({ open, onClose, periodId }: ReviewPayrollDi
                 {records.map((row) => (
                   <TableRow key={row._id}>
                     <TableCell>
-                      {/* @ts-ignore */}
-                      {row.employeeId?.firstName} {row.employeeId?.lastName}
+                      {(row.employeeId as any)?.firstName} {(row.employeeId as any)?.lastName}
                     </TableCell>
                     
                     <TableCell>

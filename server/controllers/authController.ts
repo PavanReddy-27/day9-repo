@@ -131,6 +131,16 @@ export const login = async (req: any, res: any, next: any) => {
       String(user._id)
     );
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
     res.status(200).json({
       success: true,
       data: {
@@ -161,9 +171,9 @@ export const login = async (req: any, res: any, next: any) => {
   }
 };
 
-export const refresh = async (req, res) => {
+export const refresh = async (req: any, res: any) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!refreshToken) return res.status(401).json({ success: false, message: 'Refresh token required' });
 
     const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
@@ -176,11 +186,15 @@ export const refresh = async (req, res) => {
     if (existingToken.revoked) {
       // Reuse detected! Revoke the entire family
       await RefreshToken.updateMany({ familyId: existingToken.familyId }, { revoked: true });
+      res.clearCookie('accessToken', { path: '/' });
+      res.clearCookie('refreshToken', { path: '/' });
       return res.status(401).json({ success: false, message: 'Refresh token reuse detected. All tokens revoked.' });
     }
 
     // Check expiration
     if (new Date() > existingToken.expiresAt) {
+      res.clearCookie('accessToken', { path: '/' });
+      res.clearCookie('refreshToken', { path: '/' });
       return res.status(401).json({ success: false, message: 'Refresh token expired' });
     }
 
@@ -195,57 +209,63 @@ export const refresh = async (req, res) => {
     const accessToken = generateAccessToken(user._id, user.role);
     const newRefreshToken = await createRefreshToken(user._id, existingToken.familyId);
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('refreshToken', newRefreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
+
     res.status(200).json({ success: true, data: { accessToken, refreshToken: newRefreshToken } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 
-export const logout = async (req: any, res: any, next: any) => {
-  let session;
+export const logout = async (req: any, res: any) => {
   try {
-    session = await mongoose.startSession();
-    session.startTransaction();
-    
-    const { refreshToken } = req.body || {};
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
     
     if (refreshToken) {
       const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
       const rt = await RefreshToken.findOne({ tokenHash });
       if (rt) {
-        // Revoke the family
-        await RefreshToken.updateMany({ familyId: rt.familyId }, { revoked: true }, { session });
+        await RefreshToken.updateMany({ familyId: rt.familyId }, { revoked: true });
       }
     }
     
     if (req.user && req.user.id) {
-       // Revoke all session tokens for the user
-       await RefreshToken.updateMany({ user: req.user.id }, { revoked: true }, { session });
+       await RefreshToken.updateMany({ user: req.user.id }, { revoked: true });
     }
     
-    let accessToken;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    let accessToken = req.cookies?.accessToken;
+    if (!accessToken && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       accessToken = req.headers.authorization.split(' ')[1];
     }
     if (accessToken) {
-       await TokenBlacklist.create([{ token: accessToken }], { session });
+       await TokenBlacklist.create({ token: accessToken }).catch(() => null);
     }
     
-    await session.commitTransaction();
-    session.endSession();
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/' });
 
-    // Close SSE connection for this user (fire-and-forget, outside transaction)
     if (req.user && req.user.id) {
-      const { closeSSEConnection } = await import('../utils/sse.js');
-      // For SSE clients, the id is typically the employee _id (or user _id if employee not found).
-      closeSSEConnection(req.user.id);
+      try {
+        const { closeSSEConnection } = await import('../utils/sse.js');
+        closeSSEConnection(req.user.id);
+      } catch (e) {
+        // SSE cleanup error ignored
+      }
     }
     
-    res.status(200).json({ success: true, message: 'Logged out successfully' });
+    return res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
-    if (session.inTransaction()) await session.abortTransaction();
-    session.endSession();
-    next(error);
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/' });
+    return res.status(200).json({ success: true, message: 'Logged out' });
   }
 };
 
@@ -283,6 +303,16 @@ export const verifyLoginMfa = async (req: any, res: any, next: any) => {
       "Auth",
       String(user._id)
     );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
     res.status(200).json({
       success: true,

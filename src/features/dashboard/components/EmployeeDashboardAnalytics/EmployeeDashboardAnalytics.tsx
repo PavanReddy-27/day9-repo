@@ -28,7 +28,6 @@ const EmployeeDashboardAnalytics = () => {
 
   useEffect(() => {
     const fetchPersonalData = async () => {
-      setLoading(true);
       try {
         const [attRes, perfRes, prodRes, skillsRes] = await Promise.all([
           getAttendanceAnalytics(),

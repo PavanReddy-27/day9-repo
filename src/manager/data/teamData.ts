@@ -1,15 +1,16 @@
 export interface TeamMember {
-    id: number;
+    id: number | string;
     employeeId: string;
     name: string;
     designation: string;
     department: string;
+    location?: string;
     email: string;
     phone: string;
-    attendance: "Present" | "Absent" | "Leave";
-    performance: "Excellent" | "Good" | "Average";
+    attendance: "Present" | "Absent" | "Leave" | "On Leave" | "Late";
+    performance: "Excellent" | "Good" | "Average" | "Needs Improvement";
     risk: "Low" | "Medium" | "High";
-    experience: number;
+    experience?: number;
     productivity: number;
     avatar: string;
   }

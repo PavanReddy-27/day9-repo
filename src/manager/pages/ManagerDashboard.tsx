@@ -47,7 +47,6 @@ const ManagerDashboard = () => {
   const [skillData, setSkillData] = useState<any>(null);
 
   const loadAnalytics = async () => {
-    setLoading(true);
     setError(null);
     try {
       const [workforce, attendance, performance, skills] = await Promise.all([
