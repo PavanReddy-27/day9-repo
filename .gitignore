@@ -29,5 +29,9 @@ dist-ssr
 # Test artifacts
 playwright-report/
 test-results/
-node_modules
 data/mongodb/
+node*.zip
+mingit.zip
+node*_extracted/
+local-node/
+test-mongo*
