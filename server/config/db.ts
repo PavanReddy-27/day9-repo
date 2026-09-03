@@ -10,7 +10,7 @@ const connectDB = async () => {
   }
   try {
     const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/workforce_analytics";
-    const conn = await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 3000 });
+    const conn = await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
     console.log('MongoDB Connected successfully.');
     return conn;
   } catch (error: any) {

@@ -39,7 +39,11 @@ export const navigationItems: NavigationItem[] = [
   // Shared by HR & Manager & Employee
   { name: "Attendance", icon: FiFileText, route: "attendance", roles: ["HR", "Manager", "Admin", "Employee"] },
   { name: "Leave Requests", icon: FiFileText, route: "leave-requests", roles: ["HR", "Manager", "Admin", "Employee"] },
-  { name: "Payroll / My Pay", icon: FiFileText, route: "payroll", roles: ["HR", "Manager", "Admin", "Employee"] },
+
+  // Payroll for Leadership, My Pay for Employees
+  { name: "Payroll", icon: FiFileText, route: "payroll", roles: ["HR", "Manager", "Admin"] },
+  { name: "My Pay", icon: FiFileText, route: "payroll", roles: ["Employee"] },
+
   { name: "Performance", icon: FiBarChart2, route: "performance", roles: ["HR", "Manager", "Admin"] },
 
   // HR Only

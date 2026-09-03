@@ -110,7 +110,7 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
       <div className="header-right">
         <div className="search-box">
           <FiSearch className="search-icon" />
-          <input type="text" placeholder="Search employees..." />
+          <input type="text" placeholder="Search..." />
         </div>
 
         <ThemeToggle />
