@@ -9,7 +9,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useState } from "react";
-import type { TeamMember } from "../../data/teamData";
+import type { TeamMember } from "../../types/team";
 
 interface AddMemberDialogProps {
   open: boolean;

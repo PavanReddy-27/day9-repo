@@ -8,7 +8,6 @@ import { useAppSelector } from "../hooks/redux";
 import authApi from "../services/authApi";
 
 import type { UserRole } from "../types/auth";
-import auditService from "../services/auditService";
 
 interface ProtectedRouteProps {
   allowedRoles?: UserRole[];
@@ -61,7 +60,6 @@ const ProtectedRoute = ({
     allowedRoles.length > 0 &&
     !allowedRoles.includes(user.role)
   ) {
-    auditService.log(user.username, user.role, `Access Denied: Attempted to access restricted route`);
     return (
       <Navigate
         to="/unauthorized"

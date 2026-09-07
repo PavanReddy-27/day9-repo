@@ -15,7 +15,7 @@
 // import VisibilityIcon from "@mui/icons-material/Visibility";
 // import EmailIcon from "@mui/icons-material/Email";
 
-// import type { TeamMember } from "../../data/teamData";
+// import type { TeamMember } from "../../types/team";
 
 // import "./TeamTable.css";
 
@@ -173,7 +173,7 @@ import type {
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EmailIcon from "@mui/icons-material/Email";
 
-import type { TeamMember } from "../../data/teamData";
+import type { TeamMember } from "../../types/team";
 
 import "./TeamTable.css";
 

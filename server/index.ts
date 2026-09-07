@@ -49,7 +49,7 @@ app.use("/api/v1", apiLimiter);
 // Strict Auth Rate Limiter — prevents brute-force login attacks
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === "production" ? 50 : 1000,
   skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
@@ -59,6 +59,9 @@ app.use("/api/v1/auth/login", authLimiter);
 app.use("/api/v1/auth/refresh", authLimiter);
 
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Ensure DB Connection Middleware
 app.use(async (req, res, next) => {

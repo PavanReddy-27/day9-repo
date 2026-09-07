@@ -25,15 +25,17 @@ export class ApiError extends Error {
 }
 
 /**
- * A wrapper around native fetch that automatically injects the access token
- * and handles generic errors (like 401 Unauthorized).
+ * A wrapper around native fetch that:
+ * - Uses credentials: "include" so HTTP-only session cookies are always transmitted.
+ * - Injects in-memory access token as Authorization Bearer header if available.
+ * - Handles 401 Unauthorized and standard API errors.
  */
 export const apiClient = async <T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
   const session = getSession();
-  const token = session?.accessToken || localStorage.getItem("accessToken");
+  const token = session?.accessToken;
 
   const headers = new Headers(options.headers || {});
   
@@ -46,6 +48,7 @@ export const apiClient = async <T = any>(
   }
 
   const config: RequestInit = {
+    credentials: "include",
     ...options,
     headers,
   };
@@ -57,7 +60,6 @@ export const apiClient = async <T = any>(
     // Handle 401 Unauthorized
     if (response.status === 401) {
       clearSession();
-      localStorage.removeItem("accessToken");
       window.location.href = "/login"; // Force redirect to login on 401
       throw new ApiError("Unauthorized", 401);
     }

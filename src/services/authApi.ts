@@ -16,7 +16,6 @@ import {
 } from "../utils/authStorage";
 
 import { ROLE_DASHBOARD } from "../config/roles";
-import auditService from "./auditService";
 
 class AuthApi {
   private get ApiBase() {
@@ -27,6 +26,7 @@ class AuthApi {
     try {
       const res = await fetch(`${this.ApiBase}/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -72,11 +72,6 @@ class AuthApi {
         rememberMe: payload.rememberMe ?? false,
       });
 
-      if (loginRes.accessToken) {
-        localStorage.setItem("accessToken", loginRes.accessToken);
-      }
-
-      auditService.log(userData.email, userData.role, "User Login Successful");
       return loginRes;
     } catch (err: unknown) {
 
@@ -91,6 +86,7 @@ class AuthApi {
   async verifyLoginMfa(tempToken: string, mfaToken: string): Promise<LoginResponse> {
     const res = await fetch(`${this.ApiBase}/auth/login/mfa`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tempToken, mfaToken }),
     });
@@ -119,26 +115,20 @@ class AuthApi {
       rememberMe: false,
     });
 
-    if (loginRes.accessToken) {
-      localStorage.setItem("accessToken", loginRes.accessToken);
-    }
-    
     return loginRes;
   }
 
   logout(): void {
-    const user = this.getCurrentUser();
-    if (user) {
-      auditService.log(user.username, user.role, "User Logout");
-    }
-    const token = localStorage.getItem("accessToken");
+    const token = this.getAccessToken();
+    const headers: Record<string, string> = {};
     if (token) {
-      fetch(`${this.ApiBase}/auth/logout`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => { });
+      headers.Authorization = `Bearer ${token}`;
     }
-    localStorage.removeItem("accessToken");
+    fetch(`${this.ApiBase}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers,
+    }).catch(() => { });
     clearSession();
   }
 
@@ -233,10 +223,13 @@ class AuthApi {
   }
 
   async generateMfa(): Promise<{ secret: string; qrCodeDataUrl: string }> {
-    const token = localStorage.getItem("accessToken");
+    const token = this.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
     const res = await fetch(`${this.ApiBase}/auth/mfa/generate`, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
+      headers,
     });
     if (!res.ok) throw new Error("Failed to generate MFA");
     const data = await res.json();
@@ -244,13 +237,15 @@ class AuthApi {
   }
 
   async enableMfa(secret: string, mfaToken: string): Promise<boolean> {
-    const token = localStorage.getItem("accessToken");
+    const token = this.getAccessToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
     const res = await fetch(`${this.ApiBase}/auth/mfa/enable`, {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}` 
-      },
+      credentials: "include",
+      headers,
       body: JSON.stringify({ secret, mfaToken }),
     });
     if (!res.ok) {
@@ -261,10 +256,13 @@ class AuthApi {
   }
 
   async disableMfa(): Promise<boolean> {
-    const token = localStorage.getItem("accessToken");
+    const token = this.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
     const res = await fetch(`${this.ApiBase}/auth/mfa/disable`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
+      headers,
     });
     if (!res.ok) throw new Error("Failed to disable MFA");
     return true;

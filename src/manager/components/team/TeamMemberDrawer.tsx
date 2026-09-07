@@ -12,7 +12,7 @@ import {
 
 import CloseIcon from "@mui/icons-material/Close";
 
-import type { TeamMember } from "../../data/teamData";
+import type { TeamMember } from "../../types/team";
 
 import "./TeamMemberDrawer.css";
 

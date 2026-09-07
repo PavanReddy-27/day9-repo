@@ -45,9 +45,20 @@ describe('Security & RBAC Tests', () => {
       const res = await request(app)
         .patch('/api/v1/attendance/corrections/not_a_valid_mongo_id/approve')
         .set('Authorization', `Bearer ${FAKE_TOKEN}`);
-      // Even with fake token, the validateObjectId middleware runs, wait actually authenticateJWT runs first.
-      // So we expect 401 first. But if token was valid, it would be 400.
       expect(res.status).toBe(401);
+    });
+
+    it('should return 403 Forbidden when an Employee attempts to access Admin/HR audit-logs', async () => {
+      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
+      if (empUser) {
+        const { accessToken } = generateTokens(empUser._id, 'Employee');
+        const res = await request(app)
+          .get('/api/v1/audit-logs')
+          .set('Authorization', `Bearer ${accessToken}`);
+        expect(res.status).toBe(403);
+        expect(res.body.message).toMatch(/forbidden|insufficient/i);
+      }
     });
   });
 });

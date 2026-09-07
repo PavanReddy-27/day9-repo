@@ -9,13 +9,8 @@ export default function EmployeeMyPay() {
   const [records, setRecords] = useState<PayrollRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchMyPay();
-  }, []);
-
   const fetchMyPay = async () => {
     try {
-      setLoading(true);
       const data = await payrollApi.getMyPay();
       setRecords(data);
     } catch (error) {
@@ -24,6 +19,10 @@ export default function EmployeeMyPay() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMyPay();
+  }, []);
 
   if (loading) {
     return (
@@ -54,7 +53,6 @@ export default function EmployeeMyPay() {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {/* @ts-ignore - populated field */}
                         {record.periodId?.name || 'Unknown Period'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">

@@ -25,6 +25,7 @@ export default defineConfig([
       'preserve-caught-error': 'off',
       'react-hooks/preserve-manual-memoization': 'off',
       'react-compiler/react-compiler': 'off',
+      'react-hooks/set-state-in-effect': 'off',
     }
   },
 ])

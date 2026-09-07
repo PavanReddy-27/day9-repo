@@ -74,7 +74,7 @@ export const calculatePayroll = async (req: Request, res: Response): Promise<voi
       let regularHours = 0;
       let overtimeHours = 0;
       let shiftAllowance = 0;
-      let payableDays = empAttendances.length;
+      const payableDays = empAttendances.length;
 
       for (const att of empAttendances) {
         regularHours += att.workingHours || 0;

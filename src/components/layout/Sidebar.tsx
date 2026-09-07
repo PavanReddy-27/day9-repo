@@ -80,7 +80,7 @@ const Sidebar = ({
 
             return (
               <NavLink
-                key={`${item.name}-${item.route}`}
+                key={item.route}
                 to={`/${user.role.toLowerCase().replace(/\s+/g, "")}/${item.route}`}
                 onClick={closeSidebar}
                 className={({ isActive }) =>

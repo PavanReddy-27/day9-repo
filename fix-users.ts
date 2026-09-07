@@ -1,12 +1,12 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { connectDB } from "./server/config/db.js";
 import { User, Employee } from "./server/models/index.js";
 import argon2 from "argon2";
 
 dotenv.config();
 
 async function run() {
-  await mongoose.connect(process.env.MONGODB_URI);
+  await connectDB();
   
   // Clear existing users
   await User.deleteMany({});

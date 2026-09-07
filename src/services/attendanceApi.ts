@@ -1,6 +1,6 @@
 import type { AttendanceRecord, CorrectionRequest, AttendanceAuditLog, Location, ShiftType, AttendanceSource } from "../types/attendance";
 import { apiClient, ApiError } from "./apiClient";
-import { enqueueOfflineAction, getPendingOfflineActions } from "../utils/offlineQueue";
+import { enqueueOfflineAction, getPendingOfflineActions, syncOfflineQueue } from "../utils/offlineQueue";
 
 /**
  * Attendance service — 100% backend-driven.
@@ -204,23 +204,21 @@ export const attendanceApi = {
 };
 
 if (typeof window !== "undefined") {
-  import("../utils/offlineQueue").then(({ syncOfflineQueue }) => {
-    window.addEventListener("sync_offline_queue", () => {
-      syncOfflineQueue(async (action) => {
-        let endpoint = "";
-        if (action.actionType === "check-in") endpoint = "/attendance/check-in";
-        else if (action.actionType === "check-out") endpoint = "/attendance/check-out";
-        else if (action.actionType === "break") endpoint = "/attendance/break";
-        else if (action.actionType === "resume") endpoint = "/attendance/resume";
-        else if (action.actionType === "correction") endpoint = "/attendance/corrections";
+  window.addEventListener("sync_offline_queue", () => {
+    syncOfflineQueue(async (action) => {
+      let endpoint = "";
+      if (action.actionType === "check-in") endpoint = "/attendance/check-in";
+      else if (action.actionType === "check-out") endpoint = "/attendance/check-out";
+      else if (action.actionType === "break") endpoint = "/attendance/break";
+      else if (action.actionType === "resume") endpoint = "/attendance/resume";
+      else if (action.actionType === "correction") endpoint = "/attendance/corrections";
 
-        if (!endpoint) throw new Error("Unknown offline action type");
-        
-        return apiClient(endpoint, {
-          method: "POST",
-          body: JSON.stringify(action.payload)
-        });
-      }).catch(console.error);
-    });
+      if (!endpoint) throw new Error("Unknown offline action type");
+      
+      return apiClient(endpoint, {
+        method: "POST",
+        body: JSON.stringify(action.payload)
+      });
+    }).catch(console.error);
   });
 }

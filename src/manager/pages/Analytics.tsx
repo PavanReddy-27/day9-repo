@@ -36,7 +36,6 @@ const ManagerAnalytics = () => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
     const unsubscribe = subscribeToAnalytics(() => {
       fetchData();

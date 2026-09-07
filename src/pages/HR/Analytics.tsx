@@ -1,11 +1,10 @@
-import { Box, Typography, CircularProgress } from "@mui/material";
+import { Box, Typography, CircularProgress, Alert, Button } from "@mui/material";
 import { Analytics as AnalyticsIcon } from "@mui/icons-material";
 import KPICards from "../../features/kpi/components/KPICards";
 import EmployeeTrendChart from "../../features/charts/components/EmployeeTrendChart";
 import RoleChart from "../../features/charts/components/RoleChart";
 import DepartmentChart from "../../features/charts/components/DepartmentChart";
 import type { TrendChartData, DepartmentChartData } from "../../types/chart";
-import { trendChartData } from "../../data/chartData";
 
 import { useEffect, useState } from "react";
 import {
@@ -15,33 +14,40 @@ import {
   getSkillsAnalytics,
   getPerformanceAnalytics,
   getProductivityAnalytics,
+  getHiringAnalytics,
   subscribeToAnalytics,
   WorkforceAnalyticsResponse,
   DepartmentAnalyticsResponse,
   AttendanceAnalyticsResponse,
   SkillsAnalyticsResponse,
   PerformanceAnalyticsResponse,
-  ProductivityAnalyticsResponse
+  ProductivityAnalyticsResponse,
+  HiringAnalyticsResponse
 } from "../../services/analyticsService";
 
 const HRAnalytics = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [workforceData, setWorkforceData] = useState<WorkforceAnalyticsResponse | null>(null);
   const [deptData, setDeptData] = useState<DepartmentAnalyticsResponse | null>(null);
   const [attendanceData, setAttendanceData] = useState<AttendanceAnalyticsResponse | null>(null);
   const [skillsData, setSkillsData] = useState<SkillsAnalyticsResponse | null>(null);
   const [perfData, setPerfData] = useState<PerformanceAnalyticsResponse[] | null>(null);
   const [prodData, setProdData] = useState<ProductivityAnalyticsResponse | null>(null);
+  const [hiringData, setHiringData] = useState<HiringAnalyticsResponse[]>([]);
 
   const fetchData = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const [wfRes, deptRes, attRes, skillsRes, perfRes, prodRes] = await Promise.all([
+      const [wfRes, deptRes, attRes, skillsRes, perfRes, prodRes, hireRes] = await Promise.all([
         getWorkforceAnalytics(),
         getDepartmentAnalytics(),
         getAttendanceAnalytics(),
         getSkillsAnalytics(),
         getPerformanceAnalytics(),
-        getProductivityAnalytics()
+        getProductivityAnalytics(),
+        getHiringAnalytics(),
       ]);
       setWorkforceData(wfRes);
       setDeptData(deptRes);
@@ -49,15 +55,16 @@ const HRAnalytics = () => {
       setSkillsData(skillsRes);
       setPerfData(perfRes);
       setProdData(prodRes);
-    } catch (e) {
+      setHiringData(Array.isArray(hireRes) ? hireRes : []);
+    } catch (e: any) {
       console.error("Failed to fetch analytics", e);
+      setError(e?.message || "Failed to load analytics data from server.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
     const unsubscribe = subscribeToAnalytics(() => {
       // Re-fetch data whenever an event is received
@@ -66,7 +73,7 @@ const HRAnalytics = () => {
     return unsubscribe;
   }, []);
 
-  if (loading || !workforceData) {
+  if (loading) {
     return (
       <Box sx={{ p: { xs: 2, md: 4 }, display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <CircularProgress />
@@ -74,7 +81,21 @@ const HRAnalytics = () => {
     );
   }
 
-  const totalOvertime = attendanceData?.summary.reduce((acc, s) => acc + s.totalOvertimeMinutes, 0) || 0;
+  if (error || !workforceData) {
+    return (
+      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
+        <Alert severity="error" action={
+          <Button color="inherit" size="small" onClick={fetchData}>
+            Retry
+          </Button>
+        }>
+          {error || "Unable to load workforce analytics."}
+        </Alert>
+      </Box>
+    );
+  }
+
+  const totalOvertime = attendanceData?.summary?.reduce((acc, s) => acc + s.totalOvertimeMinutes, 0) || 0;
   const avgPerformanceRating = perfData && perfData.length > 0 ? perfData[perfData.length - 1].avgRating : 0;
   
   const kpiData = [
@@ -97,16 +118,28 @@ const HRAnalytics = () => {
     averageExperience: 0,
   }));
 
-  // Attrition data is not yet available on the backend (requires leavingDate in Employee model)
-  // Fallback to mock data for now
-  const attritionTrend: TrendChartData[] = trendChartData;
+  // Real hiring trend data from MongoDB via getHiringAnalytics().
+  // Note: Attrition tracking requires leavingDate in Employee schema which is not yet modeled in the backend.
+  // Attrition is kept at 0 rather than inventing mock numbers.
+  const hiringTrend: TrendChartData[] = hiringData.map((item) => ({
+    month: item.month,
+    totalEmployees: workforceData.totalEmployees,
+    activeEmployees: workforceData.activeEmployees,
+    newHires: item.hires,
+    attrition: 0,
+  }));
 
   // Work Mode distribution for DepartmentChart
   const workModeData: DepartmentChartData[] = (workforceData.workModeDistribution || []).map((item, idx) => ({
     id: String(idx),
     name: item.name,
     value: item.value,
-    activeEmployees: 0, inactiveEmployees: 0, averageSalary: 0, averageExperience: 0, performanceScore: 0, trainingCompletion: 0
+    activeEmployees: 0,
+    inactiveEmployees: 0,
+    averageSalary: 0,
+    averageExperience: 0,
+    performanceScore: 0,
+    trainingCompletion: 0
   }));
 
   return (
@@ -116,7 +149,7 @@ const HRAnalytics = () => {
           <AnalyticsIcon fontSize="large" sx={{ color: "var(--primary)" }} /> HR Analytics
         </Typography>
         <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
-          Live organization-wide workforce metrics, hiring trends, and engagement insights.
+          Live organization-wide workforce metrics, hiring trends, and engagement insights from MongoDB.
         </Typography>
       </Box>
 
@@ -133,7 +166,7 @@ const HRAnalytics = () => {
 
       {/* Hiring Trend */}
       <Box sx={{ mb: 3 }}>
-        <EmployeeTrendChart data={attritionTrend} />
+        <EmployeeTrendChart data={hiringTrend} />
       </Box>
     </Box>
   );

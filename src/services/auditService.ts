@@ -2,60 +2,46 @@
 // File: src/services/auditService.ts
 // ====================================
 
+import { apiClient } from "./apiClient";
+
 export interface AuditLog {
-  id: number;
-  user: string;
-  role: string;
+  _id: string;
+  performedBy: string;
+  userRole: string;
   action: string;
-  date: string;
-  timestamp: number;
+  details: string;
+  entityType?: string;
+  entityId?: string;
+  ipAddress?: string;
+  timestamp: string;
 }
 
-const AUDIT_STORAGE_KEY = "workforce_audit_logs";
-
 class AuditService {
-  private getLogs(): AuditLog[] {
-    const data = localStorage.getItem(AUDIT_STORAGE_KEY);
-    if (!data) return [];
-    try {
-      return JSON.parse(data);
-    } catch {
-      return [];
-    }
+  /**
+   * Fetch authoritative audit logs from the MongoDB backend API.
+   * Access is strictly restricted to Admin and HR roles.
+   */
+  public async getLogs(search?: string, limit: number = 200): Promise<AuditLog[]> {
+    const params = new URLSearchParams();
+    if (search) params.append("search", search);
+    params.append("limit", String(limit));
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const data = await apiClient<AuditLog[]>(`/audit-logs${query}`);
+    return Array.isArray(data) ? data : [];
   }
 
-  private saveLogs(logs: AuditLog[]): void {
-    localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(logs));
+  /**
+   * Client-side logging is no-op:
+   * The backend server authoritatively writes audit logs directly to MongoDB
+   * for all sensitive operations (auth, attendance, leaves, etc.).
+   */
+  public log(_user: string, _role: string, _action: string): void {
+    // Authoritative audit logging is performed exclusively server-side.
   }
 
-  public log(user: string, role: string, action: string): void {
-    const logs = this.getLogs();
-    
-    // Formatting date to matching format DD-MM-YYYY HH:mm:ss for better UI reading
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-
-    const newLog: AuditLog = {
-      id: Date.now(), // simple unique id
-      user,
-      role,
-      action,
-      date: dateStr,
-      timestamp: Date.now(),
-    };
-
-    // Keep the latest 100 logs
-    const updatedLogs = [newLog, ...logs].slice(0, 100);
-    this.saveLogs(updatedLogs);
-  }
-
-  public getAllLogs(): AuditLog[] {
+  public async getAllLogs(): Promise<AuditLog[]> {
     return this.getLogs();
-  }
-
-  public clearLogs(): void {
-    localStorage.removeItem(AUDIT_STORAGE_KEY);
   }
 }
 

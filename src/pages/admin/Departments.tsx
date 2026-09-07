@@ -1,16 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Departments.css";
-import organizationApi from "../../services/organizationApi";
-
-interface Department {
-  _id: string;
-  name: string;
-  code: string;
-  locationId?: {
-    name: string;
-    code: string;
-  };
-}
+import organizationApi, { type Department } from "../../services/organizationApi";
 
 const Departments = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -68,7 +58,7 @@ const Departments = () => {
                   departments.map((department) => (
                     <tr key={department._id}>
                       <td>
-                        <span className="dept-code">{department.code}</span>
+                        <span className="dept-code">{department.code || "—"}</span>
                       </td>
                       <td className="dept-name">
                         <div className="dept-name-wrapper">

@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import { getAccessToken } from "../utils/authStorage";
 
 export interface WorkforceAnalyticsResponse {
   totalEmployees: number;
@@ -83,16 +84,19 @@ export const getProductivityAnalytics = async (): Promise<ProductivityAnalyticsR
 };
 
 export const subscribeToAnalytics = (onUpdate: (data: any) => void) => {
-  const token = localStorage.getItem("accessToken");
+  const token = getAccessToken();
   const abortController = new AbortController();
   let reconnectTimeout: ReturnType<typeof setTimeout>;
 
   const connect = async () => {
     try {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/analytics/stream`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
+        credentials: "include",
         signal: abortController.signal,
       });
 

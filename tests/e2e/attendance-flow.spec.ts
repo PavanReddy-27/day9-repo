@@ -14,6 +14,6 @@ test.describe('Attendance Flow', () => {
     await page.waitForURL('**/employee/dashboard');
     
     // Verify dashboard loaded successfully
-    await expect(page.locator('h4', { hasText: 'Workforce Analytics' }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h4', { hasText: 'My Dashboard' }).first()).toBeVisible({ timeout: 10000 });
   });
 });

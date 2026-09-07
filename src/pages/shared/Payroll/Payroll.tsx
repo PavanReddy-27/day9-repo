@@ -101,7 +101,7 @@ const MyPay = () => {
     try {
       setIsCalculating(true);
       await payrollApi.calculatePayroll({
-        // @ts-ignore
+        // @ts-expect-error - companyId is supplied from authenticated user state
         companyId: user?.companyId || "",
         name,
         startDate,

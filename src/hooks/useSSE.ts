@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import { fetchEmployees } from "../redux/dashboardSlice";
+import { getAccessToken } from "../utils/authStorage";
 
 /**
  * Custom hook to establish a Server-Sent Events (SSE) connection.
@@ -12,7 +13,7 @@ export const useSSE = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken") || "";
+    const token = getAccessToken() || "";
     
     if (!token) {
       return;

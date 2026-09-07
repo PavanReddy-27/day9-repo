@@ -1,35 +1,77 @@
-import { Box, Typography } from "@mui/material";
-import { useMemo, useState } from "react";
+import { Box, Typography, CircularProgress, Alert, Button } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
 
 import TeamToolbar from "../components/team/TeamToolbar";
 import TeamTable from "../components/team/TeamTable";
 import TeamMemberDrawer from "../components/team/TeamMemberDrawer";
 import AddMemberDialog from "../components/team/AddMemberDialog";
 
-import { teamData } from "../data/teamData";
-import type { TeamMember } from "../data/teamData";
-import { useAppSelector } from "../../redux/hooks";
+import type { TeamMember } from "../types/team";
+import { apiClient } from "../../services/apiClient";
 
 import "./Team.css";
 
 const Team = () => {
-  const { user } = useAppSelector((state) => state.auth);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState("");
   const [risk, setRisk] = useState("");
   const [selected, setSelected] = useState<TeamMember | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [additionalMembers, setAdditionalMembers] = useState<TeamMember[]>([]);
+
+  const fetchTeamMembers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Backend automatically applies role-based data scoping for managers:
+      // only employees in the manager's assigned department/team are returned.
+      const data = await apiClient<any[]>("/employees?limit=200");
+      const mapped: TeamMember[] = (Array.isArray(data) ? data : []).map((emp: any) => {
+        const initials = (emp.fullName || emp.name || "U")
+          .split(" ")
+          .map((n: string) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase();
+
+        const attStatus: "Present" | "Absent" | "Leave" =
+          emp.employmentStatus === "Active" ? "Present" :
+          emp.employmentStatus === "On Leave" ? "Leave" : "Absent";
+
+        return {
+          id: emp._id || emp.employeeId,
+          employeeId: emp.employeeId,
+          name: emp.fullName || emp.name || `${emp.firstName || ""} ${emp.lastName || ""}`.trim(),
+          designation: emp.designation || emp.role || "Team Member",
+          department: emp.departmentName || (typeof emp.departmentId === "object" ? emp.departmentId?.name : emp.department) || "General",
+          email: emp.email || "",
+          phone: emp.phone || "+91 9876543210",
+          attendance: attStatus,
+          performance: emp.performance || (emp.performanceScore >= 85 ? "Excellent" : emp.performanceScore >= 70 ? "Good" : "Average"),
+          risk: emp.riskLevel || "Low",
+          experience: emp.experience || 3,
+          productivity: emp.productivity ?? Math.round(emp.performanceScore || 80),
+          avatar: emp.avatar || initials,
+        };
+      });
+      setTeamMembers(mapped);
+    } catch (err: any) {
+      console.error("Failed to fetch team members:", err);
+      setError(err?.message || "Failed to load team data from server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamMembers();
+  }, []);
 
   const rows = useMemo(() => {
-    let restrictedData = [...teamData, ...additionalMembers];
-    if (user && user.role === "Manager") {
-      // Fallback for cached "Operations" sessions in the mock environment
-      const targetDept = user.department === "Operations" ? "Engineering" : user.department;
-      restrictedData = restrictedData.filter(member => member.department === targetDept);
-    }
-    
-    return restrictedData.filter((member) => {
+    return teamMembers.filter((member) => {
       const matchesSearch =
         ((member.name?.toLowerCase() || "").includes(search.toLowerCase())) ||
         ((member.employeeId?.toLowerCase() || "").includes(search.toLowerCase()));
@@ -46,10 +88,10 @@ const Team = () => {
         matchesRisk
       );
     });
-  }, [search, attendance, risk, user, additionalMembers]);
+  }, [search, attendance, risk, teamMembers]);
 
   const handleAddMember = (member: TeamMember) => {
-    setAdditionalMembers((prev) => [...prev, member]);
+    setTeamMembers((prev) => [member, ...prev]);
   };
 
   return (
@@ -71,10 +113,33 @@ const Team = () => {
         onAddMemberClick={() => setIsAddDialogOpen(true)}
       />
 
-      <TeamTable
-        rows={rows}
-        onView={setSelected}
-      />
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Box sx={{ py: 4 }}>
+          <Alert severity="error" action={
+            <Button color="inherit" size="small" onClick={fetchTeamMembers}>
+              Retry
+            </Button>
+          }>
+            {error}
+          </Alert>
+        </Box>
+      ) : rows.length === 0 ? (
+        <Box sx={{ textAlign: "center", py: 6, color: "var(--text-light)" }}>
+          <Typography variant="h6">No team members found</Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            {teamMembers.length === 0 ? "No team members assigned to your department." : "No members match the selected filters."}
+          </Typography>
+        </Box>
+      ) : (
+        <TeamTable
+          rows={rows}
+          onView={setSelected}
+        />
+      )}
 
       <TeamMemberDrawer
         open={Boolean(selected)}
@@ -92,4 +157,3 @@ const Team = () => {
 };
 
 export default Team;
-

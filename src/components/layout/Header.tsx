@@ -47,7 +47,6 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
     const handleUpdate = () => fetchNotifications();
     window.addEventListener("notification_updated", handleUpdate);

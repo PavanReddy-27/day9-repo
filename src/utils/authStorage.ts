@@ -5,92 +5,79 @@ import type { AuthSession } from "../types/auth";
 /**
  * ==========================================
  * Workforce Analytics Dashboard
- * Authentication Storage Utility
+ * In-Memory Authentication Session Utility
+ *
+ * In accordance with Phase 12 production security:
+ * - Access tokens and refresh tokens are NEVER stored in localStorage or sessionStorage.
+ * - Authenticated session state resides solely in application memory.
+ * - HTTP-only cookies are the authoritative credential for backend requests.
  * ==========================================
  */
 
-const LOCAL_STORAGE_KEY = "workforce_auth";
-const SESSION_STORAGE_KEY = "workforce_session";
+let inMemorySession: AuthSession | null = null;
 
 /**
- * Save authentication session.
- * Uses localStorage if rememberMe is enabled,
- * otherwise sessionStorage.
+ * Save authentication session in application memory.
+ * Does NOT persist sensitive tokens to browser localStorage or sessionStorage.
  */
 export const saveSession = (session: AuthSession): void => {
+  inMemorySession = { ...session };
+  // Proactively purge any obsolete tokens that might have been stored in previous versions
   try {
-    const serialized = JSON.stringify(session);
-
-    if (session.rememberMe) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, serialized);
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    } else {
-      sessionStorage.setItem(SESSION_STORAGE_KEY, serialized);
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-    }
-  } catch (error) {
-    console.error("Failed to save auth session.", error);
+    localStorage.removeItem("workforce_auth");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("workforce_session");
+  } catch {
+    // Storage access may be restricted
   }
 };
 
 /**
- * Retrieve stored session.
+ * Retrieve active session from application memory.
  */
 export const getSession = (): AuthSession | null => {
-  try {
-    const stored =
-      localStorage.getItem(LOCAL_STORAGE_KEY) ??
-      sessionStorage.getItem(SESSION_STORAGE_KEY);
+  if (!inMemorySession) return null;
 
-    if (!stored) return null;
-
-    const session: AuthSession = JSON.parse(stored);
-
-    if (isSessionExpired(session)) {
-      clearSession();
-      return null;
-    }
-
-    return session;
-  } catch (error) {
-    console.error("Failed to load auth session.", error);
+  if (isSessionExpired(inMemorySession)) {
     clearSession();
     return null;
   }
+
+  return inMemorySession;
 };
 
 /**
- * Clear authentication session.
+ * Clear authentication session from application memory.
  */
 export const clearSession = (): void => {
-  localStorage.removeItem(LOCAL_STORAGE_KEY);
-  sessionStorage.removeItem(SESSION_STORAGE_KEY);
+  inMemorySession = null;
+  try {
+    localStorage.removeItem("workforce_auth");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("workforce_session");
+  } catch {
+    // Storage access may be restricted
+  }
 };
 
 /**
  * Check whether session is expired.
  */
-export const isSessionExpired = (
-  session: AuthSession
-): boolean => {
+export const isSessionExpired = (session: AuthSession): boolean => {
   return Date.now() >= session.expiresAt;
 };
 
 /**
  * Returns remaining session time.
  */
-export const getRemainingSessionTime = (
-  session: AuthSession
-): number => {
+export const getRemainingSessionTime = (session: AuthSession): number => {
   return Math.max(session.expiresAt - Date.now(), 0);
 };
 
 /**
- * Refresh session expiry.
- *
- * Example:
- * refreshSession(session, 60)
- * -> Extends session by 60 minutes.
+ * Refresh session expiry in memory.
  */
 export const refreshSession = (
   session: AuthSession,
@@ -98,80 +85,68 @@ export const refreshSession = (
 ): AuthSession => {
   const updated: AuthSession = {
     ...session,
-    expiresAt:
-      Date.now() + durationInMinutes * 60 * 1000,
+    expiresAt: Date.now() + durationInMinutes * 60 * 1000,
   };
 
   saveSession(updated);
-
   return updated;
 };
 
 /**
- * Determine whether user is authenticated.
+ * Determine whether user is authenticated in memory.
  */
 export const isAuthenticated = (): boolean => {
   const session = getSession();
-
-  if (!session) {
-    return false;
-  }
-
+  if (!session) return false;
   return !isSessionExpired(session);
 };
 
 /**
- * Get logged-in user.
+ * Get logged-in user from in-memory session.
  */
 export const getCurrentUser = () => {
   return getSession()?.user ?? null;
 };
 
 /**
- * Get logged-in role.
+ * Get logged-in role from in-memory session.
  */
 export const getCurrentRole = () => {
-  return getSession()?.user.role ?? null;
+  return getSession()?.user?.role ?? null;
 };
 
 /**
- * Get access token.
+ * Get access token from in-memory session.
  */
 export const getAccessToken = (): string | null => {
   return getSession()?.accessToken ?? null;
 };
 
 /**
- * Get refresh token.
+ * Get refresh token from in-memory session.
  */
 export const getRefreshToken = (): string | null => {
   return getSession()?.refreshToken ?? null;
 };
 
 /**
- * Replace the current session.
+ * Replace the current in-memory session.
  */
 export const updateSession = (
   updater: (session: AuthSession) => AuthSession
 ): void => {
   const current = getSession();
-
   if (!current) return;
-
   const updated = updater(current);
-
   saveSession(updated);
 };
 
 /**
- * Extend active session.
+ * Extend active in-memory session.
  */
-export const extendSession = (
-  durationInMinutes = 60
-): void => {
+export const extendSession = (durationInMinutes = 60): void => {
   updateSession((session) => ({
     ...session,
-    expiresAt:
-      Date.now() + durationInMinutes * 60 * 1000,
+    expiresAt: Date.now() + durationInMinutes * 60 * 1000,
   }));
 };

@@ -1,11 +1,11 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { connectDB } from "./server/config/db.js";
 import { User } from "./server/models/index.js";
 import { verifyPassword } from "./server/middleware/auth.js";
 dotenv.config();
 
 async function check() {
-  await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/workforce_db");
+  await connectDB();
   const user = await User.findOne({ email: "admin@company.com" }).select("+password");
   console.log("User:", user?.email, "Hash:", user?.password);
   if (user) {

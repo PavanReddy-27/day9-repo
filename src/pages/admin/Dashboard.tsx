@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import KPICards from "../../features/kpi/components/KPICards";
 import type { KPIItem } from "../../features/kpi/components/KPICards/KPICards";
 import EmployeeTrendChart from "../../features/charts/components/EmployeeTrendChart";
@@ -5,70 +6,142 @@ import DepartmentChart from "../../features/charts/components/DepartmentChart";
 import RoleChart from "../../features/charts/components/RoleChart";
 import StatusChart from "../../features/charts/components/StatusChart";
 import type { TrendChartData, DepartmentChartData, RoleChartData, StatusChartData } from "../../types/chart";
+import {
+  getWorkforceAnalytics,
+  getDepartmentAnalytics,
+  getHiringAnalytics,
+  WorkforceAnalyticsResponse,
+  DepartmentAnalyticsResponse,
+  HiringAnalyticsResponse
+} from "../../services/analyticsService";
+import { CircularProgress, Alert, Button } from "@mui/material";
 import "./Dashboard.css";
 
-const kpiData: KPIItem[] = [
-  { id: "totalEmployees", title: "Total Users", value: 250, trend: 5 },
-  { id: "activeEmployees", title: "Active Roles", value: 18, trend: 2 },
-  { id: "departments", title: "Departments", value: 12, trend: 0 },
-  { id: "performanceScore", title: "Reports", value: 42, trend: 10 },
-];
-
-const trendData: TrendChartData[] = [
-  { month: "Jan", totalEmployees: 120, activeEmployees: 110, newHires: 8, attrition: 3 },
-  { month: "Feb", totalEmployees: 140, activeEmployees: 130, newHires: 12, attrition: 5 },
-  { month: "Mar", totalEmployees: 170, activeEmployees: 160, newHires: 15, attrition: 4 },
-  { month: "Apr", totalEmployees: 190, activeEmployees: 180, newHires: 20, attrition: 6 },
-  { month: "May", totalEmployees: 230, activeEmployees: 220, newHires: 22, attrition: 8 },
-  { month: "Jun", totalEmployees: 250, activeEmployees: 240, newHires: 18, attrition: 5 },
-];
-
-const departmentData: DepartmentChartData[] = [
-  { id: "d1", name: "Engineering", value: 40, activeEmployees: 38, inactiveEmployees: 2, averageSalary: 80000, averageExperience: 5, performanceScore: 85, trainingCompletion: 90 },
-  { id: "d2", name: "HR", value: 20, activeEmployees: 19, inactiveEmployees: 1, averageSalary: 60000, averageExperience: 4, performanceScore: 80, trainingCompletion: 85 },
-  { id: "d3", name: "Sales", value: 25, activeEmployees: 23, inactiveEmployees: 2, averageSalary: 70000, averageExperience: 6, performanceScore: 88, trainingCompletion: 95 },
-  { id: "d4", name: "Finance", value: 15, activeEmployees: 15, inactiveEmployees: 0, averageSalary: 75000, averageExperience: 7, performanceScore: 90, trainingCompletion: 100 },
-];
-
-const statusData: StatusChartData[] = [
-  { id: "s1", status: "Active", employees: 200, percentage: 80 },
-  { id: "s2", status: "On Leave", employees: 30, percentage: 12 },
-  { id: "s3", status: "Onboarding", employees: 20, percentage: 8 },
-];
-
-const roleData: RoleChartData[] = [
-  { id: "r1", role: "IT", employees: 70, averageSalary: 80000, averageExperience: 5 },
-  { id: "r2", role: "HR", employees: 30, averageSalary: 60000, averageExperience: 4 },
-  { id: "r3", role: "Sales", employees: 55, averageSalary: 70000, averageExperience: 6 },
-  { id: "r4", role: "Finance", employees: 25, averageSalary: 75000, averageExperience: 7 },
-];
-
 const Dashboard = () => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [workforceData, setWorkforceData] = useState<WorkforceAnalyticsResponse | null>(null);
+  const [deptData, setDeptData] = useState<DepartmentAnalyticsResponse | null>(null);
+  const [hiringData, setHiringData] = useState<HiringAnalyticsResponse[]>([]);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [wf, dept, hiring] = await Promise.all([
+        getWorkforceAnalytics(),
+        getDepartmentAnalytics(),
+        getHiringAnalytics(),
+      ]);
+      setWorkforceData(wf);
+      setDeptData(dept);
+      setHiringData(Array.isArray(hiring) ? hiring : []);
+    } catch (err: any) {
+      console.error("Failed to load admin dashboard analytics:", err);
+      setError(err?.message || "Failed to load dashboard data from server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="admin-dashboard-container" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <CircularProgress />
+      </main>
+    );
+  }
+
+  if (error || !workforceData || !deptData) {
+    return (
+      <main className="admin-dashboard-container" style={{ padding: 24 }}>
+        <Alert severity="error" action={
+          <Button color="inherit" size="small" onClick={fetchDashboardData}>
+            Retry
+          </Button>
+        }>
+          {error || "Unable to load organization analytics from backend."}
+        </Alert>
+      </main>
+    );
+  }
+
+  const kpiData: KPIItem[] = [
+    { id: "totalEmployees", title: "Total Workforce", value: workforceData.totalEmployees, trend: 0 },
+    { id: "activeEmployees", title: "Active Employees", value: workforceData.activeEmployees, trend: 0 },
+    { id: "departments", title: "Departments", value: deptData.departments.length, trend: 0 },
+    { id: "performanceScore", title: "Locations", value: deptData.locations.length, trend: 0 },
+  ];
+
+  // Real hiring trends from MongoDB
+  const trendData: TrendChartData[] = hiringData.map((h) => ({
+    month: h.month,
+    totalEmployees: workforceData.totalEmployees,
+    activeEmployees: workforceData.activeEmployees,
+    newHires: h.hires,
+    attrition: 0,
+  }));
+
+  // Real status distribution from MongoDB
+  const totalEmployees = workforceData.totalEmployees || 1;
+  const statusData: StatusChartData[] = (workforceData.statusDistribution || []).map((s, i) => ({
+    id: `status_${i}`,
+    status: s.name,
+    employees: s.value,
+    percentage: Math.round((s.value / totalEmployees) * 100),
+  }));
+
+  // Real department distribution from MongoDB
+  const departmentData: DepartmentChartData[] = (deptData.departments || []).map((d, i) => ({
+    id: `dept_${i}`,
+    name: d.name,
+    value: d.count,
+    activeEmployees: d.count,
+    inactiveEmployees: 0,
+    averageSalary: 0,
+    averageExperience: 0,
+    performanceScore: 0,
+    trainingCompletion: 0,
+  }));
+
+  // Real role/work mode distribution from MongoDB
+  const roleData: RoleChartData[] = (workforceData.workModeDistribution || []).map((w, i) => ({
+    id: `role_${i}`,
+    role: `${w.name} Mode`,
+    employees: w.value,
+    averageSalary: 0,
+    averageExperience: 0,
+  }));
+
   return (
-      <main className="admin-dashboard-container">
-        <div className="dashboard-page">
-          <div className="dashboard-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
-            <div className="dashboard-title-section">
-              <h1>Dashboard</h1>
-              <p>Overview of your employee performance and analytics.</p>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: "20px" }}>
-            <KPICards data={kpiData} />
-          </div>
-
-          <div className="dashboard-box">
-            <EmployeeTrendChart data={trendData} />
-            <StatusChart data={statusData} />
-          </div>
-
-          <div className="dashboard-box">
-            <RoleChart data={roleData} />
-            <DepartmentChart data={departmentData} />
+    <main className="admin-dashboard-container">
+      <div className="dashboard-page">
+        <div className="dashboard-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+          <div className="dashboard-title-section">
+            <h1>Admin Overview</h1>
+            <p>Live workforce analytics and department statistics from MongoDB.</p>
           </div>
         </div>
-      </main>
+
+        <div style={{ marginBottom: "20px" }}>
+          <KPICards data={kpiData} />
+        </div>
+
+        <div className="dashboard-box">
+          <EmployeeTrendChart data={trendData} />
+          <StatusChart data={statusData} />
+        </div>
+
+        <div className="dashboard-box">
+          <RoleChart data={roleData} />
+          <DepartmentChart data={departmentData} />
+        </div>
+      </div>
+    </main>
   );
 };
 
