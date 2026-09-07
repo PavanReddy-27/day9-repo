@@ -1,20 +1,23 @@
-import { Box, Typography, CircularProgress, Alert, Button } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { Box, Typography, Button } from "@mui/material";
+import { Download } from "@mui/icons-material";
 
 import TeamToolbar from "../components/team/TeamToolbar";
 import TeamTable from "../components/team/TeamTable";
 import TeamMemberDrawer from "../components/team/TeamMemberDrawer";
 import AddMemberDialog from "../components/team/AddMemberDialog";
-
+import PageState from "../../components/PageState";
 import type { TeamMember } from "../types/team";
 import { apiClient } from "../../services/apiClient";
+import { useAppSelector } from "../../redux/hooks";
 
 import "./Team.css";
 
 const Team = () => {
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const { user } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState("");
@@ -71,37 +74,55 @@ const Team = () => {
   }, []);
 
   const rows = useMemo(() => {
-    return teamMembers.filter((member) => {
+    let data = [...teamMembers];
+    if (user && user.role === "Manager" && user.department && user.department !== "General") {
+      data = data.filter((m) => m.department === user.department);
+    }
+
+    return data.filter((member) => {
       const matchesSearch =
         ((member.name?.toLowerCase() || "").includes(search.toLowerCase())) ||
         ((member.employeeId?.toLowerCase() || "").includes(search.toLowerCase()));
 
-      const matchesAttendance =
-        !attendance || member.attendance === attendance;
+      const matchesAttendance = !attendance || member.attendance === attendance;
+      const matchesRisk = !risk || member.risk === risk;
 
-      const matchesRisk =
-        !risk || member.risk === risk;
-
-      return (
-        matchesSearch &&
-        matchesAttendance &&
-        matchesRisk
-      );
+      return matchesSearch && matchesAttendance && matchesRisk;
     });
-  }, [search, attendance, risk, teamMembers]);
+  }, [teamMembers, search, attendance, risk, user]);
 
   const handleAddMember = (member: TeamMember) => {
     setTeamMembers((prev) => [member, ...prev]);
   };
 
+  const handleExportCSV = () => {
+    const csvContent = [
+      ["Employee ID", "Name", "Role", "Department", "Attendance", "Risk", "Productivity %"],
+      ...rows.map((r) => [r.employeeId, r.name, r.designation, r.department, r.attendance, r.risk, `${r.productivity}%`]),
+    ]
+      .map((e) => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `my_team_export_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Box className="team-page">
-      <Typography
-        variant="h4"
-        className="team-page-title"
-      >
-        My Team
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h4" className="team-page-title">
+          My Team
+        </Typography>
+        <Button variant="outlined" startIcon={<Download />} onClick={handleExportCSV} sx={{ borderRadius: 2 }}>
+          Export CSV
+        </Button>
+      </Box>
 
       <TeamToolbar
         search={search}
@@ -114,31 +135,13 @@ const Team = () => {
       />
 
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
-          <CircularProgress />
-        </Box>
+        <PageState type="loading" message="Loading team members..." />
       ) : error ? (
-        <Box sx={{ py: 4 }}>
-          <Alert severity="error" action={
-            <Button color="inherit" size="small" onClick={fetchTeamMembers}>
-              Retry
-            </Button>
-          }>
-            {error}
-          </Alert>
-        </Box>
+        <PageState type="error" message={error} onRetry={fetchTeamMembers} />
       ) : rows.length === 0 ? (
-        <Box sx={{ textAlign: "center", py: 6, color: "var(--text-light)" }}>
-          <Typography variant="h6">No team members found</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            {teamMembers.length === 0 ? "No team members assigned to your department." : "No members match the selected filters."}
-          </Typography>
-        </Box>
+        <PageState type="empty" message="No team members match the selected filters." />
       ) : (
-        <TeamTable
-          rows={rows}
-          onView={setSelected}
-        />
+        <TeamTable rows={rows} onView={setSelected} />
       )}
 
       <TeamMemberDrawer

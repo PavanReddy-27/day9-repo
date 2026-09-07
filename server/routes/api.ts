@@ -46,6 +46,7 @@ import { authenticateJWT, requireRole, applyRoleDataScope, validateObjectId } fr
 import { validateRequest } from "../middleware/validateRequest.js";
 import { loginSchema, refreshSchema } from "../validators/authSchema.js";
 import { checkInSchema, checkOutSchema, correctionSchema, breakSchema } from "../validators/attendanceSchema.js";
+import { leaveSchema } from "../validators/leaveSchema.js";
 
 import { sseMiddleware } from "../utils/sse.js";
 
@@ -113,7 +114,7 @@ router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(
 
 // Leave Requests Routes
 router.get("/leaves", authenticateJWT, getLeaveRequests);
-router.post("/leaves", authenticateJWT, requireRole(["Employee"]), createLeaveRequest);
+router.post("/leaves", authenticateJWT, requireRole(["Employee"]), validateRequest(leaveSchema), createLeaveRequest);
 router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager", "HR", "Admin"]), validateObjectId("id"), updateLeaveStatus);
 
 // Notifications Routes
@@ -123,6 +124,11 @@ router.patch("/notifications/:id/read", authenticateJWT, validateObjectId("id"),
 
 // Audit Logs (Admin / HR only)
 router.get("/audit-logs", authenticateJWT, requireRole(["Admin", "HR"]), getAuditLogs);
+
+// Recruitment Routes (HR / Admin)
+import { getJobPosts, createJobPost } from "../controllers/recruitmentController.js";
+router.get("/recruitment/jobs", authenticateJWT, getJobPosts);
+router.post("/recruitment/jobs", authenticateJWT, requireRole(["Admin", "HR"]), createJobPost);
 
 import payrollRoutes from "./payrollRoutes.js";
 router.use("/payroll", authenticateJWT, payrollRoutes);

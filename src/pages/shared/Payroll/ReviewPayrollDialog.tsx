@@ -31,9 +31,17 @@ export const ReviewPayrollDialog = ({ open, onClose, periodId }: ReviewPayrollDi
   };
 
   useEffect(() => {
+    let ignore = false;
     if (open && periodId) {
-      fetchRecords();
+      Promise.resolve().then(() => {
+        if (!ignore) {
+          fetchRecords();
+        }
+      });
     }
+    return () => {
+      ignore = true;
+    };
   }, [open, periodId]);
 
   const handleEditClick = (record: PayrollRecord) => {
@@ -90,7 +98,7 @@ export const ReviewPayrollDialog = ({ open, onClose, periodId }: ReviewPayrollDi
                 {records.map((row) => (
                   <TableRow key={row._id}>
                     <TableCell>
-                      {row.employeeId?.firstName} {row.employeeId?.lastName}
+                      {(row.employeeId as any)?.firstName} {(row.employeeId as any)?.lastName}
                     </TableCell>
                     
                     <TableCell>

@@ -39,6 +39,7 @@ export interface KPIItem {
   icon?: ReactNode;
   color?: string;
   sparklineData?: number[];
+  progress?: number;
 }
 
 export interface KPIStatistics {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Box, Paper, Typography, TextField, CircularProgress, Alert, Button } from "@mui/material";
-
+import { Box, Paper, Typography, TextField, Button } from "@mui/material";
+import { Download } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 
@@ -8,6 +8,7 @@ import KPICards from "../../features/kpi/components/KPICards";
 import type { KPIItem } from "../../features/kpi/components/KPICards/KPICards";
 import StatusChart from "../../features/charts/components/StatusChart";
 import type { StatusChartData } from "../../types/chart";
+import PageState from "../../components/PageState";
 import { apiClient } from "../../services/apiClient";
 
 import "./Performance.css";
@@ -79,10 +80,7 @@ const Performance = () => {
   }, [search, employees]);
 
   const averageProductivity = Math.round(
-    rows.reduce(
-      (sum, item) => sum + item.productivity,
-      0
-    ) / (rows.length || 1)
+    rows.reduce((sum, item) => sum + (item.productivity || 0), 0) / (rows.length || 1)
   );
 
   const topRating = useMemo(() => {
@@ -131,26 +129,39 @@ const Performance = () => {
     { field: "risk", headerName: "Risk", width: 120 },
   ];
 
+  const handleExportCSV = () => {
+    const csvContent = [
+      ["Employee ID", "Name", "Role", "Status", "Performance", "Productivity %", "Risk"],
+      ...rows.map((r) => [r.employeeId, r.name, r.designation, r.attendance, r.performance, `${r.productivity}%`, r.risk]),
+    ]
+      .map((e) => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `manager_performance_export_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Box className="performance-page">
-      <Typography variant="h4" className="performance-title">
-        Team Performance
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h4" className="performance-title">
+          Team Performance
+        </Typography>
+        <Button variant="outlined" startIcon={<Download />} onClick={handleExportCSV} sx={{ borderRadius: 2 }}>
+          Export CSV
+        </Button>
+      </Box>
 
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
-          <CircularProgress />
-        </Box>
+        <PageState type="loading" message="Loading team performance metrics..." />
       ) : error ? (
-        <Box sx={{ py: 4 }}>
-          <Alert severity="error" action={
-            <Button color="inherit" size="small" onClick={fetchData}>
-              Retry
-            </Button>
-          }>
-            {error}
-          </Alert>
-        </Box>
+        <PageState type="error" message={error} onRetry={fetchData} />
       ) : (
         <>
           <Box sx={{ mb: 4, mt: 3 }}>
@@ -165,21 +176,25 @@ const Performance = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </Paper>
-          
-          <Paper elevation={3} className="performance-table-card">
-            <DataGrid
-              rows={rows}
-              columns={columns}
-              getRowId={(row) => row.employeeId || row.id || Math.random()}
-              pageSizeOptions={[5, 10]}
-              disableRowSelectionOnClick
-              initialState={{
-                pagination: {
-                  paginationModel: { page: 0, pageSize: 5 },
-                },
-              }}
-            />
-          </Paper>
+
+          {rows.length === 0 ? (
+            <PageState type="empty" message="No performance records match your search." />
+          ) : (
+            <Paper elevation={3} className="performance-table-card">
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                getRowId={(row) => row.employeeId || row.id || Math.random()}
+                pageSizeOptions={[5, 10]}
+                disableRowSelectionOnClick
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+              />
+            </Paper>
+          )}
 
           <Box sx={{ mt: 4, height: 400 }}>
             <StatusChart data={chartData} />

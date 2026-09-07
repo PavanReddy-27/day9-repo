@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Admin', 'HR', 'Manager', 'Employee'],
+    enum: ['Admin', 'HR', 'Manager', 'Team Lead', 'Employee'],
     default: 'Employee',
   },
   mfaSecret: {
@@ -71,4 +71,5 @@ export const User = mongoose.model('User', userSchema);
 export const AdminAuth = mongoose.model('AdminAuth', userSchema);
 export const HRAuth = mongoose.model('HRAuth', userSchema);
 export const ManagerAuth = mongoose.model('ManagerAuth', userSchema);
+export const TeamLeadAuth = mongoose.model('TeamLeadAuth', userSchema);
 export const EmployeeAuth = mongoose.model('EmployeeAuth', userSchema);

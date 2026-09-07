@@ -21,7 +21,15 @@ export default function EmployeeMyPay() {
   };
 
   useEffect(() => {
-    fetchMyPay();
+    let ignore = false;
+    Promise.resolve().then(() => {
+      if (!ignore) {
+        fetchMyPay();
+      }
+    });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   if (loading) {
@@ -53,7 +61,7 @@ export default function EmployeeMyPay() {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box>
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {record.periodId?.name || 'Unknown Period'}
+                        {(record.periodId as any)?.name || 'Unknown Period'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Status: <Chip size="small" label={record.status} color={record.status === 'Approved' ? 'success' : 'default'} sx={{ ml: 1, height: 20 }} />

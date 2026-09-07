@@ -24,7 +24,7 @@ const employeeSchema = new mongoose.Schema({
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
   shiftId: { type: mongoose.Schema.Types.ObjectId, ref: 'Shift' },
 
-  role: { type: String, enum: ['Admin', 'HR', 'Manager', 'Employee'], required: true },
+  role: { type: String, enum: ['Admin', 'HR', 'Manager', 'Team Lead', 'Employee'], required: true },
   designation: { type: String },
   workMode: { type: String, enum: ['Office', 'Remote', 'Hybrid'], default: 'Office' },
   employmentStatus: { type: String, enum: ['Active', 'Inactive', 'On Leave', 'Notice Period'], default: 'Active' },
