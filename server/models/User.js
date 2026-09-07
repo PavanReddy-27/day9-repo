@@ -152,18 +152,13 @@ userSchema.methods.matchPassword = function (enteredPassword) {
                 case 3:
                     isBcryptMatch = _a.sent();
                     if (isBcryptMatch)
-                        return [2 /*return*/, true];
-                    rolePrefix = (this.role || "").toLowerCase();
-                    if (enteredPassword === "".concat(rolePrefix, "123") || enteredPassword === "Password123!") {
-                        return [2 /*return*/, true];
-                    }
                     return [2 /*return*/, false];
             }
         });
     });
 };
-exports.User = mongoose_1.default.model('User', userSchema);
-exports.AdminAuth = mongoose_1.default.model('AdminAuth', userSchema);
-exports.HRAuth = mongoose_1.default.model('HRAuth', userSchema);
-exports.ManagerAuth = mongoose_1.default.model('ManagerAuth', userSchema);
-exports.EmployeeAuth = mongoose_1.default.model('EmployeeAuth', userSchema);
+exports.User = mongoose_1.default.models.User || mongoose_1.default.model('User', userSchema);
+exports.AdminAuth = mongoose_1.default.models.AdminAuth || mongoose_1.default.model('AdminAuth', userSchema);
+exports.HRAuth = mongoose_1.default.models.HRAuth || mongoose_1.default.model('HRAuth', userSchema);
+exports.ManagerAuth = mongoose_1.default.models.ManagerAuth || mongoose_1.default.model('ManagerAuth', userSchema);
+exports.EmployeeAuth = mongoose_1.default.models.EmployeeAuth || mongoose_1.default.model('EmployeeAuth', userSchema);

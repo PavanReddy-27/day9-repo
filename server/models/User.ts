@@ -67,9 +67,9 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
 
-export const User = mongoose.model('User', userSchema);
-export const AdminAuth = mongoose.model('AdminAuth', userSchema);
-export const HRAuth = mongoose.model('HRAuth', userSchema);
-export const ManagerAuth = mongoose.model('ManagerAuth', userSchema);
-export const TeamLeadAuth = mongoose.model('TeamLeadAuth', userSchema);
-export const EmployeeAuth = mongoose.model('EmployeeAuth', userSchema);
+export const User = mongoose.models.User || mongoose.model('User', userSchema);
+export const AdminAuth = mongoose.models.AdminAuth || mongoose.model('AdminAuth', userSchema);
+export const HRAuth = mongoose.models.HRAuth || mongoose.model('HRAuth', userSchema);
+export const ManagerAuth = mongoose.models.ManagerAuth || mongoose.model('ManagerAuth', userSchema);
+export const TeamLeadAuth = mongoose.models.TeamLeadAuth || mongoose.model('TeamLeadAuth', userSchema);
+export const EmployeeAuth = mongoose.models.EmployeeAuth || mongoose.model('EmployeeAuth', userSchema);
