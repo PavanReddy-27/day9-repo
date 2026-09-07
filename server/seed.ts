@@ -18,7 +18,7 @@ const seedDB = async () => {
   try {
     const isReset = process.argv.includes('--reset');
     await connectDB();
-    
+
     // Set deterministic seed
     faker.seed(123);
 
@@ -50,7 +50,7 @@ const seedDB = async () => {
       { code: 'BLR', name: 'Bengaluru', count: 60 },
       { code: 'KOC', name: 'Kochi', count: 30 }
     ];
-    
+
     const locations: Record<string, any> = {};
     for (const loc of locationsData) {
       const locArr = await Location.create([{
@@ -90,10 +90,10 @@ const seedDB = async () => {
     const managers = [];
     const regularEmployees = [];
     let employeeCounter = 1;
-    
+
     // Pre-hash password for speed
     const salt = await bcrypt.genSalt(10);
-    const defaultPassword = await bcrypt.hash(process.env.SEED_PASSWORD || 'Password123!', salt);
+    const defaultPassword = await bcrypt.hash('Password123!', salt);
 
     const roles = ['Admin', 'HR', 'Manager', 'Employee'];
     let devIndex = 0;
@@ -104,7 +104,7 @@ const seedDB = async () => {
       HR: 10,
       Employee: 237
     };
-    
+
     let adminCount = 0;
     let managerCount = 0;
     let hrCount = 0;
@@ -114,15 +114,15 @@ const seedDB = async () => {
       for (let i = 0; i < loc.count; i++) {
         const deptName = faker.helpers.arrayElement(depts);
         const team = faker.helpers.arrayElement(teamsByDept[deptName]);
-        
+
         let firstName = faker.person.firstName();
         let lastName = faker.person.lastName();
         const gender = faker.helpers.arrayElement(['Male', 'Female', 'Other']);
-        
+
         let empIdStr = `EMP${String(employeeCounter++).padStart(4, '0')}`;
         let email = faker.internet.email({ firstName, lastName, provider: 'thestackly.com' }).toLowerCase();
         let role = 'Employee';
-        
+
         if (devIndex < roles.length) {
           role = roles[devIndex];
           email = `${role.toLowerCase().replace(' ', '')}@thestackly.com`;
@@ -141,7 +141,7 @@ const seedDB = async () => {
         else if (role === 'Manager') managerCount++;
         else if (role === 'HR') hrCount++;
         else empCount++;
-        
+
         employees.push({
           employeeId: empIdStr,
           firstName,
@@ -150,25 +150,25 @@ const seedDB = async () => {
           email,
           phone: faker.phone.number(),
           avatar: faker.image.avatar(),
-          
+
           companyId: company._id,
           locationId: locations[loc.code]._id,
           departmentId: departments[deptName]._id,
           teamId: team._id,
-          
+
           role,
           designation: faker.person.jobType(),
           employmentStatus: faker.helpers.arrayElement(['Active', 'Active', 'Active', 'Inactive', 'On Leave']),
           riskLevel: faker.helpers.arrayElement(['Low', 'Low', 'Medium', 'High', 'Critical']),
-          
+
           joiningDate: faker.date.past({ years: 5 }),
           gender,
           age: faker.number.int({ min: 22, max: 60 }),
-          
+
           salary: faker.number.int({ min: 40000, max: 150000 }),
           bonus: faker.number.int({ min: 1000, max: 20000 }),
           experience: faker.number.int({ min: 0, max: 20 }),
-          
+
           performanceScore: faker.number.int({ min: 50, max: 100 }),
           engagementScore: faker.number.int({ min: 50, max: 100 }),
           attendancePercentage: faker.number.int({ min: 70, max: 100 }),
@@ -183,7 +183,7 @@ const seedDB = async () => {
           password: defaultPassword,
           role: role
         };
-        
+
         if (role === 'Admin') admins.push(userDoc);
         else if (role === 'HR') hrs.push(userDoc);
         else if (role === 'Manager') managers.push(userDoc);
@@ -197,15 +197,15 @@ const seedDB = async () => {
     if (hrs.length > 0) await HRAuth.insertMany(hrs, { session });
     if (managers.length > 0) await ManagerAuth.insertMany(managers, { session });
     if (regularEmployees.length > 0) await EmployeeAuth.insertMany(regularEmployees, { session });
-    
+
     await session.commitTransaction();
     session.endSession();
-    
+
     console.log(`✅ Successfully seeded 1 Company, 5 Locations, ${depts.length} Departments, 250 Employees, and 250 User Logins!`);
     console.log('✅ Dev accounts included! (e.g. admin@thestackly.com / Password123!)');
     console.log('Seeding Complete! You may now exit.');
     process.exit(0);
-    
+
   } catch (error) {
     console.error('❌ Seeding Error:', error);
     try {

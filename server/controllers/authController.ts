@@ -68,7 +68,7 @@ const findUserById = async (id: string) => {
 export const login = async (req: any, res: any, next: any) => {
   try {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
@@ -159,22 +159,22 @@ export const logout = async (req: any, res: any, next: any) => {
   try {
     session = await mongoose.startSession();
     session.startTransaction();
-    
+
     const tokensToBlacklist = [];
-    
+
     let accessToken;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       accessToken = req.headers.authorization.split(' ')[1];
     }
     if (accessToken) tokensToBlacklist.push({ token: accessToken });
-    
+
     const { refreshToken } = req.body || {};
     if (refreshToken) tokensToBlacklist.push({ token: refreshToken });
-    
+
     if (tokensToBlacklist.length > 0) {
       await TokenBlacklist.insertMany(tokensToBlacklist, { session });
     }
-    
+
     await session.commitTransaction();
     session.endSession();
 
@@ -184,7 +184,7 @@ export const logout = async (req: any, res: any, next: any) => {
       // For SSE clients, the id is typically the employee _id (or user _id if employee not found).
       closeSSEConnection(req.user.id);
     }
-    
+
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     if (session.inTransaction()) await session.abortTransaction();
@@ -297,7 +297,7 @@ export const enableMfa = async (req: any, res: any, next: any) => {
     if (!userDoc) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
+
     userDoc.mfaSecret = secret;
     userDoc.mfaEnabled = true;
     await userDoc.save();
@@ -314,7 +314,7 @@ export const disableMfa = async (req: any, res: any, next: any) => {
     if (!userDoc) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
+
     if (!userDoc.mfaEnabled) {
       return res.status(400).json({ success: false, message: 'MFA is not enabled' });
     }

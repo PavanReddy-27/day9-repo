@@ -116,7 +116,7 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
       AuditLog.deleteMany({}),
       IdempotencyRecord.deleteMany({}),
     ]);
-    await PerformanceRecord.collection.dropIndexes().catch(() => {});
+    await PerformanceRecord.collection.dropIndexes().catch(() => { });
   }
 
   // Check if company already exists to prevent duplicate runs without reset
@@ -256,12 +256,12 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
   }
 
   // 6. Create 250 Employees & Users
-  const defaultPasswordStr = process.env.SEED_PASSWORD || "Password123!";
+  const defaultPasswordStr = "Password123!";
   const devAccountPasswords = {
-    Admin: process.env.SEED_PASSWORD || "Password123!",
-    HR: process.env.SEED_PASSWORD || "Password123!",
-    Manager: process.env.SEED_PASSWORD || "Password123!",
-    Employee: process.env.SEED_PASSWORD || "Password123!",
+    Admin: "Password123!",
+    HR: "Password123!",
+    Manager: "Password123!",
+    Employee: "Password123!",
   };
 
   const devAccountsConfig = [

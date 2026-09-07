@@ -7,13 +7,12 @@ test.describe('Attendance Flow', () => {
 
     // Simulate Employee Login
     await page.getByLabel('Username').fill('employee@thestackly.com');
-    const testPassword = process.env.SEED_PASSWORD || 'Password123!';
-    await page.locator('input[type="password"]').fill(testPassword);
+    await page.locator('input[type="password"]').fill('Password123!');
     await page.click('button[type="submit"]');
 
     // Wait for redirect to attendance page
     await page.waitForURL('**/employee/dashboard');
-    
+
     // Verify dashboard loaded successfully
     await expect(page.locator('h4', { hasText: 'My Dashboard' }).first()).toBeVisible({ timeout: 10000 });
   });
