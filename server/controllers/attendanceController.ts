@@ -629,15 +629,47 @@ export const getAttendanceHistory = async (req, res) => {
           });
         }
       } else {
-        empDoc = await Employee.findOne({ employeeId: qEmpId });
+        empDoc = await Employee.findOne({ employeeId: qEmpId, companyId: req.companyId });
       }
 
       if (empDoc) {
+        // Enforce RBAC data-level authorization:
+        // 1. Employee cannot view another employee's records
+        if (req.role === 'Employee' && empDoc._id.toString() !== req.employee?._id?.toString()) {
+          return res.status(403).json({ success: false, message: "Forbidden: Cannot view another employee's attendance records" });
+        }
+        // 2. Manager cannot view employee outside their assigned department
+        const empDeptId = (empDoc.departmentId?._id || empDoc.departmentId)?.toString();
+        const mgrDeptId = (req.employee?.departmentId?._id || req.employee?.departmentId)?.toString();
+        if (req.role === 'Manager' && empDeptId && mgrDeptId && empDeptId !== mgrDeptId) {
+          return res.status(403).json({ success: false, message: "Forbidden: Cannot view attendance for employee outside your department" });
+        }
+        // 3. Team Lead cannot view employee outside their assigned team
+        const empTeamId = (empDoc.teamId?._id || empDoc.teamId)?.toString();
+        const leadTeamId = (req.employee?.teamId?._id || req.employee?.teamId)?.toString();
+        if (req.role === 'Team Lead' && empTeamId && leadTeamId && empTeamId !== leadTeamId) {
+          return res.status(403).json({ success: false, message: "Forbidden: Cannot view attendance for employee outside your team" });
+        }
         filter.employeeId = empDoc._id;
       } else {
         // If an explicit employeeId was queried but not found in Employees, 
         // return no records instead of searching by raw User._id.
         filter.employeeId = new mongoose.Types.ObjectId("000000000000000000000000");
+      }
+    } else {
+      // When no explicit employeeId is passed:
+      if (req.role === 'Manager') {
+        const mgrDeptId = req.employee?.departmentId?._id || req.employee?.departmentId;
+        if (mgrDeptId) {
+          const deptEmployees = await Employee.find({ companyId: req.companyId, departmentId: mgrDeptId }).select('_id');
+          filter.employeeId = { $in: deptEmployees.map(e => e._id) };
+        }
+      } else if (req.role === 'Team Lead') {
+        const leadTeamId = req.employee?.teamId?._id || req.employee?.teamId;
+        if (leadTeamId) {
+          const teamEmployees = await Employee.find({ companyId: req.companyId, teamId: leadTeamId }).select('_id');
+          filter.employeeId = { $in: teamEmployees.map(e => e._id) };
+        }
       }
     }
 

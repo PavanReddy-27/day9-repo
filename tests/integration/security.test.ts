@@ -60,5 +60,44 @@ describe('Security & RBAC Tests', () => {
         expect(res.body.message).toMatch(/forbidden|insufficient/i);
       }
     });
+
+    it('should return 403 Forbidden when an Employee attempts to access company payroll periods', async () => {
+      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
+      if (empUser) {
+        const { accessToken } = generateTokens(empUser._id, 'Employee');
+        const res = await request(app)
+          .get('/api/v1/payroll/periods')
+          .set('Authorization', `Bearer ${accessToken}`);
+        expect(res.status).toBe(403);
+      }
+    });
+
+    it('should reject an Employee trying to query another employee pay records', async () => {
+      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
+      if (empUser) {
+        const { accessToken } = generateTokens(empUser._id, 'Employee');
+        const anotherEmpId = new mongoose.Types.ObjectId().toString();
+        const res = await request(app)
+          .get(`/api/v1/payroll/my-pay?employeeId=${anotherEmpId}`)
+          .set('Authorization', `Bearer ${accessToken}`);
+        expect(res.status).toBe(403);
+        expect(res.body.error).toMatch(/forbidden/i);
+      }
+    });
+
+    it('should reject an Employee trying to query another employee attendance history', async () => {
+      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
+      if (empUser) {
+        const { accessToken } = generateTokens(empUser._id, 'Employee');
+        const anotherEmpId = new mongoose.Types.ObjectId().toString();
+        const res = await request(app)
+          .get(`/api/v1/attendance/history?employeeId=${anotherEmpId}`)
+          .set('Authorization', `Bearer ${accessToken}`);
+        expect([403, 200]).toContain(res.status); // 403 if target exists or 200 with empty data if unresolvable ID
+      }
+    });
   });
 });

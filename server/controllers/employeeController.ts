@@ -162,11 +162,20 @@ export const getEmployeeById = async (req, res) => {
     }
 
     // Role scope check
-    if (req.role === "Manager" && employee.departmentId._id.toString() !== req.employee.departmentId.toString()) {
+    const empDeptId = (employee.departmentId?._id || employee.departmentId)?.toString();
+    const myDeptId = (req.employee?.departmentId?._id || req.employee?.departmentId)?.toString();
+    const empTeamId = (employee.teamId?._id || employee.teamId)?.toString();
+    const myTeamId = (req.employee?.teamId?._id || req.employee?.teamId)?.toString();
+
+    if (req.role === "Manager" && empDeptId && myDeptId && empDeptId !== myDeptId) {
       return res.status(403).json({ success: false, message: "Forbidden: Cannot access employee outside your department." });
     }
 
-    if (req.role === "Employee" && employee._id.toString() !== req.employee._id.toString()) {
+    if (req.role === "Team Lead" && empTeamId && myTeamId && empTeamId !== myTeamId) {
+      return res.status(403).json({ success: false, message: "Forbidden: Cannot access employee outside your assigned team." });
+    }
+
+    if (req.role === "Employee" && employee._id.toString() !== req.employee?._id?.toString()) {
       return res.status(403).json({ success: false, message: "Forbidden: Cannot access another employee's record." });
     }
 

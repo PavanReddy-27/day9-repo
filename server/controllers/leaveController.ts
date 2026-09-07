@@ -28,8 +28,17 @@ export const getLeaveRequests = async (req: Request, res: Response): Promise<voi
       }
       query.employeeId = empId;
     } else if (role === "Manager") {
-      // Remove department constraint so managers can see all leave requests across the company
-      // (same as Admin and HR)
+      const myDeptId = (req as any).employee?.departmentId;
+      if (myDeptId) {
+        const deptEmployees = await Employee.find({ companyId: query.companyId, departmentId: myDeptId }).select('_id');
+        query.employeeId = { $in: deptEmployees.map(e => e._id) };
+      }
+    } else if (role === "Team Lead") {
+      const myTeamId = (req as any).employee?.teamId;
+      if (myTeamId) {
+        const teamEmployees = await Employee.find({ companyId: query.companyId, teamId: myTeamId }).select('_id');
+        query.employeeId = { $in: teamEmployees.map(e => e._id) };
+      }
     }
     // HR / Admin: company-wide visibility (all statuses, incl. Pending to review).
 
@@ -141,10 +150,29 @@ export const updateLeaveStatus = async (req: Request, res: Response): Promise<vo
     }
 
     const role = (req as any).user?.role || (req as any).role;
-    if (role !== "Manager") {
+    if (!["Manager", "HR", "Admin"].includes(role)) {
       await session.abortTransaction();
       session.endSession();
-      res.status(403).json({ error: "Only managers may approve or reject leave requests" });
+      res.status(403).json({ error: "Only managers, HR, or Admin may approve or reject leave requests" });
+      return;
+    }
+
+    const existingLeave: any = await LeaveRequest.findOne({ _id: id, companyId: (req as any).companyId }).populate("employeeId");
+    if (!existingLeave) {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(404).json({ error: "Leave request not found" });
+      return;
+    }
+
+    const leaveEmp = existingLeave.employeeId as any;
+    const leaveEmpDeptId = (leaveEmp?.departmentId?._id || leaveEmp?.departmentId)?.toString();
+    const managerDeptId = ((req as any).employee?.departmentId?._id || (req as any).employee?.departmentId)?.toString();
+
+    if (role === "Manager" && leaveEmpDeptId && managerDeptId && leaveEmpDeptId !== managerDeptId) {
+      await session.abortTransaction();
+      session.endSession();
+      res.status(403).json({ error: "Forbidden: Cannot review leave requests for employees outside your department" });
       return;
     }
 

@@ -265,7 +265,9 @@ export const exportPayroll = async (req: Request, res: Response): Promise<void> 
     const query: any = { periodId };
     
     // Scoping for employee exports
-    if (scope === 'me' || (user && user.role === 'Employee')) {
+    if (user && user.role === 'Employee') {
+      query.employeeId = employee?._id;
+    } else if (scope === 'me') {
       query.employeeId = employee?._id || user?.id;
     }
 
@@ -315,7 +317,18 @@ export const exportPayroll = async (req: Request, res: Response): Promise<void> 
 
 export const getMyPay = async (req: Request, res: Response): Promise<void> => {
   try {
-    const employeeId = (req as any).employee?._id || req.query.employeeId;
+    const role = (req as any).user?.role || (req as any).role;
+    let employeeId = (req as any).employee?._id;
+
+    if (role === 'Employee') {
+      if (req.query.employeeId && req.query.employeeId !== String(employeeId)) {
+        res.status(403).json({ error: "Forbidden: Cannot view another employee's pay records" });
+        return;
+      }
+    } else if (req.query.employeeId) {
+      employeeId = req.query.employeeId;
+    }
+
     if (!employeeId) {
       res.status(400).json({ error: "Employee ID is required" });
       return;
