@@ -49,7 +49,7 @@ describe('Security & RBAC Tests', () => {
     });
 
     it('should return 403 Forbidden when an Employee attempts to access Admin/HR audit-logs', async () => {
-      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const { EmployeeAuth } = await import('../../server/models/User');
       const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
       if (empUser) {
         const { accessToken } = generateTokens(empUser._id, 'Employee');
@@ -62,7 +62,7 @@ describe('Security & RBAC Tests', () => {
     });
 
     it('should return 403 Forbidden when an Employee attempts to access company payroll periods', async () => {
-      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const { EmployeeAuth } = await import('../../server/models/User');
       const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
       if (empUser) {
         const { accessToken } = generateTokens(empUser._id, 'Employee');
@@ -74,7 +74,7 @@ describe('Security & RBAC Tests', () => {
     });
 
     it('should reject an Employee trying to query another employee pay records', async () => {
-      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const { EmployeeAuth } = await import('../../server/models/User');
       const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
       if (empUser) {
         const { accessToken } = generateTokens(empUser._id, 'Employee');
@@ -88,7 +88,7 @@ describe('Security & RBAC Tests', () => {
     });
 
     it('should reject an Employee trying to query another employee attendance history', async () => {
-      const { EmployeeAuth } = await import('../../server/models/User.js');
+      const { EmployeeAuth } = await import('../../server/models/User');
       const empUser: any = await EmployeeAuth.findOne({ role: 'Employee' });
       if (empUser) {
         const { accessToken } = generateTokens(empUser._id, 'Employee');
