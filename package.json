@@ -14,7 +14,6 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "eslint.config.js",
   "directories": {
     "doc": "docs",
     "test": "tests"
@@ -30,7 +29,7 @@
     "reset:passwords": "tsx server/scripts/resetPasswords.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --project server/tsconfig.json --noEmit",
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -65,7 +65,7 @@ export default function PieChart({
       onRefresh={onRefresh}
       testId={testId}
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 60 : 320}>
         <RechartsPieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
           <Pie
             data={data}

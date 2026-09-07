@@ -183,7 +183,7 @@ const EmployeeDashboardAnalytics = () => {
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Attendance History</Typography>
             <Box className="chart-container">
               {attendanceTrends.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={attendanceTrends} margin={{ top: 20, right: 20, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                     <XAxis 
@@ -217,7 +217,7 @@ const EmployeeDashboardAnalytics = () => {
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Performance Rating Trend</Typography>
             <Box className="chart-container">
               {performanceData && performanceData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={performanceData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                     <XAxis dataKey="month" stroke="var(--text-light)" fontSize={12} />

@@ -15,4 +15,4 @@ const jobPostSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.JobPost || mongoose.model("JobPost", jobPostSchema, "jobposts");
+export default (mongoose.models.JobPost as mongoose.Model<any>) || mongoose.model("JobPost", jobPostSchema, "jobposts");

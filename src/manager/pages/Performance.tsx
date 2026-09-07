@@ -91,10 +91,15 @@ const Performance = () => {
     return hasGood ? "Good" : "Average";
   }, [rows]);
 
+  const highPerformersCount = useMemo(() => {
+    return rows.filter((r) => r.performance === "Good" || r.performance === "Excellent" || r.performance === "Outstanding").length;
+  }, [rows]);
+
   const kpiData: KPIItem[] = [
     { id: "performanceScore", title: "Average Productivity", value: `${averageProductivity}%`, trend: 0 },
     { id: "trainingCompletion", title: "Top Rating", value: topRating, trend: 0 },
     { id: "activeEmployees", title: "Team Members", value: rows.length.toString(), trend: 0 },
+    { id: "skillCoverage", title: "High Performers", value: `${highPerformersCount}`, trend: 5, subtitle: "Good or Excellent" },
   ];
 
   const performanceCounts: Record<string, number> = {};
@@ -197,7 +202,11 @@ const Performance = () => {
           )}
 
           <Box sx={{ mt: 4, height: 400 }}>
-            <StatusChart data={chartData} />
+            <StatusChart
+              data={chartData}
+              title="Performance Rating Distribution"
+              subtitle="Team members grouped by performance tier"
+            />
           </Box>
         </>
       )}

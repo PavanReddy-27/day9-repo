@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import LeaveRequest from "../models/LeaveRequest.js";
 import Employee from "../models/Employee.js";
 import Notification from "../models/Notification.js";
@@ -7,10 +7,6 @@ import { writeAuditLog } from "../utils/audit.js";
 import { broadcastSSE } from "../utils/sse.js";
 import mongoose from "mongoose";
 import { calculateLeaveDuration, checkLeaveOverlap, deductLeaveBalance, restoreLeaveBalance, publishToPayroll } from "../services/leaveService.js";
-
-// @desc    Get all leave requests
-// @route   GET /api/v1/leaves
-import type { Request, Response, NextFunction } from "express";
 
 // @desc    Get all leave requests
 // @route   GET /api/v1/leaves

@@ -844,7 +844,7 @@ export const approveCorrection = async (req, res) => {
     const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
     if (!correction) {
-      const crossCompanyLeak = await CorrectionRequest.findById(id).session(session);
+      const crossCompanyLeak = await (CorrectionRequest as any).findById(id).session(session);
       if (crossCompanyLeak) {
         const { logComplianceViolation } = await import('../utils/compliance.js');
         await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company correction access: ${id}`, 'Critical', { id }, req);
@@ -920,7 +920,7 @@ export const rejectCorrection = async (req, res) => {
     const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
 
     if (!correction) {
-      const crossCompanyLeak = await CorrectionRequest.findById(id).session(session);
+      const crossCompanyLeak = await (CorrectionRequest as any).findById(id).session(session);
       if (crossCompanyLeak) {
         const { logComplianceViolation } = await import('../utils/compliance.js');
         await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company correction access: ${id}`, 'Critical', { id }, req);

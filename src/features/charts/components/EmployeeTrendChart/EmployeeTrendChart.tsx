@@ -28,6 +28,8 @@ interface EmployeeTrendChartProps {
   error?: string;
   empty?: boolean;
   onRetry?: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
 const EmployeeTrendChart = ({
@@ -36,6 +38,8 @@ const EmployeeTrendChart = ({
   error,
   empty = false,
   onRetry,
+  title,
+  subtitle,
 }: EmployeeTrendChartProps) => {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -45,8 +49,8 @@ const EmployeeTrendChart = ({
 
   return (
     <ChartContainer
-      title={config.title}
-      subtitle={config.subtitle}
+      title={title || config.title}
+      subtitle={subtitle || config.subtitle}
       action={<TrendingUpIcon color="primary" />}
       height={config.height}
       loading={loading}
@@ -56,7 +60,7 @@ const EmployeeTrendChart = ({
       onRetry={onRetry}
       retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer width="100%" height={config.height} role="img" aria-label={config.title}>
+      <ResponsiveContainer width="100%" height={380} role="img" aria-label={title || config.title}>
         <ComposedChart
           style={{ backgroundColor: "var(--surface-solid)" }}
           data={data}
@@ -121,6 +125,20 @@ const EmployeeTrendChart = ({
             axisLine={false}
             tick={{ fill: "var(--text)" }}
             stroke="var(--border)"
+            tickFormatter={(val) => {
+              if (!val) return "";
+              if (val.length === 10 && val.includes("-")) {
+                const d = new Date(val);
+                return isNaN(d.getTime()) ? val : d.toLocaleDateString([], { month: "short", day: "numeric" });
+              }
+              if (val.length === 7 && val.includes("-")) {
+                const [y, m] = val.split("-");
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const mIdx = parseInt(m, 10) - 1;
+                return monthNames[mIdx] ? `${monthNames[mIdx]} '${y.slice(2)}` : val;
+              }
+              return val;
+            }}
           />
 
           <YAxis

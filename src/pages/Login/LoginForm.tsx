@@ -19,7 +19,9 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
+  MenuItem,
   OutlinedInput,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -50,6 +52,44 @@ import {
   clearError,
 } from "../../redux/authSlice";
 
+/* ========================================================
+   TEMPORARY: Test Accounts for Quick Demo / Role Testing
+   (Can easily be removed later by deleting this block)
+   ======================================================== */
+interface TestAccount {
+  role: string;
+  email: string;
+  password: string;
+  label: string;
+}
+
+const TEST_ACCOUNTS: TestAccount[] = [
+  {
+    role: "Admin",
+    email: "admin@thestackly.com",
+    password: "Password123!",
+    label: "👑 Admin — admin@thestackly.com",
+  },
+  {
+    role: "HR",
+    email: "hr@thestackly.com",
+    password: "Password123!",
+    label: "💼 HR — hr@thestackly.com",
+  },
+  {
+    role: "Manager",
+    email: "manager@thestackly.com",
+    password: "Password123!",
+    label: "👔 Manager — manager@thestackly.com",
+  },
+  {
+    role: "Employee",
+    email: "employee@thestackly.com",
+    password: "Password123!",
+    label: "👤 Employee — employee@thestackly.com",
+  },
+];
+
 const LoginForm = () => {
   const dispatch = useAppDispatch();
 
@@ -70,6 +110,9 @@ const LoginForm = () => {
     useState("");
 
   const [password, setPassword] =
+    useState("");
+
+  const [selectedTestRole, setSelectedTestRole] =
     useState("");
 
   const [rememberMe, setRememberMe] =
@@ -144,28 +187,18 @@ const LoginForm = () => {
     }
   };
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
-    event.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+  const performLogin = async (loginEmail: string, loginPass: string) => {
+    dispatch(clearError());
     dispatch(loginStart());
 
     try {
       const payload: LoginRequest = {
-        email: username.trim(),
-        password,
+        email: loginEmail.trim(),
+        password: loginPass,
         rememberMe,
       } as unknown as LoginRequest;
 
-      const response =
-        await authApi.login(
-          payload
-        );
+      const response = await authApi.login(payload);
 
       dispatch(
         loginSuccess({
@@ -186,6 +219,28 @@ const LoginForm = () => {
         )
       );
     }
+  };
+
+  const handleSelectTestAccount = (role: string) => {
+    setSelectedTestRole(role);
+    const account = TEST_ACCOUNTS.find((acc) => acc.role === role);
+    if (account) {
+      setUsername(account.email);
+      setPassword(account.password);
+      if (error) dispatch(clearError());
+    }
+  };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    await performLogin(username, password);
   };
 
   const handleUsernameChange = (
@@ -322,6 +377,56 @@ const LoginForm = () => {
           {error}
         </Alert>
       )}
+
+      {/* ========================================================
+          TEMPORARY: Quick Test Accounts Selector (Remove Later)
+          ======================================================== */}
+      <Box
+        sx={{
+          p: 1.5,
+          borderRadius: 2,
+          background: "rgba(255, 255, 255, 0.04)",
+          border: "1px dashed rgba(255, 255, 255, 0.25)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.2,
+        }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 700, color: "var(--primary-light, #38bdf8)", letterSpacing: 0.5, textTransform: "uppercase" }}
+          >
+            🧪 Quick Test User (Temporary)
+          </Typography>
+          <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.72rem" }}>
+            Select to auto-fill
+          </Typography>
+        </Box>
+
+        <FormControl fullWidth size="small">
+          <InputLabel id="test-user-select-label">Select Test User Account</InputLabel>
+          <Select
+            labelId="test-user-select-label"
+            id="test-user-select"
+            value={selectedTestRole}
+            label="Select Test User Account"
+            onChange={(e) => handleSelectTestAccount(e.target.value)}
+          >
+            <MenuItem value="">
+              <em>-- Choose a test account --</em>
+            </MenuItem>
+            {TEST_ACCOUNTS.map((acc) => (
+              <MenuItem key={acc.role} value={acc.role}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
+                  <span style={{ fontWeight: 600 }}>{acc.label}</span>
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+      {/* ======================================================== */}
 
       <TextField
         autoFocus

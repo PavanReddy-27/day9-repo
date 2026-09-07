@@ -7,6 +7,8 @@ export interface WorkforceAnalyticsResponse {
   statusDistribution: { name: string; value: number }[];
   riskDistribution: { name: string; value: number }[];
   workModeDistribution: { name: string; value: number }[];
+  roleDistribution?: { name: string; value: number }[];
+  designationDistribution?: { name: string; value: number }[];
 }
 
 export interface HiringAnalyticsResponse {

@@ -56,7 +56,7 @@ const LocationChart = ({
       onRetry={onRetry}
       retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer width="100%" height="100%" role="img" aria-label={config.title}>
+      <ResponsiveContainer width="100%" height={380} role="img" aria-label={config.title}>
         <BarChart
           style={{ backgroundColor: "var(--surface-solid)" }}
           data={data}

@@ -26,6 +26,8 @@ interface RoleChartProps {
   error?: string;
   empty?: boolean;
   onRetry?: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
 const RoleChart = ({
@@ -34,6 +36,8 @@ const RoleChart = ({
   error,
   empty = false,
   onRetry,
+  title,
+  subtitle,
 }: RoleChartProps) => {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -43,8 +47,8 @@ const RoleChart = ({
 
   return (
     <ChartContainer
-      title={config.title}
-      subtitle={config.subtitle}
+      title={title || config.title}
+      subtitle={subtitle || config.subtitle}
       action={<WorkOutlineOutlinedIcon color="primary" />}
       height={config.height}
       loading={loading}
@@ -54,7 +58,7 @@ const RoleChart = ({
       onRetry={onRetry}
       retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer width="100%" height={340} role="img" aria-label={config.title}>
+      <ResponsiveContainer width="100%" height={380} role="img" aria-label={title || config.title}>
         <BarChart
           style={{ backgroundColor: "var(--surface-solid)" }}
           layout="vertical"

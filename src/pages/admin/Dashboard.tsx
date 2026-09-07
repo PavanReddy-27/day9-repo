@@ -79,19 +79,36 @@ const Dashboard = () => {
           );
         }
 
-        if (hiring && Array.isArray(hiring)) {
+        if (hiring && Array.isArray(hiring) && hiring.length > 0) {
+          const totalBase = wf.totalEmployees || 250;
+          const totalHires = hiring.reduce((sum, h) => sum + (h.hires || 0), 0);
+          let runningCount = Math.max(10, totalBase - totalHires);
+
           setTrendData(
-            hiring.map((h) => ({
-              month: h.month,
-              totalEmployees: h.hires * 10,
-              activeEmployees: h.hires * 9,
-              newHires: h.hires,
-              attrition: Math.floor(h.hires * 0.1),
-            }))
+            hiring.map((h) => {
+              runningCount += h.hires || 0;
+              return {
+                month: h.month,
+                totalEmployees: runningCount,
+                activeEmployees: Math.round(runningCount * 0.94),
+                newHires: h.hires || 0,
+                attrition: Math.max(0, Math.floor((h.hires || 1) * 0.1)),
+              };
+            })
           );
         }
 
-        if (wf.workModeDistribution) {
+        if (wf.roleDistribution && wf.roleDistribution.length > 0) {
+          setRoleData(
+            wf.roleDistribution.map((r: any, idx: number) => ({
+              id: `r${idx}`,
+              role: r.name,
+              employees: r.value,
+              averageSalary: 70000 + idx * 10000,
+              averageExperience: 3 + idx * 2,
+            }))
+          );
+        } else if (wf.workModeDistribution) {
           setRoleData(
             wf.workModeDistribution.map((w, idx) => ({
               id: `r${idx}`,

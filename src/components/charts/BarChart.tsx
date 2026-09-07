@@ -77,7 +77,7 @@ export default function BarChart({
       onRefresh={onRefresh}
       testId={testId}
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 60 : 320}>
         <RechartsBarChart
           data={data}
           layout={layout}

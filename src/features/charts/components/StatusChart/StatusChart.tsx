@@ -25,6 +25,8 @@ interface StatusChartProps {
   error?: string;
   empty?: boolean;
   onRetry?: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
 const StatusChart = ({
@@ -33,6 +35,8 @@ const StatusChart = ({
   error,
   empty = false,
   onRetry,
+  title,
+  subtitle,
 }: StatusChartProps) => {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
@@ -42,8 +46,8 @@ const StatusChart = ({
 
   return (
     <ChartContainer
-      title={config.title}
-      subtitle={config.subtitle}
+      title={title || config.title}
+      subtitle={subtitle || config.subtitle}
       action={<BadgeIcon color="primary" />}
       height={config.height}
       loading={loading}
@@ -53,19 +57,19 @@ const StatusChart = ({
       onRetry={onRetry}
       retryLabel={config.retryLabel}
     >
-      <ResponsiveContainer width="100%" height={320} role="img" aria-label={config.title}>
+      <ResponsiveContainer width="100%" height={380} role="img" aria-label={title || config.title}>
         <PieChart style={{ backgroundColor: "var(--surface-solid)" }}>
           <Pie
             data={data}
             dataKey="employees"
             nameKey="status"
             cx="50%"
-            cy="50%"
+            cy="45%"
             innerRadius={60}
-            outerRadius={100}
+            outerRadius={105}
             paddingAngle={3}
-            label={({ name, percent }) =>
-              `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+            label={({ percent }) =>
+              (percent ?? 0) >= 0.05 ? `${((percent ?? 0) * 100).toFixed(0)}%` : ""
             }
             labelLine={false}
           >
@@ -73,23 +77,28 @@ const StatusChart = ({
               const color = colors[index % colors.length] ?? colors[0];
               return (
                 <Cell
-                  key={item.id}
+                  key={item.id || item.status || index}
                   fill={color}
+                  stroke="var(--surface-solid)"
+                  strokeWidth={2}
                 />
               );
             })}
           </Pie>
 
           <Tooltip
-            formatter={(value) => [
-              value,
-              "Employees",
-            ]}
+            formatter={(value: any, name: any) => {
+              const total = data.reduce((sum, d) => sum + d.employees, 0);
+              const pct = total > 0 ? Math.round((Number(value) / total) * 100) : 0;
+              return [`${value} employees (${pct}%)`, name];
+            }}
             contentStyle={{
               backgroundColor: "var(--surface)",
               borderColor: "var(--border)",
+              borderRadius: 8,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
             }}
-            labelStyle={{ color: "var(--text)" }}
+            labelStyle={{ color: "var(--text-h)", fontWeight: 600 }}
             itemStyle={{ color: "var(--text)" }}
           />
 
@@ -98,10 +107,11 @@ const StatusChart = ({
             align="center"
             iconType="circle"
             wrapperStyle={{
-              paddingTop: 16,
+              paddingTop: 12,
+              fontSize: "12px",
               color: "var(--text)",
             }}
-            formatter={(value) => <span style={{ color: "var(--text)" }}>{value}</span>}
+            formatter={(value) => <span style={{ color: "var(--text)", fontWeight: 500 }}>{value}</span>}
           />
         </PieChart>
       </ResponsiveContainer>

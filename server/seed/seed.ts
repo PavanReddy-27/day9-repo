@@ -91,7 +91,7 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
       process.exit(1);
     }
     console.log("[Seed Engine] Reset flag detected. Clearing collections...");
-    const modelsToClear = [
+    const modelsToClear: mongoose.Model<any>[] = [
       Company, Location, Department, Team, User, Employee,
       AdminAuth, HRAuth, ManagerAuth, EmployeeAuth,
       Shift, ShiftAssignment, AttendanceRecord, AttendanceEvent,

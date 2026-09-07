@@ -12,12 +12,12 @@ const DEFAULT_JOBS = [
 export const getJobPosts = async (req: any, res: any) => {
   try {
     const companyId = req.companyId ? new mongoose.Types.ObjectId(req.companyId) : new mongoose.Types.ObjectId("000000000000000000000001");
-    let jobs = await JobPost.find({ companyId }).sort({ createdAt: -1 });
+    let jobs = await (JobPost as any).find({ companyId }).sort({ createdAt: -1 });
 
     if (jobs.length === 0) {
       // Seed default jobs for the company
       const seedJobs = DEFAULT_JOBS.map((j) => ({ ...j, companyId }));
-      jobs = await JobPost.insertMany(seedJobs);
+      jobs = await (JobPost as any).insertMany(seedJobs);
     }
 
     return res.status(200).json({

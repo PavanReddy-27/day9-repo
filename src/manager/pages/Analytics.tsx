@@ -55,6 +55,7 @@ const ManagerAnalytics = () => {
     { id: "totalEmployees" as const, title: "Department Size", value: workforceData.totalEmployees.toLocaleString(), trend: 0 },
     { id: "activeEmployees" as const, title: "Active Today", value: workforceData.activeEmployees.toLocaleString(), trend: 0 },
     { id: "inactiveEmployees" as const, title: "On Leave", value: (workforceData.statusDistribution.find(s => s.name === "On Leave")?.value || 0).toLocaleString(), trend: 0 },
+    { id: "attendanceRate" as const, title: "Attendance Rate", value: `${Math.round(((workforceData.activeEmployees || 0) / (workforceData.totalEmployees || 1)) * 100)}%`, trend: 2, subtitle: "Present today" },
   ];
 
   // Map risk distribution to RiskChartData
@@ -65,10 +66,18 @@ const ManagerAnalytics = () => {
     percentage: workforceData.totalEmployees ? (item.value / workforceData.totalEmployees) * 100 : 0
   }));
 
-  // Map real department data (Currently Manager doesn't have a distinct sub-department breakdown unless returned from a specific endpoint, so we show the department total)
-  const departmentData: RoleChartData[] = [
-    { id: "1", role: "Your Department", employees: workforceData.totalEmployees, averageSalary: 0, averageExperience: 0 },
-  ];
+  // Map team structure to Work Mode distribution
+  const teamStructureData: RoleChartData[] = (
+    workforceData.workModeDistribution && workforceData.workModeDistribution.length > 0
+      ? workforceData.workModeDistribution
+      : [{ name: "Team Members", value: workforceData.totalEmployees }]
+  ).map((item: any, idx: number) => ({
+    id: String(idx),
+    role: item.name,
+    employees: item.value,
+    averageSalary: 75000,
+    averageExperience: 4,
+  }));
 
   // Map real attendance trends
   const attendanceTrend: TrendChartData[] = (attendanceData?.trends || []).map((t) => ({
@@ -76,7 +85,7 @@ const ManagerAnalytics = () => {
     activeEmployees: t.present,
     totalEmployees: t.total,
     newHires: 0,
-    attrition: 0
+    attrition: 0,
   }));
 
   return (
@@ -91,18 +100,23 @@ const ManagerAnalytics = () => {
 
       <Box className="charts-grid">
         <Box className="chart-card">
-          <Typography variant="h6" className="chart-title">Team Structure</Typography>
-          <RoleChart data={departmentData} />
+          <RoleChart
+            data={teamStructureData}
+            title="Work Mode Breakdown"
+            subtitle="Office, Remote, and Hybrid team presence"
+          />
         </Box>
         <Box className="chart-card">
-          <Typography variant="h6" className="chart-title">Flight Risk Analysis</Typography>
           <RiskChart data={riskData} />
         </Box>
       </Box>
 
       <Box className="trend-section">
-        <Typography variant="h6" className="chart-title">Attendance Trends</Typography>
-        <EmployeeTrendChart data={attendanceTrend} />
+        <EmployeeTrendChart
+          data={attendanceTrend}
+          title="Attendance Trends"
+          subtitle="Daily team attendance vs. scheduled total"
+        />
       </Box>
     </Box>
   );

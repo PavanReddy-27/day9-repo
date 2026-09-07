@@ -77,6 +77,7 @@ const ChartContainer = ({
         borderRadius: 3,
         overflow: "hidden",
         height: "100%",
+        minHeight: typeof height === "number" ? `${height + 70}px` : undefined,
         display: "flex",
         flexDirection: "column",
         backgroundColor: "var(--surface-solid)",

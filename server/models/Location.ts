@@ -15,4 +15,4 @@ const locationSchema = new mongoose.Schema({
 
 locationSchema.index({ companyId: 1 });
 
-export default mongoose.models.Location || mongoose.model('Location', locationSchema);
+export default (mongoose.models.Location || mongoose.model('Location', locationSchema)) as mongoose.Model<any>;

@@ -14,7 +14,7 @@ export const getWorkforceAnalytics = async (req, res) => {
     const scopeFilter = buildEmployeeScopeFilter(req.role, req.employee, new mongoose.Types.ObjectId(req.companyId));
     const filter = { ...scopeFilter, role: "Employee" };
 
-    const [totalEmployees, activeEmployees, onLeaveEmployees, riskDistribution, workModeDistribution] = await Promise.all([
+    const [totalEmployees, activeEmployees, onLeaveEmployees, riskDistribution, workModeDistribution, roleDistribution, designationDistribution] = await Promise.all([
       Employee.countDocuments(filter),
       Employee.countDocuments({ ...filter, employmentStatus: "Active" }),
       Employee.countDocuments({ ...filter, employmentStatus: "On Leave" }),
@@ -25,6 +25,14 @@ export const getWorkforceAnalytics = async (req, res) => {
       Employee.aggregate([
         { $match: filter },
         { $group: { _id: "$workMode", count: { $sum: 1 } } },
+      ]),
+      Employee.aggregate([
+        { $match: scopeFilter },
+        { $group: { _id: "$role", count: { $sum: 1 } } },
+      ]),
+      Employee.aggregate([
+        { $match: scopeFilter },
+        { $group: { _id: "$designation", count: { $sum: 1 } } },
       ]),
     ]);
 
@@ -42,6 +50,8 @@ export const getWorkforceAnalytics = async (req, res) => {
         statusDistribution,
         riskDistribution: riskDistribution.map(r => ({ name: r._id || "Low", value: r.count })),
         workModeDistribution: workModeDistribution.map(w => ({ name: w._id || "Office", value: w.count })),
+        roleDistribution: roleDistribution.map(r => ({ name: r._id || "Employee", value: r.count })),
+        designationDistribution: designationDistribution.map(d => ({ name: d._id || "Specialist", value: d.count })),
       },
     });
   } catch (error) {
@@ -146,10 +156,13 @@ export const getDepartmentAnalytics = async (req, res) => {
       { $unwind: "$department" },
       {
         $group: {
-          _id: "$department.name",
+          _id: {
+            $arrayElemAt: [{ $split: ["$department.name", " - "] }, 0]
+          },
           employeeCount: { $sum: 1 },
         },
       },
+      { $sort: { employeeCount: -1 } }
     ]);
 
     const locationStats = await Employee.aggregate([

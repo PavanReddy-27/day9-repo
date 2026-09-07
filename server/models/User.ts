@@ -67,9 +67,9 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
 
-export const User = mongoose.models.User || mongoose.model('User', userSchema);
-export const AdminAuth = mongoose.models.AdminAuth || mongoose.model('AdminAuth', userSchema);
-export const HRAuth = mongoose.models.HRAuth || mongoose.model('HRAuth', userSchema);
-export const ManagerAuth = mongoose.models.ManagerAuth || mongoose.model('ManagerAuth', userSchema);
-export const TeamLeadAuth = mongoose.models.TeamLeadAuth || mongoose.model('TeamLeadAuth', userSchema);
-export const EmployeeAuth = mongoose.models.EmployeeAuth || mongoose.model('EmployeeAuth', userSchema);
+export const User = (mongoose.models.User || mongoose.model('User', userSchema)) as mongoose.Model<any>;
+export const AdminAuth = (mongoose.models.AdminAuth || mongoose.model('AdminAuth', userSchema)) as mongoose.Model<any>;
+export const HRAuth = (mongoose.models.HRAuth || mongoose.model('HRAuth', userSchema)) as mongoose.Model<any>;
+export const ManagerAuth = (mongoose.models.ManagerAuth || mongoose.model('ManagerAuth', userSchema)) as mongoose.Model<any>;
+export const TeamLeadAuth = (mongoose.models.TeamLeadAuth || mongoose.model('TeamLeadAuth', userSchema)) as mongoose.Model<any>;
+export const EmployeeAuth = (mongoose.models.EmployeeAuth || mongoose.model('EmployeeAuth', userSchema)) as mongoose.Model<any>;
