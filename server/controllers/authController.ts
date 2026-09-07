@@ -17,6 +17,10 @@ export const generateAccessToken = (id: any, role: any) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET!, { expiresIn: '15m' });
 };
 
+export const generateTokens = (id: any, role: any) => {
+  return { accessToken: generateAccessToken(id, role) };
+};
+
 export const createRefreshToken = async (userId: any, familyId?: string) => {
   const token = crypto.randomBytes(40).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');

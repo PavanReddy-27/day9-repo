@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../../server/index.js';
-import connectDB, { closeDB } from '../../server/config/db.js';
+import app from '../../server/index';
+import connectDB, { closeDB } from '../../server/config/db';
 import mongoose from 'mongoose';
 
 describe('API Integration Tests', () => {

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
-import app from '../../server/index.js';
-import connectDB, { closeDB } from '../../server/config/db.js';
-import { generateTokens } from '../../server/controllers/authController.js';
+import app from '../../server/index';
+import connectDB, { closeDB } from '../../server/config/db';
+import { generateTokens } from '../../server/controllers/authController';
 import mongoose from 'mongoose';
 
 // A valid MongoDB ObjectId for testing
