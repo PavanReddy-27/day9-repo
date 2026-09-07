@@ -73,21 +73,8 @@ export const login = async (req: any, res: any, next: any) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    let user: any = await findUserByEmail(email);
+    const user: any = await findUserByEmail(email);
 
-    if (!user) {
-      const cleanEmail = (email || "").trim().toLowerCase();
-      if (cleanEmail.includes("admin") || cleanEmail.includes("hr") || cleanEmail.includes("manager") || cleanEmail.includes("employee")) {
-        try {
-          const { runSeed } = await import("../seed/seed.js");
-          await runSeed(false);
-          user = await findUserByEmail(email);
-        } catch (sErr: any) {
-          console.error("On-demand seed error:", sErr.message);
-        }
-      }
-    }
-    
     if (!user || !(await (user as any).matchPassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
