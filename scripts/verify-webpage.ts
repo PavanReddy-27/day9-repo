@@ -18,10 +18,11 @@ async function verify() {
     const healthData = await health.json();
     console.log("Health:", healthData.status, "DB Host:", healthData.database?.host, "DB State:", healthData.database?.state);
 
+    const adminPassword = process.env.SEED_PASSWORD || "Password123!";
     const loginRes = await fetch("http://localhost:5000/api/v1/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "admin@thestackly.com", password: "Password123!" }),
+      body: JSON.stringify({ email: "admin@thestackly.com", password: adminPassword }),
     });
     const loginData = await loginRes.json();
     console.log("Admin Login:", loginData.success, "Role:", loginData.data?.role);

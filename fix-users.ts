@@ -15,8 +15,8 @@ async function run() {
   const employees = await Employee.find({});
   console.log(`Found ${employees.length} employees.`);
   
-  // Hash the password that the frontend expects
-  const passwordHash = await argon2.hash("Password123!");
+  const defaultPassword = process.env.SEED_PASSWORD || "Password123!";
+  const passwordHash = await argon2.hash(defaultPassword);
   
   const usersToInsert = employees.map(emp => ({
     _id: emp.userId,

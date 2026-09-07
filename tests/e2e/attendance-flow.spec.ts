@@ -7,7 +7,8 @@ test.describe('Attendance Flow', () => {
 
     // Simulate Employee Login
     await page.getByLabel('Username').fill('employee@thestackly.com');
-    await page.locator('input[type="password"]').fill('Password123!');
+    const testPassword = process.env.SEED_PASSWORD || 'Password123!';
+    await page.locator('input[type="password"]').fill(testPassword);
     await page.click('button[type="submit"]');
 
     // Wait for redirect to attendance page

@@ -23,7 +23,7 @@ const getArg = (name: string, fallback: string): string => {
 };
 
 async function main() {
-  const password = getArg("password", "Password123!");
+  const password = getArg("password", process.env.SEED_PASSWORD || "Password123!");
   await connectDB();
 
   const hash = await argon2.hash(password, { type: argon2.argon2id });

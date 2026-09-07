@@ -93,7 +93,7 @@ const seedDB = async () => {
     
     // Pre-hash password for speed
     const salt = await bcrypt.genSalt(10);
-    const defaultPassword = await bcrypt.hash('Password123!', salt);
+    const defaultPassword = await bcrypt.hash(process.env.SEED_PASSWORD || 'Password123!', salt);
 
     const roles = ['Admin', 'HR', 'Manager', 'Employee'];
     let devIndex = 0;

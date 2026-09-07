@@ -339,19 +339,20 @@ const LoginForm = () => {
             setRole(selectedRole);
             if (error) dispatch(clearError());
 
-            // Auto-fill logic based on selected role (matches seeded credentials)
+            // Auto-fill logic based on selected role (matches seeded credentials from environment)
+            const demoPass = (import.meta as any).env?.VITE_DEMO_PASSWORD || "Password123!";
             if (selectedRole === "Admin") {
               setUsername("admin@thestackly.com");
-              setPassword("Password123!");
+              setPassword(demoPass);
             } else if (selectedRole === "HR") {
               setUsername("hr@thestackly.com");
-              setPassword("Password123!");
+              setPassword(demoPass);
             } else if (selectedRole === "Manager") {
               setUsername("manager@thestackly.com");
-              setPassword("Password123!");
+              setPassword(demoPass);
             } else if (selectedRole === "Employee") {
               setUsername("employee@thestackly.com");
-              setPassword("Password123!");
+              setPassword(demoPass);
             }
           }}
         >
