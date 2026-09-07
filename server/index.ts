@@ -59,9 +59,7 @@ app.use("/api/v1/auth/login", authLimiter);
 app.use("/api/v1/auth/refresh", authLimiter);
 
 import path from "path";
-import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Ensure DB Connection Middleware
 app.use(async (req, res, next) => {
