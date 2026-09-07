@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { connectDB } from "./server/config/db.js";
 import { User, Employee } from "./server/models/index.js";

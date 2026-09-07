@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
-import { connectDB } from "./server/config/db.js";
+import { connectDB, closeDB } from "./server/config/db.js";
 import { User } from "./server/models/index.js";
-import { verifyPassword } from "./server/middleware/auth.js";
 dotenv.config();
 
 async function check() {
@@ -9,9 +8,10 @@ async function check() {
   const user = await User.findOne({ email: "admin@company.com" }).select("+password");
   console.log("User:", user?.email, "Hash:", user?.password);
   if (user) {
-    const isMatch = await verifyPassword("Password123!", user.password);
+    const isMatch = await user.matchPassword("Password123!");
     console.log("Password123! Match?", isMatch);
   }
+  await closeDB();
   process.exit(0);
 }
 check();
