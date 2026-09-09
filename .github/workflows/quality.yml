@@ -2,7 +2,9 @@ name: Quality
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - "feature/**"
   pull_request:
 
 permissions:
@@ -16,6 +18,9 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      JWT_SECRET: ci-test-jwt-secret
+      JWT_REFRESH_SECRET: ci-test-refresh-secret
 
     steps:
       - name: Check out repository
@@ -40,7 +45,7 @@ jobs:
         run: npm run typecheck:frontend
 
       - name: Unit and integration tests
-        run: npm test -- --run
+        run: npm test -- --run --pool=threads --no-file-parallelism --maxWorkers=1
 
       - name: Production build
         run: npm run build
