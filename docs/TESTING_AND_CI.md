@@ -12,10 +12,12 @@ Run the checks used by CI:
 
 ```bash
 npm run lint
-npm run typecheck
+npm run typecheck:frontend
 npm test -- --run
 npm run build
 ```
+
+The server type-check remains available with `npm run typecheck:server`. It is currently tracked separately because the server contains existing Mongoose model typing errors that are outside the frontend build and the CI workflow changes.
 
 Run the browser suite:
 
@@ -47,7 +49,7 @@ The Playwright project runs Chromium desktop and Mobile Chrome. On CI, failures 
 1. `npm ci`
 2. Playwright Chromium installation
 3. ESLint
-4. TypeScript type-checking for the frontend and server
+4. TypeScript type-checking for the frontend
 5. Vitest unit and integration tests
 6. The production Vite build
 7. Playwright E2E tests

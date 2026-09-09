@@ -55,7 +55,7 @@ export const checkEmployeeScope = async (
     }
   }
 
-  let targetDoc: any = null;
+  let targetDoc: any;
 
   // Attempt lookup within caller's company
   if (mongoose.Types.ObjectId.isValid(strTarget)) {
