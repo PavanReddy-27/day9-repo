@@ -22,6 +22,18 @@ const refreshTokenSchema = new mongoose.Schema({
   revoked: {
     type: Boolean,
     default: false,
+  },
+  deviceId: {
+    type: String,
+  },
+  userAgent: {
+    type: String,
+  },
+  ipAddress: {
+    type: String,
+  },
+  replacedByToken: {
+    type: String,
   }
 }, { timestamps: true });
 

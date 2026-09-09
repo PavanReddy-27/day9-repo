@@ -35,6 +35,8 @@ const employeeSchema = new mongoose.Schema({
 
 employeeSchema.index({ companyId: 1, locationId: 1 });
 employeeSchema.index({ companyId: 1, departmentId: 1 });
+employeeSchema.index({ companyId: 1, teamId: 1 });
+employeeSchema.index({ companyId: 1, managerId: 1 });
 
 employeeSchema.post('save', function(doc) {
   eventBus.emit('analytics:update', { 
