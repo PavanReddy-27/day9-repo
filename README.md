@@ -199,6 +199,12 @@ npm install
 npm run dev
 ```
 
+Start the API in a second terminal for authenticated features:
+
+```bash
+npm run server
+```
+
 ### Build Project
 
 ```bash
@@ -209,7 +215,10 @@ npm run build
 
 ```bash
 npm test
+npm run test:e2e
 ```
+
+See [docs/TESTING_AND_CI.md](docs/TESTING_AND_CI.md) for the complete local test workflow, Playwright coverage, and GitHub Actions checks.
 
 ---
 
