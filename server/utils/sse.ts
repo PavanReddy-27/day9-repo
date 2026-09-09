@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 interface SSEClient {
-  id: string; // The employee _id string
+  userId: string;
   companyId: string;
   res: Response;
 }
@@ -18,10 +18,10 @@ export const sseMiddleware = (req: Request, res: Response) => {
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders(); // Establish the connection immediately
 
-  const employeeId = (req as any).employee?._id?.toString() || "unknown";
+  const userId = (req as any).user?.id?.toString() || "unknown";
   const companyId = (req as any).companyId?.toString() || "unknown";
 
-  const client: SSEClient = { id: employeeId, companyId, res };
+  const client: SSEClient = { userId, companyId, res };
   clients.push(client);
 
   req.on("close", () => {
@@ -45,17 +45,32 @@ export const broadcastSSE = (eventName: string, payload: any, companyId?: string
 };
 
 /**
- * Closes the SSE connection for a specific employee.
- * @param employeeId The employee ID to disconnect
+ * Closes the SSE connection for a specific user.
+ * @param userId The user ID to disconnect
  */
-export const closeSSEConnection = (employeeId: string) => {
+export const closeSSEConnection = (userId: string) => {
   clients = clients.filter((c) => {
-    if (c.id === employeeId) {
+    if (c.userId === userId) {
       c.res.write(`event: LOGOUT\n`);
       c.res.write(`data: {}\n\n`);
       c.res.end();
       return false;
     }
     return true;
+  });
+};
+
+/**
+ * Sends an SSE event to a specific user.
+ * @param userId The user ID to target
+ * @param eventName Name of the event
+ * @param payload The data to send
+ */
+export const sendSSEToUser = (userId: string, eventName: string, payload: any) => {
+  clients.forEach((c) => {
+    if (c.userId === userId.toString()) {
+      c.res.write(`event: ${eventName}\n`);
+      c.res.write(`data: ${JSON.stringify(payload)}\n\n`);
+    }
   });
 };

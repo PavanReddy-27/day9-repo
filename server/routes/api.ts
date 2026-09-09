@@ -7,6 +7,7 @@ import {
   getTeams,
   getEmployees,
   getEmployeeById,
+  updateEmployeeShift,
 } from "../controllers/employeeController.js";
 import {
   getWorkforceAnalytics,
@@ -82,6 +83,7 @@ router.get("/departments", authenticateJWT, getDepartments);
 router.get("/teams", authenticateJWT, getTeams);
 router.get("/employees", authenticateJWT, getEmployees);
 router.get("/employees/:id", authenticateJWT, validateObjectId("id"), getEmployeeById);
+router.patch("/employees/:id/shift", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), updateEmployeeShift);
 
 // Protected Analytics Routes
 router.get("/analytics/stream", authenticateJWT, streamAnalytics);

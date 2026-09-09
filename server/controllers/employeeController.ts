@@ -10,6 +10,7 @@ import "../models/Shift.js";
 import PerformanceRecord from "../models/PerformanceRecord.js";
 import ProductivityRecord from "../models/ProductivityRecord.js";
 import { buildEmployeeScopeFilter } from "../middleware/authMiddleware.js";
+import { NotificationService } from "../services/notificationService.js";
 
 // Attaches REAL performance (avg rating/KPI) and productivity (avg efficiency)
 // to a list of lean employee docs, aggregated from their records. Returns the
@@ -181,6 +182,54 @@ export const getEmployeeById = async (req, res) => {
 
     return res.status(200).json({ success: true, data: employee });
   } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateEmployeeShift = async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const { shiftId } = req.body;
+    
+    const employee: any = await Employee.findOne({ _id: id, companyId: req.companyId })
+      .populate("departmentId teamId");
+    if (!employee) {
+      return res.status(404).json({ success: false, message: "Employee not found." });
+    }
+
+    // Role scope check
+    const empDeptId = (employee.departmentId?._id || employee.departmentId)?.toString();
+    const myDeptId = (req.employee?.departmentId?._id || req.employee?.departmentId)?.toString();
+
+    if (req.role === "Manager" && empDeptId && myDeptId && empDeptId !== myDeptId) {
+      return res.status(403).json({ success: false, message: "Forbidden: Cannot modify employee outside your department." });
+    }
+
+    const oldShiftId = employee.shiftId?.toString();
+    const newShiftId = shiftId ? String(shiftId) : null;
+    
+    if (oldShiftId === newShiftId) {
+      return res.status(200).json({ success: true, message: "Shift remains unchanged", data: employee });
+    }
+
+    // Assign the new shift
+    employee.shiftId = shiftId || null;
+    await employee.save();
+
+    // Notify the employee
+    if (employee.userId) {
+      await NotificationService.sendNotification(
+        employee.userId,
+        req.companyId,
+        "Shift Updated",
+        `Your shift has been updated. Please check your schedule for the new details.`,
+        "INFO",
+        "/employee" // Fallback to employee dashboard
+      );
+    }
+
+    return res.status(200).json({ success: true, message: "Shift updated successfully", data: employee });
+  } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -7,6 +7,7 @@ import { writeAuditLog } from "../utils/audit.js";
 import { broadcastSSE } from "../utils/sse.js";
 import mongoose from "mongoose";
 import { calculateLeaveDuration, checkLeaveOverlap, deductLeaveBalance, restoreLeaveBalance, publishToPayroll } from "../services/leaveService.js";
+import { NotificationService } from "../services/notificationService.js";
 
 // @desc    Get all leave requests
 // @route   GET /api/v1/leaves
@@ -148,6 +149,23 @@ export const createLeaveRequest = async (req: Request, res: Response, next: Next
     
     // Fetch populated version after commit
     const populatedLeave = await LeaveRequest.findById(newLeave._id).populate("employeeId", "firstName lastName employeeId");
+    
+    // Notify Manager
+    const employee = await Employee.findById(empId).lean();
+    if (employee && employee.managerId) {
+      const manager = await Employee.findById(employee.managerId).lean();
+      if (manager && manager.userId) {
+        await NotificationService.sendNotification(
+          manager.userId,
+          companyId,
+          "New Leave Request",
+          `${employee.firstName} ${employee.lastName} requested ${type} leave from ${startDate} to ${endDate}.`,
+          "INFO",
+          "/manager/leaves" // Will be replaced by routing logic in UI
+        );
+      }
+    }
+
     res.status(201).json(populatedLeave);
   } catch (error) {
     if (session && session.inTransaction()) await session.abortTransaction();
@@ -294,17 +312,17 @@ export const updateLeaveStatus = async (req: Request, res: Response, next: NextF
       const message = `Your ${typeStr} request from ${leave.startDate} to ${leave.endDate} has been ${status.toLowerCase()} by ${reviewedByName}.`;
       const notifType = status === "Approved" ? "SUCCESS" : "WARNING";
 
-      const notifArr = await Notification.create([{
+      await NotificationService.sendNotification(
+        leave.employeeId.userId,
         companyId,
-        userId: leave.employeeId.userId,
-        title: `Leave Request ${status}`,
+        `Leave Request ${status}`,
         message,
-        type: notifType,
-        linkUrl: "/employee/leaves"
-      }], { session });
-
-      broadcastSSE("NOTIFICATION_UPDATE", { userId: leave.employeeId.userId.toString(), notificationId: notifArr[0]._id }, companyId);
+        notifType,
+        "/employee/leaves"
+      );
     }
+    // We can also trigger a generic LEAVE_UPDATE for frontend refresh if needed, but the requirements just ask for Notifications.
+    // We'll keep the broadcast for any dashboards that might be listening:
     broadcastSSE("LEAVE_UPDATE", { employeeId: targetEmpId.toString(), status, leaveId: leave._id }, companyId);
 
     await session.commitTransaction();
