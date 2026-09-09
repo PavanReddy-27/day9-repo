@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppSelector } from "../hooks/redux";
 import authApi from "../services/authApi";
 import {
@@ -27,6 +27,35 @@ function Settings() {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaLoading, setMfaLoading] = useState(false);
   const [mfaError, setMfaError] = useState("");
+  
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+
+  const fetchSessions = async () => {
+    setSessionsLoading(true);
+    try {
+      const data = await authApi.getSessions();
+      setSessions(data || []);
+    } catch (err) {
+      console.error("Failed to fetch sessions", err);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const handleRevokeSession = async (id: string) => {
+    if (!window.confirm("Are you sure you want to revoke this session?")) return;
+    try {
+      await authApi.revokeSession(id);
+      fetchSessions();
+    } catch (err) {
+      alert("Failed to revoke session.");
+    }
+  };
 
   const handleEnableMfaClick = async () => {
     setMfaError("");
@@ -143,6 +172,43 @@ function Settings() {
             <span className="settings-slider" />
           </label>
         </div>
+      </div>
+
+      <div className="settings-card">
+        <h2>Active Sessions</h2>
+        <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>
+          Manage your active sessions across different devices. Revoking a session will log you out from that device.
+        </p>
+
+        {sessionsLoading ? (
+          <CircularProgress size={24} />
+        ) : sessions.length === 0 ? (
+          <Typography>No active sessions found.</Typography>
+        ) : (
+          <div className="sessions-list" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {sessions.map((session) => (
+              <div key={session._id} className="settings-row" style={{ alignItems: "flex-start" }}>
+                <div className="settings-row-info">
+                  <strong>{session.deviceInfo || "Unknown Device"}</strong>
+                  <p style={{ margin: "4px 0" }}>IP Address: {session.ipAddress || "Unknown"}</p>
+                  <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                    Last Active: {new Date(session.lastActiveAt).toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    size="small"
+                    onClick={() => handleRevokeSession(session._id)}
+                  >
+                    Revoke
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <Dialog open={mfaDialogOpen} onClose={closeDialog} maxWidth="sm" fullWidth>

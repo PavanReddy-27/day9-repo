@@ -21,7 +21,7 @@ export const generateTokens = (id: any, role: any) => {
   return { accessToken: generateAccessToken(id, role) };
 };
 
-export const createRefreshToken = async (userId: any, familyId?: string) => {
+export const createRefreshToken = async (userId: any, familyId?: string, deviceInfo?: string, ipAddress?: string) => {
   const token = crypto.randomBytes(40).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
   const actualFamilyId = familyId || crypto.randomUUID();
@@ -32,6 +32,8 @@ export const createRefreshToken = async (userId: any, familyId?: string) => {
     tokenHash,
     familyId: actualFamilyId,
     expiresAt,
+    deviceInfo,
+    ipAddress,
   });
 
   return token;
@@ -93,8 +95,38 @@ export const login = async (req: any, res: any, next: any) => {
 
     const user: any = await findUserByEmail(email);
 
-    if (!user || !(await (user as any).matchPassword(password))) {
+    if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      return res.status(403).json({ success: false, message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' });
+    }
+
+    if (!(await (user as any).matchPassword(password))) {
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      if (user.failedLoginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
+      }
+      await user.save();
+      
+      const employee: any = await Employee.findOne({ email } as any);
+      void writeAuditLog(
+        { companyId: employee?.companyId ?? (user as any).companyId, role: user.role, userEmail: user.email, ip: (req as any).ip, headers: (req as any).headers },
+        "LOGIN_FAILED",
+        `Failed login attempt for ${user.email}`,
+        "Auth",
+        String(user._id)
+      );
+      
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    // Reset lock info on successful login
+    if (user.failedLoginAttempts > 0) {
+      user.failedLoginAttempts = 0;
+      user.lockUntil = undefined;
+      await user.save();
     }
 
     if (!user.isActive) {
@@ -111,7 +143,7 @@ export const login = async (req: any, res: any, next: any) => {
 
     const employee: any = await Employee.findOne({ email } as any);
     const accessToken = generateAccessToken(user._id, user.role);
-    const refreshToken = await createRefreshToken(user._id);
+    const refreshToken = await createRefreshToken(user._id, undefined, req.headers['user-agent'], req.ip);
 
     // Sensitive-action audit trail (fire-and-forget).
     void writeAuditLog(
@@ -179,6 +211,18 @@ export const refresh = async (req: any, res: any) => {
       await RefreshToken.updateMany({ familyId: existingToken.familyId }, { revoked: true });
       res.clearCookie('accessToken', { path: '/' });
       res.clearCookie('refreshToken', { path: '/' });
+      
+      const user = await findUserById(existingToken.user.toString());
+      if (user) {
+        const employee: any = await Employee.findOne({ email: user.email } as any);
+        void writeAuditLog(
+          { companyId: employee?.companyId ?? user.companyId, role: user.role, userEmail: user.email, ip: req.ip, headers: req.headers },
+          "TOKEN_REUSE",
+          `Refresh token reuse detected for ${user.email}`,
+          "Auth",
+          String(user._id)
+        );
+      }
       return res.status(401).json({ success: false, message: 'Refresh token reuse detected. All tokens revoked.' });
     }
 
@@ -198,7 +242,7 @@ export const refresh = async (req: any, res: any) => {
 
     // Create new tokens
     const accessToken = generateAccessToken(user._id, user.role);
-    const newRefreshToken = await createRefreshToken(user._id, existingToken.familyId);
+    const newRefreshToken = await createRefreshToken(user._id, existingToken.familyId, req.headers['user-agent'], req.ip);
 
     const cookieOptions = {
       httpOnly: true,
@@ -247,8 +291,20 @@ export const logout = async (req: any, res: any) => {
       try {
         const { closeSSEConnection } = await import('../utils/sse.js');
         closeSSEConnection(req.user.id);
+        
+        const userDoc: any = await findUserById(req.user.id);
+        if (userDoc) {
+          const employee: any = await Employee.findOne({ email: userDoc.email } as any);
+          void writeAuditLog(
+            { companyId: employee?.companyId ?? userDoc.companyId, role: userDoc.role, userEmail: userDoc.email, ip: req.ip, headers: req.headers },
+            "LOGOUT",
+            `${userDoc.role} ${userDoc.email} signed out`,
+            "Auth",
+            String(req.user.id)
+          );
+        }
       } catch (e) {
-        // SSE cleanup error ignored
+        // SSE cleanup or audit error ignored
       }
     }
     
@@ -404,6 +460,47 @@ export const disableMfa = async (req: any, res: any, next: any) => {
     res.status(200).json({ success: true, message: 'MFA disabled successfully' });
   } catch (error) {
     next(error);
+  }
+};
+
+export const getSessions = async (req: any, res: any) => {
+  try {
+    const sessions = await RefreshToken.find({ user: req.user.id, revoked: false })
+      .select('-tokenHash')
+      .sort({ lastActiveAt: -1 });
+    res.status(200).json({ success: true, data: sessions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch sessions' });
+  }
+};
+
+export const revokeSession = async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const session = await RefreshToken.findOne({ _id: id, user: req.user.id });
+    if (!session) {
+      return res.status(404).json({ success: false, message: 'Session not found' });
+    }
+    
+    // Revoke the whole family
+    await RefreshToken.updateMany({ familyId: session.familyId }, { revoked: true });
+    
+    // Add audit log
+    const userDoc: any = await findUserById(req.user.id);
+    if (userDoc) {
+      const employee: any = await Employee.findOne({ email: userDoc.email } as any);
+      void writeAuditLog(
+        { companyId: employee?.companyId ?? userDoc.companyId, role: userDoc.role, userEmail: userDoc.email, ip: req.ip, headers: req.headers },
+        "SESSION_REVOKED",
+        `Session revoked manually for ${userDoc.email}`,
+        "Auth",
+        String(req.user.id)
+      );
+    }
+    
+    res.status(200).json({ success: true, message: 'Session revoked successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to revoke session' });
   }
 };
 
