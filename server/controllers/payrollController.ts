@@ -5,12 +5,20 @@ import Employee from '../models/Employee.js';
 import AttendanceRecord from '../models/AttendanceRecord.js';
 import LeaveRequest from '../models/LeaveRequest.js';
 import Papa from 'papaparse';
+import { logComplianceViolation } from '../utils/compliance.js';
+import { checkEmployeeScope } from '../middleware/dataScopeMiddleware.js';
 
 // Calculate Payroll for a Period
 export const calculatePayroll = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, startDate, endDate } = req.body;
-    const companyId = req.body.companyId || (req as any).companyId;
+    const companyId = (req as any).companyId;
+
+    if (req.body?.companyId && String(req.body.companyId) !== String(companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization payroll calculate attempt", "Critical", { bodyCompanyId: req.body.companyId, callerCompanyId: companyId }, req);
+      res.status(403).json({ error: "Forbidden: Cross-organization access denied" });
+      return;
+    }
     console.log("CALCULATING PAYROLL", { companyId, bodyCompanyId: req.body.companyId, reqCompanyId: (req as any).companyId });
     
     // Check if period already exists
@@ -158,6 +166,13 @@ export const adjustPayrollRecord = async (req: Request, res: Response): Promise<
       return;
     }
 
+    const userCompanyId = String((req as any).companyId);
+    if (record.companyId && String(record.companyId) !== userCompanyId) {
+      await logComplianceViolation('CROSS_COMPANY_ACCESS', `Cross-company payroll record adjust attempt: ${recordId}`, 'Critical', { recordId, callerCompanyId: userCompanyId }, req);
+      res.status(403).json({ error: 'Forbidden: Cross-organization access denied' });
+      return;
+    }
+
     const period = record.periodId as any;
     if (period.status === 'Locked') {
       res.status(400).json({ error: 'Cannot adjust a locked payroll period.' });
@@ -206,9 +221,16 @@ export const lockPayrollPeriod = async (req: Request, res: Response): Promise<vo
     const { periodId } = req.params;
     const { userId } = req.body; // In real app, from auth token
 
+    const userCompanyId = String((req as any).companyId);
     const period = await PayrollPeriod.findById(periodId);
     if (!period) {
       res.status(404).json({ error: 'Payroll period not found' });
+      return;
+    }
+
+    if (period.companyId && String(period.companyId) !== userCompanyId) {
+      await logComplianceViolation('CROSS_COMPANY_ACCESS', `Cross-company payroll period lock attempt: ${periodId}`, 'Critical', { periodId, callerCompanyId: userCompanyId }, req);
+      res.status(403).json({ error: 'Forbidden: Cross-organization access denied' });
       return;
     }
 
@@ -233,9 +255,16 @@ export const lockPayrollPeriod = async (req: Request, res: Response): Promise<vo
 
 export const unlockPayrollPeriod = async (req: Request, res: Response): Promise<void> => {
   try {
+    const userCompanyId = String((req as any).companyId);
     const period = await PayrollPeriod.findById(req.params.periodId);
     if (!period) {
       res.status(404).json({ error: 'Payroll period not found' });
+      return;
+    }
+
+    if (period.companyId && String(period.companyId) !== userCompanyId) {
+      await logComplianceViolation('CROSS_COMPANY_ACCESS', `Cross-company payroll period unlock attempt: ${req.params.periodId}`, 'Critical', { periodId: req.params.periodId, callerCompanyId: userCompanyId }, req);
+      res.status(403).json({ error: 'Forbidden: Cross-organization access denied' });
       return;
     }
     
@@ -261,12 +290,31 @@ export const exportPayroll = async (req: Request, res: Response): Promise<void> 
     const { format, scope } = req.query; // 'csv' or 'json'
     const user = (req as any).user;
     const employee = (req as any).employee;
+    const userCompanyId = String((req as any).companyId);
 
-    const query: any = { periodId };
+    const period = await PayrollPeriod.findById(periodId);
+    if (!period) {
+      res.status(404).json({ error: 'Payroll period not found' });
+      return;
+    }
+
+    if (period.companyId && String(period.companyId) !== userCompanyId) {
+      await logComplianceViolation('CROSS_COMPANY_ACCESS', `Cross-company payroll export attempt: ${periodId}`, 'Critical', { periodId, callerCompanyId: userCompanyId }, req);
+      res.status(403).json({ error: 'Forbidden: Cross-organization access denied' });
+      return;
+    }
+
+    const query: any = { periodId, companyId: userCompanyId };
     
-    // Scoping for employee exports
+    // Scoping for exports
     if (user && user.role === 'Employee') {
       query.employeeId = employee?._id;
+    } else if (user && user.role === 'Manager') {
+      const deptEmployees = await Employee.find({ companyId: userCompanyId, departmentId: employee?.departmentId }).select('_id');
+      query.employeeId = { $in: deptEmployees.map(e => e._id) };
+    } else if (user && user.role === 'Team Lead') {
+      const teamEmployees = await Employee.find({ companyId: userCompanyId, teamId: employee?.teamId }).select('_id');
+      query.employeeId = { $in: teamEmployees.map(e => e._id) };
     } else if (scope === 'me') {
       query.employeeId = employee?._id || user?.id;
     }
@@ -318,22 +366,23 @@ export const exportPayroll = async (req: Request, res: Response): Promise<void> 
 export const getMyPay = async (req: Request, res: Response): Promise<void> => {
   try {
     const role = (req as any).user?.role || (req as any).role;
-    let employeeId = (req as any).employee?._id;
+    const companyId = (req as any).companyId;
 
-    if (role === 'Employee') {
-      if (req.query.employeeId && req.query.employeeId !== String(employeeId)) {
-        res.status(403).json({ error: "Forbidden: Cannot view another employee's pay records" });
-        return;
-      }
-    } else if (req.query.employeeId) {
-      employeeId = req.query.employeeId;
-    }
-
-    if (!employeeId) {
-      res.status(400).json({ error: "Employee ID is required" });
+    if (req.query.companyId && String(req.query.companyId) !== String(companyId)) {
+      await logComplianceViolation('CROSS_COMPANY_ACCESS', `Cross-company getMyPay query: ${req.query.companyId}`, 'Critical', { requestedCompanyId: req.query.companyId, callerCompanyId: companyId }, req);
+      res.status(403).json({ error: "Forbidden: Cross-organization access denied" });
       return;
     }
-    const records = await PayrollRecord.find({ employeeId }).populate("periodId").sort({ createdAt: -1 });
+
+    const targetParam = req.query.employeeId ? String(req.query.employeeId) : String((req as any).employee?._id);
+    const scopeCheck = await checkEmployeeScope(targetParam, role, (req as any).employee, companyId, req);
+    if (!scopeCheck.allowed) {
+      res.status(scopeCheck.status).json({ error: scopeCheck.message, message: scopeCheck.message });
+      return;
+    }
+
+    const resolvedEmpId = scopeCheck.targetDoc._id;
+    const records = await PayrollRecord.find({ employeeId: resolvedEmpId, companyId }).populate("periodId").sort({ createdAt: -1 });
     res.status(200).json(records);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch pay records" });
@@ -355,12 +404,22 @@ export const getPayrollPeriods = async (req: Request, res: Response): Promise<vo
 export const getPayrollRecordsForPeriod = async (req: Request, res: Response): Promise<void> => {
   try {
     const periodId = req.params.periodId;
-    console.log(`[getPayrollRecordsForPeriod] Fetching records for periodId: ${periodId}`);
-    const records = await PayrollRecord.find({ periodId }).populate("employeeId", "firstName lastName employeeId designation");
-    console.log(`[getPayrollRecordsForPeriod] Found ${records.length} records`);
+    const userCompanyId = String((req as any).companyId);
+
+    const period = await PayrollPeriod.findById(periodId);
+    if (!period) {
+      res.status(404).json({ error: 'Payroll period not found' });
+      return;
+    }
+    if (period.companyId && String(period.companyId) !== userCompanyId) {
+      await logComplianceViolation('CROSS_COMPANY_ACCESS', `Cross-company payroll records query attempt: ${periodId}`, 'Critical', { periodId, callerCompanyId: userCompanyId }, req);
+      res.status(403).json({ error: 'Forbidden: Cross-organization access denied' });
+      return;
+    }
+
+    const records = await PayrollRecord.find({ periodId, companyId: userCompanyId }).populate("employeeId", "firstName lastName employeeId designation");
     res.status(200).json(records);
   } catch (err) {
-    console.error(`[getPayrollRecordsForPeriod] Error:`, err);
     res.status(500).json({ error: "Failed to fetch payroll records" });
   }
 };
