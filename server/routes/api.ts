@@ -45,6 +45,7 @@ import {
   markAllAsRead,
 } from "../controllers/notificationController.js";
 import { authenticateJWT, requireRole, applyRoleDataScope, validateObjectId } from "../middleware/authMiddleware.js";
+import { validateDataScope } from "../middleware/dataScopeMiddleware.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import { loginSchema, refreshSchema } from "../validators/authSchema.js";
 import { checkInSchema, checkOutSchema, correctionSchema, breakSchema } from "../validators/attendanceSchema.js";
@@ -92,22 +93,22 @@ router.get("/auth/sessions", authenticateJWT, getSessions);
 router.delete("/auth/sessions/:id", authenticateJWT, revokeSession);
 
 // Protected Organization & Employee Routes
-router.get("/locations", authenticateJWT, getLocations);
-router.get("/departments", authenticateJWT, getDepartments);
-router.get("/teams", authenticateJWT, getTeams);
-router.get("/employees", authenticateJWT, getEmployees);
+router.get("/locations", authenticateJWT, validateDataScope, getLocations);
+router.get("/departments", authenticateJWT, validateDataScope, getDepartments);
+router.get("/teams", authenticateJWT, validateDataScope, getTeams);
+router.get("/employees", authenticateJWT, validateDataScope, getEmployees);
 router.get("/employees/:id", authenticateJWT, validateObjectId("id"), getEmployeeById);
 router.patch("/employees/:id/shift", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateObjectId("id"), updateEmployeeShift);
 
 // Protected Analytics Routes
 router.get("/analytics/stream", authenticateJWT, streamAnalytics);
-router.get("/analytics/workforce", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), getWorkforceAnalytics);
-router.get("/analytics/hiring", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), getHiringAnalytics);
-router.get("/analytics/attendance", authenticateJWT, getAttendanceAnalytics);
-router.get("/analytics/departments", authenticateJWT, getDepartmentAnalytics);
-router.get("/analytics/skills", authenticateJWT, getSkillsAnalytics);
-router.get("/analytics/performance", authenticateJWT, getPerformanceAnalytics);
-router.get("/analytics/productivity", authenticateJWT, getProductivityAnalytics);
+router.get("/analytics/workforce", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateDataScope, getWorkforceAnalytics);
+router.get("/analytics/hiring", authenticateJWT, requireRole(["Admin", "HR", "Manager"]), validateDataScope, getHiringAnalytics);
+router.get("/analytics/attendance", authenticateJWT, validateDataScope, getAttendanceAnalytics);
+router.get("/analytics/departments", authenticateJWT, validateDataScope, getDepartmentAnalytics);
+router.get("/analytics/skills", authenticateJWT, validateDataScope, getSkillsAnalytics);
+router.get("/analytics/performance", authenticateJWT, validateDataScope, getPerformanceAnalytics);
+router.get("/analytics/productivity", authenticateJWT, validateDataScope, getProductivityAnalytics);
 
 // Protected Attendance Routes
 router.get("/attendance/status", authenticateJWT, getAttendanceStatus);
@@ -119,17 +120,17 @@ router.post("/attendance/resume", authenticateJWT, validateRequest(breakSchema),
 router.post("/resume", authenticateJWT, validateRequest(breakSchema), resumeWork);
 router.post("/attendance/check-out", authenticateJWT, validateRequest(checkOutSchema), checkOut);
 router.post("/check-out", authenticateJWT, validateRequest(checkOutSchema), checkOut);
-router.get("/attendance/history", authenticateJWT, applyRoleDataScope, getAttendanceHistory);
-router.get("/attendance/global", authenticateJWT, getGlobalAttendance);
+router.get("/attendance/history", authenticateJWT, validateDataScope, applyRoleDataScope, getAttendanceHistory);
+router.get("/attendance/global", authenticateJWT, validateDataScope, getGlobalAttendance);
 
 // Attendance Corrections Routes
 router.post("/attendance/corrections", authenticateJWT, validateRequest(correctionSchema), createCorrection);
-router.get("/attendance/corrections", authenticateJWT, getCorrections);
+router.get("/attendance/corrections", authenticateJWT, validateDataScope, getCorrections);
 router.patch("/attendance/corrections/:id/approve", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), approveCorrection);
 router.patch("/attendance/corrections/:id/reject", authenticateJWT, requireRole(["Manager"]), validateObjectId("id"), rejectCorrection);
 
 // Leave Requests Routes
-router.get("/leaves", authenticateJWT, getLeaveRequests);
+router.get("/leaves", authenticateJWT, validateDataScope, getLeaveRequests);
 router.post("/leaves", authenticateJWT, requireRole(["Employee"]), validateRequest(leaveSchema), createLeaveRequest);
 router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager", "HR", "Admin"]), validateObjectId("id"), updateLeaveStatus);
 

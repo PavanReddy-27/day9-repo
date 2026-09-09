@@ -70,10 +70,13 @@ export const authenticateJWT = async (req, res, next) => {
       if (employeeDoc) {
         req.employee = {
           _id: employeeDoc._id,
+          employeeId: employeeDoc.employeeId,
           locationId: employeeDoc.locationId,
           departmentId: employeeDoc.departmentId,
           teamId: employeeDoc.teamId,
           workMode: employeeDoc.workMode,
+          firstName: employeeDoc.firstName,
+          lastName: employeeDoc.lastName,
         };
       } else {
         req.employee = { _id: new mongoose.Types.ObjectId("000000000000000000000000") };
