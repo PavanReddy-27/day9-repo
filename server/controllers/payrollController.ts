@@ -7,6 +7,7 @@ import LeaveRequest from '../models/LeaveRequest.js';
 import Papa from 'papaparse';
 import { logComplianceViolation } from '../utils/compliance.js';
 import { checkEmployeeScope } from '../middleware/dataScopeMiddleware.js';
+import { NotificationService } from '../services/notificationService.js';
 
 // Calculate Payroll for a Period
 export const calculatePayroll = async (req: Request, res: Response): Promise<void> => {
@@ -245,6 +246,20 @@ export const lockPayrollPeriod = async (req: Request, res: Response): Promise<vo
     await period.save();
 
     await PayrollRecord.updateMany({ periodId: period._id }, { status: 'Approved' });
+
+    const records = await PayrollRecord.find({ periodId: period._id }).populate('employeeId');
+    for (const record of records) {
+      if (record.employeeId && (record.employeeId as any).userId) {
+        void NotificationService.sendNotification(
+          (record.employeeId as any).userId,
+          period.companyId,
+          "Payroll Published",
+          `Your payroll for the period ${period.name} has been published.`,
+          "SUCCESS",
+          "/employee/payroll"
+        );
+      }
+    }
 
     res.status(200).json({ message: 'Payroll period locked successfully', period });
   } catch (error) {

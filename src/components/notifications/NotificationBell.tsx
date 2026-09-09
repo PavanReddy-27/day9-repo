@@ -11,6 +11,8 @@ import {
   Button,
   Divider,
   useTheme,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Notifications as NotificationsIcon, CheckCircleOutlined as CheckCircleOutlineIcon } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
@@ -24,12 +26,19 @@ const NotificationBell = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { notifications, unreadCount } = useAppSelector((state) => state.notifications);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastData, setToastData] = useState<any>(null);
 
   useEffect(() => {
     dispatch(fetchNotifications());
 
-    const handleNotificationUpdate = () => {
+    const handleNotificationUpdate = (event: Event) => {
       dispatch(fetchNotifications());
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && customEvent.detail.title) {
+        setToastData(customEvent.detail);
+        setToastOpen(true);
+      }
     };
 
     window.addEventListener("notification_updated", handleNotificationUpdate);
@@ -44,6 +53,11 @@ const NotificationBell = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleToastClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setToastOpen(false);
   };
 
   const handleMarkAsRead = (e: React.MouseEvent, id: string) => {
@@ -201,6 +215,26 @@ const NotificationBell = () => {
           )}
         </List>
       </Popover>
+      
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={6000}
+        onClose={handleToastClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+      >
+        <Alert 
+          onClose={handleToastClose} 
+          severity={toastData?.type === "SUCCESS" ? "success" : toastData?.type === "WARNING" ? "warning" : toastData?.type === "ALERT" ? "error" : "info"} 
+          sx={{ width: "100%", cursor: "pointer", boxShadow: 3 }}
+          onClick={() => {
+            if (toastData) handleNotificationClick({ ...toastData, isRead: false });
+            setToastOpen(false);
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{toastData?.title}</Typography>
+          <Typography variant="body2">{toastData?.message}</Typography>
+        </Alert>
+      </Snackbar>
     </>
   );
 };

@@ -9,6 +9,7 @@ import connectDB, { closeDB } from "./config/db.js";
 import apiRoutes from "./routes/api.js";
 import mongoose from "mongoose";
 import { AdminAuth } from "./models/User.js";
+import path from "path";
 
 dotenv.config();
 
@@ -62,8 +63,7 @@ const authLimiter = rateLimit({
 app.use("/api/v1/auth/login", authLimiter);
 app.use("/api/v1/auth/refresh", authLimiter);
 
-import path from "path";
-
+// __dirname is natively available in CommonJS
 
 // Ensure DB Connection Middleware
 app.use(async (req, res, next) => {

@@ -8,6 +8,7 @@ import TokenBlacklist from '../models/TokenBlacklist.js'; // Keep for now in cas
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
+import { NotificationService } from '../services/notificationService.js';
 
 // Google Authenticator uses 30s TOTP steps. Allow ±1 step (±30s) so small clock
 // drift between the phone and the server doesn't reject otherwise-valid codes.
@@ -120,6 +121,15 @@ export const login = async (req: any, res: any, next: any) => {
       `${user.role} ${user.email} signed in`,
       "Auth",
       String(user._id)
+    );
+
+    void NotificationService.sendNotification(
+      user._id,
+      employee?.companyId ?? user.companyId,
+      "Security Alert: New Login",
+      `A new login was detected for your account.`,
+      "INFO",
+      "/settings/security"
     );
 
     const cookieOptions = {
@@ -380,6 +390,15 @@ export const enableMfa = async (req: any, res: any, next: any) => {
     userDoc.mfaEnabled = true;
     await userDoc.save();
 
+    void NotificationService.sendNotification(
+      userDoc._id,
+      userDoc.companyId,
+      "Security Alert: MFA Enabled",
+      "Two-factor authentication has been enabled for your account.",
+      "SUCCESS",
+      "/settings/security"
+    );
+
     res.status(200).json({ success: true, message: 'MFA enabled successfully' });
   } catch (error) {
     next(error);
@@ -400,6 +419,15 @@ export const disableMfa = async (req: any, res: any, next: any) => {
     userDoc.mfaSecret = undefined;
     userDoc.mfaEnabled = false;
     await userDoc.save();
+
+    void NotificationService.sendNotification(
+      userDoc._id,
+      userDoc.companyId,
+      "Security Alert: MFA Disabled",
+      "Two-factor authentication has been disabled for your account. Your account is now less secure.",
+      "WARNING",
+      "/settings/security"
+    );
 
     res.status(200).json({ success: true, message: 'MFA disabled successfully' });
   } catch (error) {
