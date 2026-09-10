@@ -2,15 +2,15 @@
 
 .kpi-cards {
   width: 100%;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
-.kpi-cards>.MuiGrid-root {
-  animation: kpiCardFade .4s ease;
+.kpi-cards > .MuiGrid-root {
+  animation: kpiCardFade 0.4s var(--ease-apple);
 }
 
 .kpi-cards .MuiCard-root {
-  min-height: 220px;
+  min-height: 130px;
   height: 100%;
 }
 

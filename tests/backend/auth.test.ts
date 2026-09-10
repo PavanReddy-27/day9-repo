@@ -1,25 +1,29 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
-import app from '../../server/app'; // Update if server is structured differently
-import mongoose from 'mongoose';
+import app from '../../server/index';
+import connectDB, { closeDB } from '../../server/config/db';
+import Company from '../../server/models/Company';
 import { User, EmployeeAuth } from '../../server/models/User';
 import RefreshToken from '../../server/models/RefreshToken';
 
 describe('Auth Security and Session Management', () => {
   let testUser: any;
+  let testCompany: any;
 
   beforeAll(async () => {
-    if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/workforce_test');
-    }
-  });
+    await connectDB();
+    testCompany = await Company.create({ name: 'Test Corp', code: 'TC_' + Date.now() });
+  }, 60000);
 
   afterAll(async () => {
-    await mongoose.connection.close();
+    if (testCompany?._id) {
+      await Company.findByIdAndDelete(testCompany._id);
+    }
+    await closeDB();
   });
 
   beforeEach(async () => {
-    await User.deleteMany({});
+    await User.deleteMany({ email: 'testuser@stackly.com' });
     await RefreshToken.deleteMany({});
 
     testUser = await EmployeeAuth.create({
@@ -27,7 +31,7 @@ describe('Auth Security and Session Management', () => {
       password: 'Password123!',
       employeeId: 'EMP-TEST-001',
       role: 'Employee',
-      companyId: new mongoose.Types.ObjectId(),
+      companyId: testCompany._id,
     });
   });
 
@@ -49,7 +53,7 @@ describe('Auth Security and Session Management', () => {
     const dbUser = await User.findById(testUser._id);
     expect(dbUser?.failedLoginAttempts).toBe(5);
     expect(dbUser?.lockUntil).toBeDefined();
-  });
+  }, 30000);
 
   it('should reset login attempts on successful login', async () => {
     // 1 failed attempt
@@ -69,26 +73,28 @@ describe('Auth Security and Session Management', () => {
 
   it('should implement refresh token rotation and revoke family on reuse', async () => {
     const loginRes = await request(app).post('/api/v1/auth/login').send({ email: 'testuser@stackly.com', password: 'Password123!' });
-    const cookies = loginRes.headers['set-cookie'];
+    const rawCookies = loginRes.headers['set-cookie'];
+    const cookies = Array.isArray(rawCookies) ? rawCookies : rawCookies ? [rawCookies] : [];
     const refreshTokenCookie = cookies.find((c: string) => c.startsWith('refreshToken='));
     
     expect(refreshTokenCookie).toBeDefined();
 
-    const refreshRes1 = await request(app).post('/api/v1/auth/refresh').set('Cookie', [refreshTokenCookie]);
+    const refreshRes1 = await request(app).post('/api/v1/auth/refresh').set('Cookie', [refreshTokenCookie!]);
     expect(refreshRes1.status).toBe(200);
     
-    const newCookies = refreshRes1.headers['set-cookie'];
+    const rawNewCookies = refreshRes1.headers['set-cookie'];
+    const newCookies = Array.isArray(rawNewCookies) ? rawNewCookies : rawNewCookies ? [rawNewCookies] : [];
     const newRefreshTokenCookie = newCookies.find((c: string) => c.startsWith('refreshToken='));
     expect(newRefreshTokenCookie).toBeDefined();
     expect(newRefreshTokenCookie).not.toEqual(refreshTokenCookie);
 
     // Reuse old token
-    const refreshRes2 = await request(app).post('/api/v1/auth/refresh').set('Cookie', [refreshTokenCookie]);
+    const refreshRes2 = await request(app).post('/api/v1/auth/refresh').set('Cookie', [refreshTokenCookie!]);
     expect(refreshRes2.status).toBe(401);
     expect(refreshRes2.body.message).toContain('reuse detected');
 
     // Legitimately rotated new token should now be revoked
-    const refreshRes3 = await request(app).post('/api/v1/auth/refresh').set('Cookie', [newRefreshTokenCookie]);
+    const refreshRes3 = await request(app).post('/api/v1/auth/refresh').set('Cookie', [newRefreshTokenCookie!]);
     expect(refreshRes3.status).toBe(401);
   });
 

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import * as argon2 from 'argon2';
 
 const userSchema = new mongoose.Schema({
   companyId: {
@@ -57,17 +58,21 @@ const userSchema = new mongoose.Schema({
 // Hash password before saving
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-  // Prevent double-hashing if the password is already a bcrypt hash
-  if (this.password.startsWith('$2')) return;
+  // Prevent double-hashing if the password is already a bcrypt or argon2 hash
+  if (this.password.startsWith('$2') || this.password.startsWith('$argon2')) return;
   
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare password method
+// Compare password method (supports both Argon2 and Bcrypt)
 userSchema.methods.matchPassword = async function (enteredPassword) {
   if (this.password && this.password.startsWith('$argon2')) {
-    throw new Error('Argon2 passwords are no longer supported. Please reset your password.');
+    try {
+      return await argon2.verify(this.password, enteredPassword);
+    } catch {
+      return false;
+    }
   }
   return bcrypt.compare(enteredPassword, this.password);
 };

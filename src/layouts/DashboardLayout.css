@@ -4,7 +4,9 @@
 
 .dashboard-layout {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
     background: var(--bg);
 }
 
@@ -16,7 +18,10 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin-left: 280px;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    margin-left: 290px;
     transition: margin-left .35s ease;
     min-width: 0;
 }
@@ -30,6 +35,7 @@
 ============================== */
 
 .dashboard-header {
+    flex-shrink: 0;
     position: sticky;
     top: 0;
     z-index: 500;
@@ -45,6 +51,7 @@
     overflow-x: hidden;
     padding: 10px 16px 20px;
     background: var(--bg);
+    min-height: 0;
 }
 
 .dashboard-main {

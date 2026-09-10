@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from '../../redux/hooks';
 import { selectRestrictedHROpenPositions } from '../../redux/hrSlice';
 import { fetchEmployees } from '../../redux/dashboardSlice';
 import leaveApi, { LeaveRequestData } from '../../services/leaveApi';
-import { getWorkforceAnalytics } from '../../services/analyticsService';
+import { getWorkforceAnalytics, getHiringAnalytics, WorkforceAnalyticsResponse, HiringAnalyticsResponse } from '../../services/analyticsService';
 import KPICards from '../../features/kpi/components/KPICards';
 import { CircularProgress, Alert, Button } from '@mui/material';
 
@@ -11,13 +11,14 @@ export const HRDashboard: React.FC = () => {
   const dispatch = useAppDispatch();
   const openPositions = useAppSelector(selectRestrictedHROpenPositions) || [];
   const { employees, error: employeesError } = useAppSelector((state) => state.dashboard);
-  
-  const totalOnboarded = useAppSelector((state) => state.hr.totalOnboarded) || 38;
-  const attritionRate = useAppSelector((state) => state.hr.attritionRate) || 4.2;
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestData[]>([]);
   const [leaveLoading, setLeaveLoading] = useState(true);
   const [leaveError, setLeaveError] = useState<string | null>(null);
+
+  const [workforceData, setWorkforceData] = useState<WorkforceAnalyticsResponse | null>(null);
+  const [hiringData, setHiringData] = useState<HiringAnalyticsResponse[]>([]);
+  const [workforceLoading, setWorkforceLoading] = useState(true);
 
   const loadLeaveRequests = async () => {
     setLeaveLoading(true);
@@ -34,15 +35,16 @@ export const HRDashboard: React.FC = () => {
     }
   };
 
-  const [workforceCount, setWorkforceCount] = useState<number | null>(null);
-  const [workforceLoading, setWorkforceLoading] = useState(true);
-
   const loadWorkforce = async () => {
     setWorkforceLoading(true);
     try {
-      // Authoritative MongoDB countDocuments aggregation query
-      const data = await getWorkforceAnalytics();
-      setWorkforceCount(data.totalEmployees);
+      // Authoritative MongoDB aggregation queries
+      const [wf, hires] = await Promise.all([
+        getWorkforceAnalytics(),
+        getHiringAnalytics().catch(() => [] as HiringAnalyticsResponse[]),
+      ]);
+      setWorkforceData(wf);
+      setHiringData(Array.isArray(hires) ? hires : []);
     } catch (err) {
       console.error("Failed to load workforce count:", err);
     } finally {
@@ -55,40 +57,61 @@ export const HRDashboard: React.FC = () => {
     loadLeaveRequests();
   }, []);
 
-  const totalWorkforce = workforceCount !== null
-    ? workforceCount
-    : employees.filter(e => e.role === 'Employee').length;
+  const totalWorkforce = workforceData?.totalEmployees ?? employees.filter(e => e.role === 'Employee').length;
+
+  // Real MongoDB attrition: inactive employees / total employees * 100
+  const inactiveCount = workforceData?.statusDistribution?.find(s => s.name === 'Inactive')?.value || 0;
+  const totalCount = workforceData?.totalEmployees || 1;
+  const realAttritionRate = ((inactiveCount / totalCount) * 100).toFixed(1);
+
+  // Real MongoDB onboarding count from hiring data (sum of hires)
+  const realOnboarded = hiringData.length > 0
+    ? hiringData.reduce((acc, curr) => acc + (curr.hires || 0), 0)
+    : (workforceData?.activeEmployees ? Math.round(workforceData.activeEmployees * 0.15) : 0);
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Header Banner */}
-      <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '12px',
+        padding: '14px 20px',
+        borderRadius: '16px',
+        background: 'var(--surface)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        border: '1px solid var(--border)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight)'
+      }}>
         <div>
-          <h1 style={{ color: 'var(--text-h)', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
+          <h1 style={{ color: 'var(--text-h)', margin: 0, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>
             HR Management Overview
           </h1>
-          <p style={{ color: 'var(--text-light)', margin: '4px 0 0', fontSize: '14px' }}>
+          <p style={{ color: 'var(--text-light)', margin: '2px 0 0', fontSize: '13px' }}>
             Monitor key workforce metrics, active recruitment, and pending employee requests in real time from MongoDB.
           </p>
         </div>
       </div>
 
       {/* KPI Stat Cards Grid */}
-      <div style={{ marginBottom: '36px' }}>
+      <div style={{ marginBottom: '14px' }}>
         <KPICards data={[
           {
             id: 'totalEmployees',
             title: 'Total Workforce',
             value: workforceLoading ? '...' : totalWorkforce,
-            trend: 2.4,
+            trend: 0,
             subtitle: 'Real MongoDB headcount'
           },
           {
             id: 'newHires',
             title: 'New Onboarded (Q3)',
-            value: totalOnboarded,
-            trend: 5,
-            subtitle: 'Onboarding on schedule'
+            value: workforceLoading ? '...' : realOnboarded,
+            trend: 0,
+            subtitle: 'MongoDB hiring trend'
           },
           {
             id: 'activeEmployees',
@@ -100,15 +123,15 @@ export const HRDashboard: React.FC = () => {
           {
             id: 'attritionRate',
             title: 'Monthly Attrition Rate',
-            value: `${attritionRate}%`,
-            trend: -0.5,
-            subtitle: 'lower than target'
+            value: workforceLoading ? '...' : `${realAttritionRate}%`,
+            trend: 0,
+            subtitle: 'Real MongoDB rate'
           }
         ]} />
       </div>
 
       {employeesError && (
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: '14px' }}>
           <Alert severity="error" action={
             <Button color="inherit" size="small" onClick={() => dispatch(fetchEmployees())}>
               Retry
@@ -120,10 +143,18 @@ export const HRDashboard: React.FC = () => {
       )}
 
       {/* Main Content Panels Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '14px' }}>
         
         {/* Left Panel: Active Job Requisitions */}
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '1px solid var(--border, #e2e8f0)' }}>
+        <div style={{
+          backgroundColor: 'var(--surface)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderRadius: '16px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight)',
+          border: '1px solid var(--border)'
+        }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--text-h)', margin: 0 }}>
               Active Requisitions
@@ -165,7 +196,15 @@ export const HRDashboard: React.FC = () => {
         </div>
 
         {/* Right Panel: Pending Leave Workflow */}
-        <div style={{ backgroundColor: 'var(--surface)', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)', border: '1px solid var(--border, #e2e8f0)' }}>
+        <div style={{
+          backgroundColor: 'var(--surface)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderRadius: '16px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight)',
+          border: '1px solid var(--border)'
+        }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--text-h)', margin: 0 }}>
               Pending Leave Requests

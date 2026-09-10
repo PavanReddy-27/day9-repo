@@ -19,9 +19,7 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
-  MenuItem,
   OutlinedInput,
-  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -52,42 +50,11 @@ import {
   clearError,
 } from "../../redux/authSlice";
 
-/* ========================================================
-   TEMPORARY: Test Accounts for Quick Demo / Role Testing
-   (Can easily be removed later by deleting this block)
-   ======================================================== */
-interface TestAccount {
-  role: string;
-  email: string;
-  password: string;
-  label: string;
-}
-
-const TEST_ACCOUNTS: TestAccount[] = [
-  {
-    role: "Admin",
-    email: "admin@thestackly.com",
-    password: "Password123!",
-    label: "👑 Admin — admin@thestackly.com",
-  },
-  {
-    role: "HR",
-    email: "hr@thestackly.com",
-    password: "Password123!",
-    label: "💼 HR — hr@thestackly.com",
-  },
-  {
-    role: "Manager",
-    email: "manager@thestackly.com",
-    password: "Password123!",
-    label: "👔 Manager — manager@thestackly.com",
-  },
-  {
-    role: "Employee",
-    email: "employee@thestackly.com",
-    password: "Password123!",
-    label: "👤 Employee — employee@thestackly.com",
-  },
+const DEMO_ACCOUNTS = [
+  { role: "Admin", email: "admin@thestackly.com", password: "Password123!", icon: "👑" },
+  { role: "HR", email: "hr@thestackly.com", password: "Password123!", icon: "💼" },
+  { role: "Manager", email: "manager@thestackly.com", password: "Password123!", icon: "👔" },
+  { role: "Employee", email: "employee@thestackly.com", password: "Password123!", icon: "👤" },
 ];
 
 const LoginForm = () => {
@@ -112,7 +79,7 @@ const LoginForm = () => {
   const [password, setPassword] =
     useState("");
 
-  const [selectedTestRole, setSelectedTestRole] =
+  const [selectedDemoRole, setSelectedDemoRole] =
     useState("");
 
   const [rememberMe, setRememberMe] =
@@ -221,14 +188,11 @@ const LoginForm = () => {
     }
   };
 
-  const handleSelectTestAccount = (role: string) => {
-    setSelectedTestRole(role);
-    const account = TEST_ACCOUNTS.find((acc) => acc.role === role);
-    if (account) {
-      setUsername(account.email);
-      setPassword(account.password);
-      if (error) dispatch(clearError());
-    }
+  const handleFillDemo = (acc: typeof DEMO_ACCOUNTS[0]) => {
+    setSelectedDemoRole(acc.role);
+    setUsername(acc.email);
+    setPassword(acc.password);
+    if (error) dispatch(clearError());
   };
 
   const handleSubmit = async (
@@ -289,7 +253,7 @@ const LoginForm = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 2.5,
+          gap: 2,
         }}
       >
         <Box className="form-header">
@@ -305,6 +269,7 @@ const LoginForm = () => {
         <TextField
           autoFocus
           fullWidth
+          size="small"
           label="Authenticator Code"
           placeholder="123456"
           value={mfaCode}
@@ -312,26 +277,26 @@ const LoginForm = () => {
             setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6));
             if (error) dispatch(clearError());
           }}
-          slotProps={{ htmlInput: { maxLength: 6, style: { textAlign: 'center', letterSpacing: '8px', fontSize: '24px' } } }}
+          slotProps={{ htmlInput: { maxLength: 6, style: { textAlign: 'center', letterSpacing: '8px', fontSize: '20px' } } }}
         />
 
         <Button
           type="submit"
           variant="contained"
-          size="large"
+          size="medium"
           fullWidth
           disabled={isLoading || mfaCode.length !== 6}
           sx={{
-            py: 1.4,
+            py: 1.1,
             fontWeight: 600,
-            fontSize: 16,
+            fontSize: 15,
             textTransform: "none",
             borderRadius: 2,
             background: "linear-gradient(135deg, rgba(59, 105, 120, 0.9) 0%, rgba(36, 70, 82, 1) 100%)",
-            boxShadow: "0 10px 20px rgba(59, 105, 120, 0.2)",
+            boxShadow: "0 8px 16px rgba(59, 105, 120, 0.2)",
             "&:hover": {
               background: "linear-gradient(135deg, rgba(36, 70, 82, 1) 0%, rgba(20, 50, 60, 1) 100%)",
-              boxShadow: "0 12px 24px rgba(59, 105, 120, 0.3)",
+              boxShadow: "0 10px 20px rgba(59, 105, 120, 0.3)",
             },
           }}
         >
@@ -355,7 +320,7 @@ const LoginForm = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: 2.5,
+        gap: 1.5,
       }}
     >
       <Box className="form-header">
@@ -378,59 +343,61 @@ const LoginForm = () => {
         </Alert>
       )}
 
-      {/* ========================================================
-          TEMPORARY: Quick Test Accounts Selector (Remove Later)
-          ======================================================== */}
-      <Box
-        sx={{
-          p: 1.5,
-          borderRadius: 2,
-          background: "rgba(255, 255, 255, 0.04)",
-          border: "1px dashed rgba(255, 255, 255, 0.25)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1.2,
-        }}
-      >
+      {/* Demo Credentials Pill Bar */}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mb: 0.5 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography
             variant="caption"
-            sx={{ fontWeight: 700, color: "var(--primary-light, #38bdf8)", letterSpacing: 0.5, textTransform: "uppercase" }}
+            sx={{
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              color: "var(--primary-light, #38bdf8)",
+            }}
           >
-            🧪 Quick Test User (Temporary)
+            Demo Credentials
           </Typography>
-          <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.72rem" }}>
-            Select to auto-fill
+          <Typography variant="caption" sx={{ fontSize: "0.68rem", color: "var(--text-light)" }}>
+            Click role to auto-fill
           </Typography>
         </Box>
-
-        <FormControl fullWidth size="small">
-          <InputLabel id="test-user-select-label">Select Test User Account</InputLabel>
-          <Select
-            labelId="test-user-select-label"
-            id="test-user-select"
-            value={selectedTestRole}
-            label="Select Test User Account"
-            onChange={(e) => handleSelectTestAccount(e.target.value)}
-          >
-            <MenuItem value="">
-              <em>-- Choose a test account --</em>
-            </MenuItem>
-            {TEST_ACCOUNTS.map((acc) => (
-              <MenuItem key={acc.role} value={acc.role}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center" }}>
-                  <span style={{ fontWeight: 600 }}>{acc.label}</span>
-                </Box>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0.75 }}>
+          {DEMO_ACCOUNTS.map((acc) => (
+            <Button
+              key={acc.role}
+              size="small"
+              type="button"
+              variant={selectedDemoRole === acc.role ? "contained" : "outlined"}
+              onClick={() => handleFillDemo(acc)}
+              sx={{
+                py: 0.35,
+                px: 0.5,
+                minWidth: 0,
+                fontSize: "0.72rem",
+                fontWeight: 600,
+                textTransform: "none",
+                borderRadius: "8px",
+                borderColor: selectedDemoRole === acc.role ? "var(--primary)" : "var(--border)",
+                background: selectedDemoRole === acc.role ? "var(--primary)" : "var(--surface)",
+                color: selectedDemoRole === acc.role ? "#fff" : "var(--text)",
+                boxShadow: "none",
+                "&:hover": {
+                  background: selectedDemoRole === acc.role ? "var(--primary-dark)" : "var(--surface-hover)",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              {acc.icon} {acc.role}
+            </Button>
+          ))}
+        </Box>
       </Box>
-      {/* ======================================================== */}
 
       <TextField
         autoFocus
         fullWidth
+        size="small"
         label="Username"
         placeholder="Enter your username"
         value={username}
@@ -441,7 +408,7 @@ const LoginForm = () => {
         }
       />
 
-      <FormControl fullWidth>
+      <FormControl fullWidth size="small">
         <InputLabel>
           Password
         </InputLabel>
@@ -514,20 +481,20 @@ const LoginForm = () => {
       <Button
         type="submit"
         variant="contained"
-        size="large"
+        size="medium"
         fullWidth
         disabled={isLoading}
         sx={{
-          py: 1.4,
+          py: 1.1,
           fontWeight: 600,
-          fontSize: 16,
+          fontSize: 15,
           textTransform: "none",
           borderRadius: 2,
           background: "linear-gradient(135deg, rgba(59, 105, 120, 0.9) 0%, rgba(36, 70, 82, 1) 100%)",
-          boxShadow: "0 10px 20px rgba(59, 105, 120, 0.2)",
+          boxShadow: "0 8px 16px rgba(59, 105, 120, 0.2)",
           "&:hover": {
             background: "linear-gradient(135deg, rgba(36, 70, 82, 1) 0%, rgba(20, 50, 60, 1) 100%)",
-            boxShadow: "0 12px 24px rgba(59, 105, 120, 0.3)",
+            boxShadow: "0 10px 20px rgba(59, 105, 120, 0.3)",
           },
         }}
       >

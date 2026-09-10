@@ -105,7 +105,8 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
         </button>
         <div className="search-box">
           <FiSearch className="search-icon" />
-          <input type="text" placeholder="Search..." />
+          <input type="text" placeholder="Search anything..." />
+          <span className="search-shortcut">⌘K</span>
         </div>
       </div>
 
@@ -183,7 +184,7 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
           </div>
 
           <div className="profile-info">
-            <h4>{user.role === "Manager" ? "Sridhika" : (user.fullName || user.username)}</h4>
+            <h4>{user.fullName || user.username || "User"}</h4>
             <p>{user.role}</p>
           </div>
 

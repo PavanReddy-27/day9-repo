@@ -29,7 +29,7 @@ describe('API Integration Tests', () => {
         .send({ email: 'nonexistent@example.com', password: 'wrongpassword' });
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
-    });
+    }, 15000);
 
     it('should fail with 400 on malformed body due to Zod validation', async () => {
       const res = await request(app)

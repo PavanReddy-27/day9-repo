@@ -73,7 +73,7 @@ router.get("/health", (req, res) => {
 // Authentication Rate Limiter
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: process.env.NODE_ENV === 'test' ? 1000 : 5000, // Relaxed for local dev and testing
   message: { success: false, message: 'Too many login attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,

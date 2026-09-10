@@ -72,7 +72,7 @@ const EmployeeAttendance = () => {
 
       const isWeekend = new Date(dateStr).getDay() === 0 || new Date(dateStr).getDay() === 6;
       return match ? {
-        id: `dummy-${dateStr}`,
+        id: `unrecorded-${dateStr}`,
         employeeId: user?.id || "",
         employeeName: user?.fullName || "",
         date: dateStr,

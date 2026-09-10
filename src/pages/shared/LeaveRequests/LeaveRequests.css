@@ -36,55 +36,56 @@
   text-align: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight) !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  transition: transform 0.35s var(--ease-apple), box-shadow 0.35s var(--ease-apple);
 }
 
 .summary-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift), inset 0 1px 1px var(--glass-highlight) !important;
 }
 
 .pending-card {
-  background: var(--surface) !important;
-  background-image: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%) !important;
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--warning) !important;
 }
 
 .approved-card {
-  background: var(--surface) !important;
-  background-image: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%) !important;
-  border-left: 4px solid #10b981;
+  border-left: 4px solid var(--success) !important;
 }
 
 .rejected-card {
-  background: var(--surface) !important;
-  background-image: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%) !important;
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid var(--error) !important;
 }
 
 .summary-count {
   font-weight: 700 !important;
   font-size: 1.85rem !important;
   margin-bottom: 2px !important;
+  letter-spacing: -0.02em;
   color: var(--text-h);
 }
 
 .summary-label {
   color: var(--text-light);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 }
 
 .leave-filter-card {
   padding: 14px 18px;
-  border-radius: 14px !important;
-  margin-bottom: 18px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04) !important;
-  background-color: var(--surface) !important;
+  border-radius: 16px !important;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight) !important;
+  background: var(--surface) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid var(--border) !important;
 }
 
 .leave-filter-stack {
@@ -118,10 +119,13 @@
 }
 
 .leave-table-card {
-  border-radius: 16px !important;
+  border-radius: 18px !important;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight) !important;
   background-color: var(--surface) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid var(--border) !important;
   flex-grow: 1;
   display: flex;
   flex-direction: column;

@@ -1,9 +1,11 @@
 .welcome-banner {
-  padding: 1.5rem 2rem;
-  border-radius: 20px !important;
-  background: linear-gradient(135deg, var(--surface) 0%, #f8fafc 100%) !important;
-  box-shadow: 0 8px 30px -10px rgba(59, 105, 120, 0.08) !important;
-  border: 1px solid rgba(59, 105, 120, 0.08);
+  padding: 1.25rem 1.8rem;
+  border-radius: 18px !important;
+  background: var(--surface) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight) !important;
+  border: 1px solid var(--border) !important;
   color: var(--text-h);
   overflow: hidden;
   position: relative;
@@ -16,7 +18,7 @@
   right: -10%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(59, 105, 120, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--primary-bg) 0%, transparent 70%);
   border-radius: 50%;
   z-index: 0;
   pointer-events: none;
@@ -29,7 +31,7 @@
   right: 15%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(91, 146, 121, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--secondary-bg) 0%, transparent 70%);
   border-radius: 50%;
   z-index: 0;
   pointer-events: none;
@@ -47,22 +49,22 @@
 .welcome-title {
   font-weight: 800 !important;
   color: var(--primary);
-  font-size: 1.8rem !important;
-  letter-spacing: -0.5px;
+  font-size: 1.6rem !important;
+  letter-spacing: -0.02em;
 }
 
 .welcome-subtitle {
-  margin-top: 4px !important;
+  margin-top: 3px !important;
   font-weight: 600 !important;
-  font-size: 1rem !important;
+  font-size: 0.95rem !important;
   color: var(--text-h);
 }
 
 .welcome-description {
-  margin-top: 10px !important;
+  margin-top: 8px !important;
   max-width: 650px;
-  line-height: 1.5;
-  font-size: 0.9rem;
+  line-height: 1.45;
+  font-size: 0.88rem;
   color: var(--text-light);
 }
 
@@ -72,20 +74,20 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .welcome-chip {
   margin: 0 !important;
-  height: 30px !important;
-  border-radius: 10px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
   font-weight: 600 !important;
   font-size: 12px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .welcome-chip .MuiChip-label {
-  padding: 0 12px;
+  padding: 0 10px;
   color: var(--surface) !important;
 }
 
@@ -94,73 +96,105 @@
   color: var(--text-h) !important;
 }
 .welcome-chip.MuiChip-colorDefault {
-  background: var(--bg) !important;
+  background: var(--surface-solid) !important;
   border: 1px solid var(--border);
 }
 
 /* ---------- Buttons ---------- */
 
 .welcome-buttons {
-  margin-top: 18px !important;
+  margin-top: 14px !important;
 }
 
 .btn-primary {
-  background: var(--primary) !important;
-  color: var(--surface) !important;
+  background: linear-gradient(135deg, var(--primary), #6366f1) !important;
+  color: #ffffff !important;
   font-weight: 600 !important;
   text-transform: none !important;
   border-radius: 10px !important;
-  padding: 8px 18px !important;
-  box-shadow: 0 4px 14px rgba(59, 105, 120, 0.25) !important;
-  transition: all 0.2s ease !important;
+  padding: 7px 16px !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25) !important;
+  transition: all 0.22s var(--ease-apple) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-primary:hover::after {
+  left: 100%;
 }
 
 .btn-primary:hover {
-  background: var(--info) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 105, 120, 0.3) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35) !important;
+}
+
+.btn-primary:active {
+  transform: scale(0.97) !important;
 }
 
 .btn-outline {
   color: var(--primary) !important;
-  border: 1.5px solid rgba(59, 105, 120, 0.2) !important;
-  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface-solid) !important;
   font-weight: 600 !important;
   text-transform: none !important;
   border-radius: 10px !important;
-  padding: 8px 18px !important;
-  transition: all 0.2s ease !important;
+  padding: 7px 16px !important;
+  font-size: 13px !important;
+  transition: all 0.22s var(--ease-apple) !important;
 }
 
 .btn-outline:hover {
-  background: rgba(59, 105, 120, 0.05) !important;
+  background: var(--hover) !important;
   border-color: var(--primary) !important;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+}
+
+.btn-outline:active {
+  transform: scale(0.97) !important;
 }
 
 /* ---------- Profile ---------- */
 
 .welcome-profile {
-  min-width: 220px;
+  min-width: 200px;
   text-align: center;
-  padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
-  backdrop-filter: blur(10px);
+  padding: 14px 18px;
+  background: var(--surface-solid);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .manager-avatar {
-  width: 60px !important;
-  height: 60px !important;
-  margin: 0 auto 10px !important;
-  background: linear-gradient(135deg, var(--primary), var(--info)) !important;
-  color: var(--surface) !important;
-  font-size: 22px !important;
+  width: 56px !important;
+  height: 56px !important;
+  margin: 0 auto 8px !important;
+  background: linear-gradient(135deg, var(--primary), #8b5cf6) !important;
+  color: #ffffff !important;
+  font-size: 20px !important;
   font-weight: 700 !important;
-  box-shadow: 0 6px 18px rgba(59, 105, 120, 0.25) !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3) !important;
   border: 2px solid var(--surface);
+  transition: transform 0.3s var(--ease-apple) !important;
+}
+
+.manager-avatar:hover {
+  transform: scale(1.06);
 }
 
 .manager-role {

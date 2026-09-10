@@ -28,8 +28,8 @@ export interface HRState {
 const initialState: HRState = {
   openPositions: [],
   leaveRequests: [],
-  attritionRate: 4.2,
-  totalOnboarded: 38,
+  attritionRate: 0,
+  totalOnboarded: 0,
 };
 
 export const hrSlice = createSlice({

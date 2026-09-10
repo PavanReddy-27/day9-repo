@@ -74,15 +74,23 @@ const ChartContainer = ({
       elevation={elevation}
       data-testid={testId}
       sx={{
-        borderRadius: 3,
+        borderRadius: "16px",
         overflow: "hidden",
         height: "100%",
         minHeight: typeof height === "number" ? `${height + 54}px` : undefined,
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "var(--surface-solid)",
+        backgroundColor: "var(--surface)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
         border: "1px solid var(--border)",
-        boxShadow: "var(--shadow)",
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight)",
+        transition: "transform 0.35s var(--ease-apple), box-shadow 0.35s var(--ease-apple), border-color 0.25s ease",
+        "&:hover": {
+          transform: "translateY(-2px)",
+          borderColor: "var(--primary-light)",
+          boxShadow: "var(--shadow-lift), inset 0 1px 1px var(--glass-highlight)",
+        },
       }}
     >
       {showHeader && (
@@ -98,7 +106,8 @@ const ChartContainer = ({
           >
             <Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: "var(--text)" }}>
+                <span className="live-status-dot" style={{ width: 6, height: 6 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "0.98rem", letterSpacing: "-0.01em", color: "var(--text)" }}>
                   {title}
                 </Typography>
                 {badgeText && (

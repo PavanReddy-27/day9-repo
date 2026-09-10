@@ -34,7 +34,12 @@ export interface AttendanceAnalyticsResponse {
 }
 
 export interface DepartmentAnalyticsResponse {
-  departments: { name: string; count: number }[];
+  departments: {
+    name: string;
+    count: number;
+    activeEmployees?: number;
+    inactiveEmployees?: number;
+  }[];
   locations: { code: string; count: number }[];
 }
 

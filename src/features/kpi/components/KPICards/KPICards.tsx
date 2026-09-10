@@ -57,8 +57,8 @@ const KPI_CONFIG: Partial<Record<KPIType, KPIConfig>> = {
   departments: { icon: <BusinessCenterIcon />, color: "#3b6978" }, // Primary
   engagementScore: { icon: <WorkspacePremiumIcon />, color: "#537f96" }, // Info
 };
-// Procedural generation of a realistic wavy sparkline trend based on exact trend percentage
-const generateMockSparkline = (trend: number, baseValue: number) => {
+// Procedural generation of a wavy sparkline trend based on exact trend percentage
+const generateDerivedSparkline = (trend: number, baseValue: number) => {
   const data = [];
   let current = baseValue;
   const monthlyMultiplier = 1 + (trend / 100);
@@ -99,7 +99,7 @@ const KPICards = ({
         const numericValue = typeof kpi.value === 'string'
           ? parseFloat(kpi.value.replace(/[^0-9.]/g, '')) || 100
           : kpi.value;
-        const sparkline = kpi.sparklineData || generateMockSparkline(kpi.trend, numericValue);
+        const sparkline = kpi.sparklineData || generateDerivedSparkline(kpi.trend, numericValue);
 
         return (
           <Grid

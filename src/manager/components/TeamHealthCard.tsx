@@ -14,32 +14,50 @@ import {
   WarningAmber,
 } from "@mui/icons-material";
 
-import "./TeamHealthCard.css";
+interface TeamHealthCardProps {
+  attendanceRate?: number;
+  performanceScore?: number;
+  productivityScore?: number;
+  skillsCoverage?: number;
+}
 
-const metrics = [
-  {
-    title: "Attendance",
-    value: 92,
-    color: "var(--success)",
-  },
-  {
-    title: "Performance",
-    value: 89,
-    color: "var(--info)",
-  },
-  {
-    title: "Engagement",
-    value: 94,
-    color: "var(--secondary)",
-  },
-  {
-    title: "Productivity",
-    value: 88,
-    color: "var(--info)",
-  },
-];
+const TeamHealthCard = ({
+  attendanceRate = 0,
+  performanceScore = 0,
+  productivityScore = 0,
+  skillsCoverage = 0,
+}: TeamHealthCardProps) => {
+  const metrics = [
+    {
+      title: "Attendance",
+      value: Math.round(attendanceRate),
+      color: "var(--success)",
+    },
+    {
+      title: "Performance",
+      value: Math.round(performanceScore),
+      color: "var(--info)",
+    },
+    {
+      title: "Skills Coverage",
+      value: Math.round(skillsCoverage),
+      color: "var(--secondary)",
+    },
+    {
+      title: "Productivity",
+      value: Math.round(productivityScore),
+      color: "var(--info)",
+    },
+  ];
 
-const TeamHealthCard = () => {
+  const activeValues = metrics.map(m => m.value).filter(v => v > 0);
+  const overallScore = activeValues.length > 0
+    ? Math.round(activeValues.reduce((a, b) => a + b, 0) / activeValues.length)
+    : 0;
+
+  const healthLabel = overallScore >= 85 ? "Excellent" : overallScore >= 70 ? "Good" : overallScore > 0 ? "Needs Focus" : "No Data";
+  const healthColor = overallScore >= 85 ? "success" : overallScore >= 70 ? "info" : overallScore > 0 ? "warning" : "default";
+
   return (
     <Paper elevation={3} className="team-health-card">
       <Stack
@@ -55,8 +73,8 @@ const TeamHealthCard = () => {
         </Typography>
 
         <Chip
-          label="Excellent"
-          color="success"
+          label={healthLabel}
+          color={healthColor as any}
           size="small"
         />
       </Stack>
@@ -68,7 +86,7 @@ const TeamHealthCard = () => {
           variant="h3"
           className="health-percentage"
         >
-          91%
+          {overallScore}%
         </Typography>
 
         <Typography

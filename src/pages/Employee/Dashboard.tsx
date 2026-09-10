@@ -3,7 +3,7 @@ import EmployeeDashboardAnalytics from "../../features/dashboard/components/Empl
 
 const EmployeeDashboard = () => {
   return (
-    <Box sx={{ maxWidth: "1440px", margin: "0 auto" }}>
+    <Box sx={{ width: "100%", margin: 0 }}>
       {/* Render the new personalized Employee dashboard analytics view */}
       <EmployeeDashboardAnalytics />
     </Box>

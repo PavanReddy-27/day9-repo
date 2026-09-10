@@ -211,7 +211,7 @@ const Users = () => {
                   name="id"
                   value={formValues.id}
                   onChange={handleChange}
-                  placeholder="EMP005"
+                  placeholder="e.g. EMP100"
                 />
               </label>
               <label>
@@ -220,7 +220,7 @@ const Users = () => {
                   name="name"
                   value={formValues.name}
                   onChange={handleChange}
-                  placeholder="Jane Doe"
+                  placeholder="Enter full name"
                 />
               </label>
               <label>
@@ -230,7 +230,7 @@ const Users = () => {
                   type="email"
                   value={formValues.email}
                   onChange={handleChange}
-                  placeholder="jane.doe@example.com"
+                  placeholder="Enter email address"
                 />
               </label>
               <label>
@@ -239,7 +239,7 @@ const Users = () => {
                   name="role"
                   value={formValues.role}
                   onChange={handleChange}
-                  placeholder="Employee"
+                  placeholder="e.g. Employee"
                 />
               </label>
               <label>

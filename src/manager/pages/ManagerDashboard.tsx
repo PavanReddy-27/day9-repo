@@ -13,7 +13,8 @@ import type { KPIItem } from "../../features/kpi/components/KPICards/KPICards";
 import QuickOverview from "../../features/dashboard/components/QuickOverview/QuickOverview";
 
 import { LineChart, BarChart, PieChart, DonutChart } from "../../components/charts";
-import { getWorkforceAnalytics, getAttendanceAnalytics, getPerformanceAnalytics, getSkillAnalytics } from "../../api/clients/analyticsApi";
+import { getWorkforceAnalytics, getAttendanceAnalytics, getPerformanceAnalytics, getSkillAnalytics, getProductivityAnalytics } from "../../api/clients/analyticsApi";
+import leaveApi from "../../services/leaveApi";
 
 import "./ManagerDashboard.css";
 
@@ -45,20 +46,26 @@ const ManagerDashboard = () => {
   const [attendanceData, setAttendanceData] = useState<any>(null);
   const [performanceData, setPerformanceData] = useState<any[]>([]);
   const [skillData, setSkillData] = useState<any>(null);
+  const [pendingLeaves, setPendingLeaves] = useState<any[]>([]);
+  const [productivityData, setProductivityData] = useState<any>(null);
 
   const loadAnalytics = async () => {
     setError(null);
     try {
-      const [workforce, attendance, performance, skills] = await Promise.all([
+      const [workforce, attendance, performance, skills, leaves, productivity] = await Promise.all([
         getWorkforceAnalytics(),
         getAttendanceAnalytics(),
         getPerformanceAnalytics(),
-        getSkillAnalytics()
+        getSkillAnalytics(),
+        leaveApi.getLeaves("Pending").catch(() => []),
+        getProductivityAnalytics().catch(() => null),
       ]);
       setWorkforceData(workforce);
       setAttendanceData(attendance);
-      setPerformanceData(performance);
+      setPerformanceData(performance || []);
       setSkillData(skills);
+      setPendingLeaves(Array.isArray(leaves) ? leaves : []);
+      setProductivityData(productivity);
     } catch (err: any) {
       setError(err.message || "Failed to load dashboard data");
     } finally {
@@ -71,21 +78,36 @@ const ManagerDashboard = () => {
   }, []);
 
   const attendanceRate = attendanceData?.trends?.length > 0
-    ? attendanceData.trends[attendanceData.trends.length - 1]?.attendanceRate || 0
+    ? Math.round(attendanceData.trends[attendanceData.trends.length - 1]?.attendanceRate || 0)
+    : 0;
+
+  const perfScore = performanceData?.length > 0
+    ? Math.round((Number(performanceData[performanceData.length - 1]?.avgRating) || 0) * 20)
+    : 0;
+
+  const prodScore = productivityData?.avgProductivityScore
+    ? Math.round(productivityData.avgProductivityScore)
+    : 0;
+
+  const skillCoverage = skillData?.coveragePercentage || 0;
+
+  const activeMetrics = [attendanceRate, perfScore, skillCoverage, prodScore].filter((m) => m > 0);
+  const healthScore = activeMetrics.length > 0
+    ? Math.round(activeMetrics.reduce((a, b) => a + b, 0) / activeMetrics.length)
     : 0;
 
   const kpiData: KPIItem[] = [
-    { id: "activeEmployees", title: "Team Members", value: workforceData?.totalEmployees || 0, trend: 2 },
-    { id: "attendanceRate", title: "Attendance", value: `${attendanceRate}%`, trend: 4 },
-    { id: "performanceScore", title: "Performance", value: performanceData?.length > 0 ? `${performanceData[performanceData.length - 1]?.avgRating} / 5` : "N/A", trend: 8 },
-    { id: "trainingCompletion", title: "Skills Coverage", value: `${skillData?.coveragePercentage || 0}%`, trend: 6 },
+    { id: "activeEmployees", title: "Team Members", value: workforceData?.totalEmployees || 0, trend: 0 },
+    { id: "attendanceRate", title: "Attendance", value: `${attendanceRate}%`, trend: 0 },
+    { id: "performanceScore", title: "Performance", value: performanceData?.length > 0 ? `${performanceData[performanceData.length - 1]?.avgRating} / 5` : "N/A", trend: 0 },
+    { id: "trainingCompletion", title: "Skills Coverage", value: `${skillCoverage}%`, trend: 0 },
   ];
 
   const quickData = {
     totalEmployees: workforceData?.totalEmployees || 0,
     presentToday: attendanceData?.trends?.length > 0 ? attendanceData.trends[attendanceData.trends.length - 1]?.present || 0 : 0,
-    pendingLeaves: 5,
-    performanceScore: 92,
+    pendingLeaves: pendingLeaves.length,
+    performanceScore: perfScore,
   };
 
   const riskData = workforceData?.riskDistribution?.map((r: any) => ({
@@ -109,10 +131,14 @@ const ManagerDashboard = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      style={{ maxWidth: '1440px', margin: '0 auto' }}
+      style={{ width: '100%', margin: 0 }}
     >
       <motion.div variants={itemVariants}>
-        <WelcomeBanner />
+        <WelcomeBanner
+          teamCount={workforceData?.totalEmployees || 0}
+          pendingLeavesCount={pendingLeaves.length}
+          healthScore={healthScore}
+        />
       </motion.div>
 
       <motion.div variants={itemVariants}>
@@ -122,11 +148,16 @@ const ManagerDashboard = () => {
       <motion.div variants={itemVariants}>
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 7 }}>
-            <ActionCenter />
+            <ActionCenter pendingLeavesCount={pendingLeaves.length} />
           </Grid>
 
           <Grid size={{ xs: 12, lg: 5 }}>
-            <TeamHealthCard />
+            <TeamHealthCard
+              attendanceRate={attendanceRate}
+              performanceScore={perfScore}
+              productivityScore={prodScore}
+              skillsCoverage={skillData?.coveragePercentage || 0}
+            />
           </Grid>
         </Grid>
       </motion.div>

@@ -53,7 +53,7 @@ const Performance = () => {
           attendance: emp.employmentStatus === "Active" ? "Present" : emp.employmentStatus || "Present",
           performance: perfLabel,
           performanceScore: perfScore,
-          productivity: typeof emp.productivity === "number" ? emp.productivity : (perfScore || 80),
+          productivity: typeof emp.productivity === "number" ? emp.productivity : perfScore,
           risk: emp.riskLevel || "Low",
         };
       });
@@ -99,7 +99,7 @@ const Performance = () => {
     { id: "performanceScore", title: "Average Productivity", value: `${averageProductivity}%`, trend: 0 },
     { id: "trainingCompletion", title: "Top Rating", value: topRating, trend: 0 },
     { id: "activeEmployees", title: "Team Members", value: rows.length.toString(), trend: 0 },
-    { id: "skillCoverage", title: "High Performers", value: `${highPerformersCount}`, trend: 5, subtitle: "Good or Excellent" },
+    { id: "skillCoverage", title: "High Performers", value: `${highPerformersCount}`, trend: 0, subtitle: "Good or Excellent" },
   ];
 
   const performanceCounts: Record<string, number> = {};

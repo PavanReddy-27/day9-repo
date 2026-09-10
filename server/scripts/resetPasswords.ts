@@ -38,7 +38,10 @@ async function main() {
 
   let total = 0;
   for (const [label, Model] of collections) {
-    const res = await Model.updateMany({}, { $set: { password: hash, isActive: true } });
+    const res = await Model.updateMany({}, { 
+      $set: { password: hash, isActive: true },
+      $unset: { lockUntil: 1, failedLoginAttempts: 1 }
+    });
     console.log(`[reset-pw] ${label.padEnd(10)} updated: ${res.modifiedCount}`);
     total += res.modifiedCount;
   }

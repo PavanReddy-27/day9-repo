@@ -93,7 +93,7 @@ const Attendance = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: "1440px", margin: "0 auto", display: "flex", flexDirection: "column", gap: 2.5, width: "100%" }}>
+    <Box sx={{ width: "100%", margin: 0, display: "flex", flexDirection: "column", gap: 2 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>

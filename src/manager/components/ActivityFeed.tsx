@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Avatar,
   Box,
@@ -9,61 +10,73 @@ import {
   ListItemText,
   Paper,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 
 import {
   AssignmentTurnedIn,
   EventAvailable,
-  EmojiEvents,
-  TrendingUp,
+  CheckCircle,
 } from "@mui/icons-material";
 
+import leaveApi, { LeaveRequestData } from "../../services/leaveApi";
 import "./ActivityFeed.css";
 
-const activities = [
-  {
-    id: 1,
-    name: "Rahul Sharma",
-    action: "Checked in successfully",
-    time: "5 mins ago",
-    avatar: "R",
-    icon: <EventAvailable color="success" />,
-    status: "Attendance",
-    color: "success" as const,
-  },
-  {
-    id: 2,
-    name: "Priya Patel",
-    action: "Submitted a leave request",
-    time: "18 mins ago",
-    avatar: "P",
-    icon: <AssignmentTurnedIn color="warning" />,
-    status: "Leave",
-    color: "warning" as const,
-  },
-  {
-    id: 3,
-    name: "Anil Kumar",
-    action: "Completed performance review",
-    time: "1 hour ago",
-    avatar: "A",
-    icon: <TrendingUp color="primary" />,
-    status: "Performance",
-    color: "primary" as const,
-  },
-  {
-    id: 4,
-    name: "Sneha Reddy",
-    action: "Received Employee of the Sprint",
-    time: "Today",
-    avatar: "S",
-    icon: <EmojiEvents sx={{ color: "var(--warning)" }} />,
-    status: "Achievement",
-    color: "secondary" as const,
-  },
-];
+interface ActivityItem {
+  id: string;
+  name: string;
+  action: string;
+  time: string;
+  avatar: string;
+  status: string;
+  color: "warning" | "success" | "info";
+  icon: React.ReactNode;
+}
 
 const ActivityFeed = () => {
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchActivities = async () => {
+      try {
+        const leaves = await leaveApi.getLeaves();
+        if (!isMounted || !Array.isArray(leaves)) return;
+
+        const items: ActivityItem[] = leaves.slice(0, 5).map((l: LeaveRequestData, idx) => {
+          const emp = l.employeeId;
+          const name = emp ? `${emp.firstName || ""} ${emp.lastName || ""}`.trim() || emp.employeeId || "Employee" : "Team Member";
+          const initials = name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() || "T";
+          const statusColor = l.status === "Approved" ? ("success" as const) : l.status === "Pending" ? ("warning" as const) : ("info" as const);
+          const dateStr = l.createdAt ? new Date(l.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "Recent";
+          const icon = l.status === "Approved" ? <CheckCircle fontSize="small" color="success" /> : l.status === "Pending" ? <AssignmentTurnedIn fontSize="small" color="warning" /> : <EventAvailable fontSize="small" color="info" />;
+
+          return {
+            id: l._id || String(idx),
+            name,
+            action: `${l.status === "Approved" ? "Approved" : "Submitted"} ${l.type} leave for ${l.startDate}`,
+            time: dateStr,
+            avatar: initials,
+            status: l.status || "Leave",
+            color: statusColor,
+            icon,
+          };
+        });
+
+        setActivities(items);
+      } catch (err) {
+        console.error("Failed to load real team activities:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchActivities();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   return (
     <Paper elevation={3} className="activity-feed">
       <Typography
@@ -82,9 +95,18 @@ const ActivityFeed = () => {
         Latest updates from your team members.
       </Typography>
 
-      <List disablePadding>
-        {activities.map((activity, index) => (
-          <Box key={activity.id}>
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress size={24} />
+        </Box>
+      ) : activities.length === 0 ? (
+        <Box sx={{ py: 3, textAlign: "center", color: "var(--text-light)" }}>
+          <Typography variant="body2">No recent team activities recorded.</Typography>
+        </Box>
+      ) : (
+        <List disablePadding>
+          {activities.map((activity, index) => (
+            <Box key={activity.id}>
             <ListItem className="activity-item">
               <ListItemAvatar>
                 <Avatar className="activity-avatar">
@@ -143,7 +165,8 @@ const ActivityFeed = () => {
             )}
           </Box>
         ))}
-      </List>
+        </List>
+      )}
     </Paper>
   );
 };
