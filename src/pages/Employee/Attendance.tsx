@@ -4,10 +4,10 @@ import { EventAvailable, CalendarMonth, ChevronLeft, ChevronRight } from "@mui/i
 import { attendanceApi } from "../../services/attendanceApi";
 import type { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
-import AttendanceTracker from "../../components/Attendance/AttendanceTracker";
-import AttendanceChart from "../../components/Attendance/AttendanceChart";
-import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
-import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import AttendanceTracker from "../../components/attendance/AttendanceTracker";
+import AttendanceChart from "../../components/attendance/AttendanceChart";
+import { AttendanceCalendar } from "../../components/attendance/AttendanceCalendar";
+import { SmartAttendanceTable } from "../../components/attendance/SmartAttendanceTable";
 import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const EmployeeAttendance = () => {

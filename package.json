@@ -30,6 +30,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && tsc --project server/tsconfig.json --noEmit",
+    "typecheck:frontend": "tsc --noEmit",
+    "typecheck:server": "tsc --project server/tsconfig.json --noEmit",
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",

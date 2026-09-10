@@ -267,6 +267,32 @@ class AuthApi {
     if (!res.ok) throw new Error("Failed to disable MFA");
     return true;
   }
+  async getSessions(): Promise<any[]> {
+    const token = this.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${this.ApiBase}/auth/sessions`, {
+      method: "GET",
+      credentials: "include",
+      headers,
+    });
+    if (!res.ok) throw new Error("Failed to fetch sessions");
+    const data = await res.json();
+    return data.data;
+  }
+
+  async revokeSession(id: string): Promise<boolean> {
+    const token = this.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${this.ApiBase}/auth/sessions/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers,
+    });
+    if (!res.ok) throw new Error("Failed to revoke session");
+    return true;
+  }
 }
 
 const authApi = new AuthApi();

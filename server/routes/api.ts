@@ -1,6 +1,7 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import { getDBHealth } from "../config/db.js";
-import { login, refresh, logout, verifyLoginMfa, generateMfaSetup, enableMfa, disableMfa } from "../controllers/authController.js";
+import { login, refresh, logout, verifyLoginMfa, generateMfaSetup, enableMfa, disableMfa, getSessions, revokeSession } from "../controllers/authController.js";
 import {
   getLocations,
   getDepartments,
@@ -69,14 +70,27 @@ router.get("/health", (req, res) => {
   });
 });
 
+// Authentication Rate Limiter
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: { success: false, message: 'Too many login attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Authentication Routes
-router.post("/auth/login", validateRequest(loginSchema), login);
+router.post("/auth/login", loginLimiter, validateRequest(loginSchema), login);
 router.post("/auth/login/mfa", verifyLoginMfa);
 router.post("/auth/refresh", validateRequest(refreshSchema), refresh);
 router.post("/auth/logout", authenticateJWT, logout);
 router.get("/auth/mfa/generate", authenticateJWT, generateMfaSetup);
 router.post("/auth/mfa/enable", authenticateJWT, enableMfa);
 router.post("/auth/mfa/disable", authenticateJWT, disableMfa);
+
+// Session Management Routes
+router.get("/auth/sessions", authenticateJWT, getSessions);
+router.delete("/auth/sessions/:id", authenticateJWT, revokeSession);
 
 // Protected Organization & Employee Routes
 router.get("/locations", authenticateJWT, validateDataScope, getLocations);

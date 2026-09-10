@@ -4,8 +4,8 @@ import { EventAvailable, Search, DownloadForOffline, CalendarMonth, CheckCircle,
 import { attendanceApi } from "../../services/attendanceApi";
 import { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
-import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
-import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import { AttendanceCalendar } from "../../components/attendance/AttendanceCalendar";
+import { SmartAttendanceTable } from "../../components/attendance/SmartAttendanceTable";
 import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const STATUS_BUTTONS = [
