@@ -18,7 +18,7 @@ export const chartConfig = {
     emptyMessage: "No workforce trend data is available for the selected filters.",
     errorMessage: "Unable to load workforce trend data.",
     retryLabel: "Retry",
-    height: 420,
+    height: 240,
     colors: {
       light: ["var(--primary)", "var(--success)", "var(--warning)", "var(--error)"],
       dark: ["var(--primary)", "var(--success)", "var(--warning)", "var(--error)"],
@@ -30,7 +30,7 @@ export const chartConfig = {
     emptyMessage: "No department data is available for the selected filters.",
     errorMessage: "Unable to load department distribution data.",
     retryLabel: "Retry",
-    height: 420,
+    height: 240,
     colors: {
       light: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "var(--primary)"],
       dark: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "var(--primary)"],
@@ -42,7 +42,7 @@ export const chartConfig = {
     emptyMessage: "No location data is available for the selected filters.",
     errorMessage: "Unable to load location distribution data.",
     retryLabel: "Retry",
-    height: 420,
+    height: 240,
     colors: {
       light: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "var(--primary)"],
       dark: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "var(--primary)"],
@@ -54,7 +54,7 @@ export const chartConfig = {
     emptyMessage: "No role distribution data is available for the selected filters.",
     errorMessage: "Unable to load role distribution data.",
     retryLabel: "Retry",
-    height: 420,
+    height: 240,
     colors: {
       light: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "var(--primary)"],
       dark: ["var(--info)", "var(--success)", "var(--warning)", "var(--secondary)", "var(--error)", "var(--primary)"],
@@ -66,7 +66,7 @@ export const chartConfig = {
     emptyMessage: "No status distribution data is available for the selected filters.",
     errorMessage: "Unable to load employee status data.",
     retryLabel: "Retry",
-    height: 420,
+    height: 240,
     colors: {
       light: ["var(--success)", "var(--warning)", "var(--error)", "var(--primary)"],
       dark: ["var(--success)", "var(--warning)", "var(--error)", "var(--primary)"],
@@ -78,7 +78,7 @@ export const chartConfig = {
     emptyMessage: "No risk distribution data is available for the selected filters.",
     errorMessage: "Unable to load risk distribution data.",
     retryLabel: "Retry",
-    height: 420,
+    height: 240,
     colors: {
       light: ["var(--success)", "var(--warning)", "var(--error)", "var(--secondary)"],
       dark: ["var(--success)", "var(--warning)", "var(--error)", "var(--secondary)"],

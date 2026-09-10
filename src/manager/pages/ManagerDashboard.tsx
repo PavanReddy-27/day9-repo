@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Grid } from "@mui/material";
+import { Grid } from "@mui/material";
 import { motion, Variants } from "framer-motion";
 
 import WelcomeBanner from "../components/WelcomeBanner";
@@ -109,22 +109,18 @@ const ManagerDashboard = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      style={{ padding: '24px', maxWidth: '1440px', margin: '0 auto' }}
+      style={{ maxWidth: '1440px', margin: '0 auto' }}
     >
       <motion.div variants={itemVariants}>
         <WelcomeBanner />
       </motion.div>
 
-      <motion.div variants={itemVariants} className="dashboard-section" style={{ marginTop: '24px', marginBottom: '24px' }}>
-        <KPICards data={kpiData}>
-           <Grid size={{ xs: 12, lg: 6, xl: 6 }}>
-              <QuickOverview data={quickData} onViewReport={() => navigate('/manager/analytics')} />
-           </Grid>
-        </KPICards>
+      <motion.div variants={itemVariants}>
+        <KPICards data={kpiData} />
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <Grid container spacing={3} className="dashboard-grid">
+        <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 7 }}>
             <ActionCenter />
           </Grid>
@@ -136,76 +132,72 @@ const ManagerDashboard = () => {
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <Grid container spacing={3} className="dashboard-grid" sx={{ mt: 3 }}>
+        <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 6 }}>
-            <Box sx={{ height: 400 }}>
-              <LineChart
-                title="Team Performance Trends"
-                data={performanceData}
-                xAxisKey="month"
-                series={[{ dataKey: "avgRating", name: "Avg Rating", color: "var(--primary)" }]}
-                loading={loading}
-                error={error || undefined}
-                onRefresh={loadAnalytics}
-              />
-            </Box>
+            <LineChart
+              title="Team Performance Trends"
+              data={performanceData}
+              xAxisKey="month"
+              series={[{ dataKey: "avgRating", name: "Avg Rating", color: "var(--primary)" }]}
+              loading={loading}
+              error={error || undefined}
+              onRefresh={loadAnalytics}
+            />
           </Grid>
 
           <Grid size={{ xs: 12, lg: 6 }}>
-            <Box sx={{ height: 400 }}>
-              <PieChart
-                title="Employment Status"
-                data={statusData}
-                loading={loading}
-                error={error || undefined}
-                onRefresh={loadAnalytics}
-              />
-            </Box>
+            <PieChart
+              title="Employment Status"
+              data={statusData}
+              loading={loading}
+              error={error || undefined}
+              onRefresh={loadAnalytics}
+            />
           </Grid>
         </Grid>
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <Grid container spacing={3} className="dashboard-grid" sx={{ mt: 3 }}>
+        <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, lg: 6 }}>
-            <Box sx={{ height: 400 }}>
-              <DonutChart
-                title="Team Risk Distribution"
-                data={riskData}
-                loading={loading}
-                error={error || undefined}
-                onRefresh={loadAnalytics}
-                centerLabel="Risk Levels"
-              />
-            </Box>
+            <DonutChart
+              title="Team Risk Distribution"
+              data={riskData}
+              loading={loading}
+              error={error || undefined}
+              onRefresh={loadAnalytics}
+              centerLabel="Risk Levels"
+            />
           </Grid>
 
           <Grid size={{ xs: 12, lg: 6 }}>
-            <Box sx={{ height: 400 }}>
-              <BarChart
-                title="Team Skills"
-                data={skillsChartData}
-                xAxisKey="name"
-                series={[{ dataKey: "value", name: "Employees with Skill", color: "var(--secondary)" }]}
-                loading={loading}
-                error={error || undefined}
-                onRefresh={loadAnalytics}
-              />
-            </Box>
+            <BarChart
+              title="Team Skills"
+              data={skillsChartData}
+              xAxisKey="name"
+              series={[{ dataKey: "value", name: "Employees with Skill", color: "var(--secondary)" }]}
+              loading={loading}
+              error={error || undefined}
+              onRefresh={loadAnalytics}
+            />
           </Grid>
         </Grid>
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <Grid container spacing={3} className="dashboard-grid" sx={{ mt: 3 }}>
-          <Grid size={{ xs: 12, lg: 7 }}>
-            <ActivityFeed />
+        <Grid container spacing={2.5}>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <QuickOverview data={quickData} onViewReport={() => navigate('/manager/analytics')} />
           </Grid>
 
-          <Grid size={{ xs: 12, lg: 5 }}>
+          <Grid size={{ xs: 12, lg: 6 }}>
             <TopPerformers />
           </Grid>
         </Grid>
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <ActivityFeed />
       </motion.div>
     </motion.div>
   );

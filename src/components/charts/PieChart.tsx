@@ -37,7 +37,7 @@ export default function PieChart({
   data,
   loading,
   error,
-  height = 360,
+  height = 290,
   emptyMessage = "No data available.",
   badgeText,
   onRefresh,
@@ -65,15 +65,15 @@ export default function PieChart({
       onRefresh={onRefresh}
       testId={testId}
     >
-      <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 60 : 320}>
-        <RechartsPieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+      <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 30 : 260}>
+        <RechartsPieChart margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
           <Pie
             data={data}
             dataKey="value"
             nameKey="name"
             cx="50%"
-            cy="50%"
-            outerRadius={100}
+            cy="45%"
+            outerRadius={80}
             fill="var(--primary)"
             label={({ cx, x, y, percent }) => (
               <text x={x} y={y} fill={isDark ? "var(--surface-solid)" : "var(--text-h)"} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" style={{ fontSize: '12px', fontWeight: 600, fontFamily: 'Inter' }}>
@@ -97,7 +97,7 @@ export default function PieChart({
             }}
             itemStyle={{ color: isDark ? "var(--surface-solid)" : "var(--text-h)", fontWeight: 600 }}
           />
-          <Legend wrapperStyle={{ paddingTop: "20px", fontSize: "14px", fontFamily: 'Inter' }} />
+          <Legend wrapperStyle={{ paddingTop: "6px", fontSize: "13px", fontFamily: 'Inter' }} />
         </RechartsPieChart>
       </ResponsiveContainer>
     </ChartContainer>

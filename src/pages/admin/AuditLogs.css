@@ -1,42 +1,42 @@
 .admin-audit-page {
-  padding: 26px 28px 32px;
+  padding: 0;
   min-height: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
   display: grid;
-  gap: 24px;
-  background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
+  gap: 18px;
+  background: transparent;
 }
 
 .audit-header {
   display: grid;
-  gap: 10px;
-  padding: 24px 26px;
-  border-radius: 28px;
+  gap: 6px;
+  padding: 18px 22px;
+  border-radius: 14px;
   background: var(--surface);
   border: 1px solid rgba(99, 102, 241, 0.16);
-  box-shadow: 0 24px 65px rgba(79, 70, 229, 0.08);
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.05);
 }
 
 .audit-header h1 {
   margin: 0;
-  font-size: 34px;
+  font-size: 24px;
+  font-weight: 700;
   color: var(--text);
 }
 
 .audit-description {
-  margin: 10px 0 0;
+  margin: 4px 0 0;
   color: var(--text-light);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 14px;
+  line-height: 1.5;
   max-width: 680px;
 }
 
 .audit-table-wrapper {
   background: var(--surface);
-  border-radius: 26px;
+  border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
   overflow: hidden;
 }
 

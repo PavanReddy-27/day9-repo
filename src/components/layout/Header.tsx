@@ -103,15 +103,14 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
         >
           <FiMenu />
         </button>
-      </div>
-
-      {/* Right */}
-      <div className="header-right">
         <div className="search-box">
           <FiSearch className="search-icon" />
           <input type="text" placeholder="Search..." />
         </div>
+      </div>
 
+      {/* Right */}
+      <div className="header-right">
         <ThemeToggle />
 
         {/* Notifications */}

@@ -1,8 +1,8 @@
 .welcome-banner {
-  padding: 2.5rem;
-  border-radius: 24px !important;
+  padding: 1.5rem 2rem;
+  border-radius: 20px !important;
   background: linear-gradient(135deg, var(--surface) 0%, #f8fafc 100%) !important;
-  box-shadow: 0 10px 40px -10px rgba(59, 105, 120, 0.08) !important;
+  box-shadow: 0 8px 30px -10px rgba(59, 105, 120, 0.08) !important;
   border: 1px solid rgba(59, 105, 120, 0.08);
   color: var(--text-h);
   overflow: hidden;
@@ -47,22 +47,22 @@
 .welcome-title {
   font-weight: 800 !important;
   color: var(--primary);
-  font-size: 2.2rem !important;
+  font-size: 1.8rem !important;
   letter-spacing: -0.5px;
 }
 
 .welcome-subtitle {
-  margin-top: 8px !important;
+  margin-top: 4px !important;
   font-weight: 600 !important;
-  font-size: 1.1rem !important;
+  font-size: 1rem !important;
   color: var(--text-h);
 }
 
 .welcome-description {
-  margin-top: 16px !important;
+  margin-top: 10px !important;
   max-width: 650px;
-  line-height: 1.6;
-  font-size: 0.95rem;
+  line-height: 1.5;
+  font-size: 0.9rem;
   color: var(--text-light);
 }
 
@@ -71,20 +71,21 @@
 .welcome-chip-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .welcome-chip {
   margin: 0 !important;
-  height: 34px !important;
-  border-radius: 12px !important;
+  height: 30px !important;
+  border-radius: 10px !important;
   font-weight: 600 !important;
+  font-size: 12px !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .welcome-chip .MuiChip-label {
-  padding: 0 16px;
+  padding: 0 12px;
   color: var(--surface) !important;
 }
 
@@ -100,7 +101,7 @@
 /* ---------- Buttons ---------- */
 
 .welcome-buttons {
-  margin-top: 32px !important;
+  margin-top: 18px !important;
 }
 
 .btn-primary {
@@ -108,8 +109,8 @@
   color: var(--surface) !important;
   font-weight: 600 !important;
   text-transform: none !important;
-  border-radius: 12px !important;
-  padding: 10px 24px !important;
+  border-radius: 10px !important;
+  padding: 8px 18px !important;
   box-shadow: 0 4px 14px rgba(59, 105, 120, 0.25) !important;
   transition: all 0.2s ease !important;
 }
@@ -126,8 +127,8 @@
   background: var(--surface) !important;
   font-weight: 600 !important;
   text-transform: none !important;
-  border-radius: 12px !important;
-  padding: 10px 24px !important;
+  border-radius: 10px !important;
+  padding: 8px 18px !important;
   transition: all 0.2s ease !important;
 }
 
@@ -140,38 +141,38 @@
 /* ---------- Profile ---------- */
 
 .welcome-profile {
-  min-width: 260px;
+  min-width: 220px;
   text-align: center;
-  padding: 24px;
+  padding: 16px 20px;
   background: rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
   backdrop-filter: blur(10px);
 }
 
 .manager-avatar {
-  width: 80px !important;
-  height: 80px !important;
-  margin: 0 auto 16px !important;
+  width: 60px !important;
+  height: 60px !important;
+  margin: 0 auto 10px !important;
   background: linear-gradient(135deg, var(--primary), var(--info)) !important;
   color: var(--surface) !important;
-  font-size: 28px !important;
+  font-size: 22px !important;
   font-weight: 700 !important;
-  box-shadow: 0 8px 24px rgba(59, 105, 120, 0.3) !important;
-  border: 3px solid var(--surface);
+  box-shadow: 0 6px 18px rgba(59, 105, 120, 0.25) !important;
+  border: 2px solid var(--surface);
 }
 
 .manager-role {
-  margin-top: 4px;
+  margin-top: 2px;
   font-weight: 500;
   color: var(--primary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .login-title {
-  margin-top: 20px !important;
-  font-size: 0.8rem !important;
+  margin-top: 12px !important;
+  font-size: 0.75rem !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-light);

@@ -5,7 +5,7 @@
   margin-bottom: 24px;
 }
 
-.kpi-cards > .MuiGrid-root {
+.kpi-cards>.MuiGrid-root {
   animation: kpiCardFade .4s ease;
 }
 

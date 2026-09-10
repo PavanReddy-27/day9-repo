@@ -60,14 +60,14 @@ export const HRDashboard: React.FC = () => {
     : employees.filter(e => e.role === 'Employee').length;
 
   return (
-    <div style={{ padding: '32px', backgroundColor: 'var(--bg)', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+    <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Banner */}
-      <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ color: 'var(--text-h)', margin: 0, fontSize: '28px', fontWeight: 'bold' }}>
             HR Management Overview
           </h1>
-          <p style={{ color: 'var(--text-light)', margin: '6px 0 0', fontSize: '15px' }}>
+          <p style={{ color: 'var(--text-light)', margin: '4px 0 0', fontSize: '14px' }}>
             Monitor key workforce metrics, active recruitment, and pending employee requests in real time from MongoDB.
           </p>
         </div>

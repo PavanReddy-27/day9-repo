@@ -1,6 +1,6 @@
 .theme-toggle {
-    width: 65px;
-    height: 34px;
+    width: 56px;
+    height: 30px;
     border: none;
     border-radius: 50px;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -9,13 +9,13 @@
     transition: .35s;
     display: flex;
     align-items: center;
-    padding: 4px;
-    box-shadow: 0 8px 20px rgba(99, 102, 241, .35);
+    padding: 3px;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, .2);
   }
   
   .toggle-thumb {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: white;
     display: flex;
@@ -26,7 +26,7 @@
   }
   
   .theme-toggle.dark .toggle-thumb {
-    transform: translateX(30px);
+    transform: translateX(26px);
   }
   
   .theme-toggle:hover {

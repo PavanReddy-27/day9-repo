@@ -16,9 +16,6 @@ const DashboardPage = () => {
   return (
     <div
       style={{
-        padding: "24px 0",
-        background: "var(--bg)",
-        minHeight: "100vh",
         width: "100%",
       }}
     >

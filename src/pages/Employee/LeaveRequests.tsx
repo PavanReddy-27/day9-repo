@@ -120,13 +120,13 @@ const EmployeeLeaveRequests = () => {
   ];
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+    <Box sx={{ p: 0, display: "flex", flexDirection: "column" }}>
+      <Box sx={{ mb: 2.5, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> My Leave Requests
+          <Typography variant="h5" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+            <EventAvailable fontSize="medium" sx={{ color: "var(--primary)" }} /> My Leave Requests
           </Typography>
-          <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+          <Typography variant="body2" sx={{ color: "var(--text-light)", mt: 0.5 }}>
             Apply for leave, track your requests, and monitor your time off.
           </Typography>
         </Box>

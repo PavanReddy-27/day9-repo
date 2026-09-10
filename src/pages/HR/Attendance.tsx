@@ -92,13 +92,14 @@ const Attendance = () => {
     a.click();
   };
 
-  return (    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
+  return (
+    <Box sx={{ maxWidth: "1440px", margin: "0 auto", display: "flex", flexDirection: "column", gap: 2.5, width: "100%" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
             <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> Global Attendance
           </Typography>
-          <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+          <Typography sx={{ color: "var(--text-light)", mt: 0.5, fontSize: "14px" }}>
             Monitor daily check-ins, tardiness, absence trends, and manage corrections across all departments.
           </Typography>
         </Box>
@@ -110,7 +111,7 @@ const Attendance = () => {
       </Box>
 
       {/* Interactive Summary KPI Cards */}
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 2, mb: 4 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 2 }}>
         {STATUS_BUTTONS.map((item) => {
           const Icon = item.icon;
           const isSelected = statusFilter === item.id;

@@ -75,7 +75,7 @@ const HRAnalytics = () => {
 
   if (loading) {
     return (
-      <Box sx={{ p: { xs: 2, md: 4 }, display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "350px" }}>
         <CircularProgress />
       </Box>
     );
@@ -83,7 +83,7 @@ const HRAnalytics = () => {
 
   if (error || !workforceData) {
     return (
-      <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
+      <Box sx={{ p: 0 }}>
         <Alert severity="error" action={
           <Button color="inherit" size="small" onClick={fetchData}>
             Retry
@@ -145,18 +145,18 @@ const HRAnalytics = () => {
   }));
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-          <AnalyticsIcon fontSize="large" sx={{ color: "var(--primary)" }} /> HR Analytics
+    <Box sx={{ p: 0 }}>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="h5" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+          <AnalyticsIcon fontSize="medium" sx={{ color: "var(--primary)" }} /> HR Analytics
         </Typography>
-        <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+        <Typography variant="body2" sx={{ color: "var(--text-light)", mt: 0.5 }}>
           Live organization-wide workforce metrics, hiring trends, and engagement insights from MongoDB.
         </Typography>
       </Box>
 
       {/* KPI Cards */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 2.5 }}>
         <KPICards data={kpiData} />
       </Box>
 

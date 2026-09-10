@@ -46,7 +46,7 @@ export default function LineChart({
   series,
   loading,
   error,
-  height = 360,
+  height = 290,
   emptyMessage = "No data available.",
   badgeText,
   onRefresh,
@@ -73,10 +73,10 @@ export default function LineChart({
       onRefresh={onRefresh}
       testId={testId}
     >
-      <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 60 : 320}>
+      <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 30 : 260}>
         <RechartsLineChart
           data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: 20, left: -10, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
           <XAxis

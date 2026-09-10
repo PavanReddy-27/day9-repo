@@ -36,7 +36,11 @@ export const useSSE = () => {
     eventSource.addEventListener("NOTIFICATION_UPDATE", (event) => {
       console.log("Received Notification SSE Event:", event.data);
       let payload;
-      try { payload = JSON.parse(event.data); } catch (e) {}
+      try {
+        payload = JSON.parse(event.data);
+      } catch {
+        payload = event.data;
+      }
       window.dispatchEvent(new CustomEvent("notification_updated", { detail: payload }));
     });
 
