@@ -51,7 +51,16 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
     const handleUpdate = () => fetchNotifications();
     window.addEventListener("notification_updated", handleUpdate);
     return () => window.removeEventListener("notification_updated", handleUpdate);
-  }, []);
+  }, [user?.id, user?.email]);
+
+  const handleGenerateAlert = async () => {
+    try {
+      await notificationApi.generateNotification();
+      fetchNotifications();
+    } catch (err) {
+      console.error("Failed to generate alert", err);
+    }
+  };
 
   // Click outside to close notification popup
   useEffect(() => {
@@ -130,7 +139,26 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
           {showNotifications && (
             <div className="notification-popup">
               <div className="notification-header">
-                <h4>Notifications</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h4>Notifications</h4>
+                  <button 
+                    className="generate-alert-btn" 
+                    onClick={handleGenerateAlert}
+                    title="Generate a new personalized notification for your role"
+                    style={{
+                      fontSize: '11px',
+                      padding: '2px 8px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border)',
+                      background: 'var(--hover)',
+                      color: 'var(--primary)',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                  >
+                    + Test Alert
+                  </button>
+                </div>
                 {unreadCount > 0 && (
                   <button 
                     className="mark-all-read" 
@@ -155,7 +183,20 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
                       onClick={() => handleNotificationClick(notif)}
                     >
                       <div className="notification-content">
-                        <strong>{notif.title}</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                          <span style={{
+                            fontSize: '9px',
+                            fontWeight: 700,
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            textTransform: 'uppercase',
+                            background: notif.type === 'ALERT' ? 'rgba(239, 68, 68, 0.15)' : notif.type === 'WARNING' ? 'rgba(245, 158, 11, 0.15)' : notif.type === 'SUCCESS' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                            color: notif.type === 'ALERT' ? '#ef4444' : notif.type === 'WARNING' ? '#f59e0b' : notif.type === 'SUCCESS' ? '#10b981' : '#3b82f6',
+                          }}>
+                            {notif.type}
+                          </span>
+                          <strong>{notif.title}</strong>
+                        </div>
                         <p>{notif.message}</p>
                         <span className="notification-time">
                           {new Date(notif.createdAt).toLocaleDateString()} {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
