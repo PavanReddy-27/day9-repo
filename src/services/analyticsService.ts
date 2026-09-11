@@ -82,6 +82,8 @@ export const getSkillsAnalytics = async (): Promise<SkillsAnalyticsResponse> => 
   return await apiClient("/analytics/skills", { method: "GET" });
 };
 
+export const getSkillAnalytics = getSkillsAnalytics;
+
 export const getPerformanceAnalytics = async (): Promise<PerformanceAnalyticsResponse[]> => {
   return await apiClient("/analytics/performance", { method: "GET" });
 };

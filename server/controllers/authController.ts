@@ -45,14 +45,21 @@ const findUserByEmail = async (rawEmail: string) => {
 
   const domainVariants = [clean];
   if (clean.includes("@company.com")) {
+    domainVariants.push(clean.replace("@company.com", "@gmail.com"));
     domainVariants.push(clean.replace("@company.com", "@thestackly.com"));
     domainVariants.push(clean.replace("@company.com", "@stackly.com"));
   } else if (clean.includes("@stackly.com")) {
+    domainVariants.push(clean.replace("@stackly.com", "@gmail.com"));
     domainVariants.push(clean.replace("@stackly.com", "@thestackly.com"));
     domainVariants.push(clean.replace("@stackly.com", "@company.com"));
   } else if (clean.includes("@thestackly.com")) {
+    domainVariants.push(clean.replace("@thestackly.com", "@gmail.com"));
     domainVariants.push(clean.replace("@thestackly.com", "@company.com"));
     domainVariants.push(clean.replace("@thestackly.com", "@stackly.com"));
+  } else if (clean.includes("@gmail.com")) {
+    domainVariants.push(clean.replace("@gmail.com", "@thestackly.com"));
+    domainVariants.push(clean.replace("@gmail.com", "@company.com"));
+    domainVariants.push(clean.replace("@gmail.com", "@stackly.com"));
   }
 
   for (const email of domainVariants) {

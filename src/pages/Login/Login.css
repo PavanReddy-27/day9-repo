@@ -99,8 +99,9 @@ body {
 .login-glass-card {
   display: flex;
   width: 100%;
-  max-width: 860px;
-  max-height: min(580px, calc(100vh - 32px));
+  max-width: 980px;
+  height: min(730px, calc(100vh - 40px));
+  max-height: min(730px, calc(100vh - 40px));
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -119,11 +120,11 @@ body {
 }
 
 .login-left {
-  flex: 1.1;
+  flex: 1.15;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 32px 36px;
+  padding: 44px 48px;
   color: var(--text-h);
   position: relative;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
@@ -136,7 +137,7 @@ body {
 }
 
 .login-logo img {
-  height: 36px;
+  height: 42px;
   width: auto;
   filter: brightness(0) invert(1);
 }
@@ -150,43 +151,43 @@ body {
 }
 
 .login-overline {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: white;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: inline-block;
 }
 
 .login-heading {
-  font-size: 20px;
+  font-size: 26px;
   line-height: 1.35;
   font-weight: 700;
-  letter-spacing: 0;
-  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+  margin-bottom: 12px;
 }
 
 .login-description {
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 14.5px;
+  line-height: 1.55;
   opacity: 0.85;
   font-weight: 400;
-  max-width: 380px;
+  max-width: 400px;
 }
 
 .login-footer-note {
   display: flex;
   align-items: center;
   gap: 12px;
-  opacity: 0.7;
-  font-size: 13px;
+  opacity: 0.75;
+  font-size: 13.5px;
   font-weight: 500;
 }
 
 /* ===========================
    Right Form Panel
-=========================== */
+========================== */
 
 .login-right {
   flex: 1;
@@ -194,7 +195,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 24px 32px;
+  padding: 36px 44px;
   position: relative;
   background: rgba(255, 255, 255, 0.6);
 }
@@ -205,17 +206,17 @@ body {
 
 .login-form-wrapper {
   width: 100%;
-  max-width: 350px;
+  max-width: 380px;
 }
 
 .form-header {
-  margin-bottom: 14px;
+  margin-bottom: 18px;
   text-align: center;
 }
 
 .lock-icon-container {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   display: flex;
@@ -227,7 +228,7 @@ body {
 }
 
 .form-overline {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -236,7 +237,7 @@ body {
 }
 
 .form-heading {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
   color: var(--text-h);
   letter-spacing: -0.5px;
@@ -244,15 +245,15 @@ body {
 }
 
 .form-subtitle {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text-light);
 }
 
 .login-footer {
-  margin-top: 14px;
+  margin-top: 18px;
   text-align: center;
   color: var(--text-light);
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
 /* Input Fields Styling overrides */

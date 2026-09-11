@@ -120,12 +120,10 @@ const seedDB = async () => {
         const gender = faker.helpers.arrayElement(['Male', 'Female', 'Other']);
 
         let empIdStr = `EMP${String(employeeCounter++).padStart(4, '0')}`;
-        let email = faker.internet.email({ firstName, lastName, provider: 'thestackly.com' }).toLowerCase();
         let role = 'Employee';
 
         if (devIndex < roles.length) {
           role = roles[devIndex];
-          email = `${role.toLowerCase().replace(' ', '')}@thestackly.com`;
           empIdStr = `DEV_${role.toUpperCase().replace(' ', '_')}`;
           firstName = 'Dev';
           lastName = role;
@@ -136,6 +134,10 @@ const seedDB = async () => {
           else if (adminCount < rolesTarget.Admin) role = 'Admin';
           else role = 'Employee';
         }
+
+        const roleKey = role.toLowerCase().replace(' ', '');
+        const roleOrderCount = role === 'Admin' ? adminCount : role === 'Manager' ? managerCount : role === 'HR' ? hrCount : empCount;
+        const email = roleOrderCount === 0 ? `${roleKey}@thestackly.com` : `${roleKey}${roleOrderCount}@thestackly.com`;
 
         if (role === 'Admin') adminCount++;
         else if (role === 'Manager') managerCount++;

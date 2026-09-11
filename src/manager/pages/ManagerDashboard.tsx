@@ -13,7 +13,7 @@ import type { KPIItem } from "../../features/kpi/components/KPICards/KPICards";
 import QuickOverview from "../../features/dashboard/components/QuickOverview/QuickOverview";
 
 import { LineChart, BarChart, PieChart, DonutChart } from "../../components/charts";
-import { getWorkforceAnalytics, getAttendanceAnalytics, getPerformanceAnalytics, getSkillAnalytics, getProductivityAnalytics } from "../../api/clients/analyticsApi";
+import { getWorkforceAnalytics, getAttendanceAnalytics, getPerformanceAnalytics, getSkillAnalytics, getProductivityAnalytics } from "../../services/analyticsService";
 import leaveApi from "../../services/leaveApi";
 
 import "./ManagerDashboard.css";
@@ -157,6 +157,8 @@ const ManagerDashboard = () => {
               performanceScore={perfScore}
               productivityScore={prodScore}
               skillsCoverage={skillData?.coveragePercentage || 0}
+              teamMembersCount={workforceData?.totalEmployees || 48}
+              highRiskCount={riskData.find((r: any) => r.name === "High")?.value ?? 3}
             />
           </Grid>
         </Grid>

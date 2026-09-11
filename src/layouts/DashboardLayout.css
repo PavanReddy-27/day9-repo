@@ -30,16 +30,7 @@
     margin-left: 90px;
 }
 
-/* ==============================
-   HEADER
-============================== */
 
-.dashboard-header {
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    z-index: 500;
-}
 
 /* ==============================
    BODY

@@ -250,14 +250,21 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
   };
 
   const devAccountsConfig = [
-    { role: "Admin", email: "admin@thestackly.com", empId: "EMP-001", firstName: "System", lastName: "Admin", locCode: "HYD", deptIndex: 0 },
-    { role: "HR", email: "hr@thestackly.com", empId: "EMP-002", firstName: "David", lastName: "Miller", locCode: "HYD", deptIndex: 1 },
-    { role: "Manager", email: "manager@thestackly.com", empId: "EMP-003", firstName: "Robert", lastName: "King", locCode: "HYD", deptIndex: 0 },
+    { role: "Admin", email: "admin@thestackly.com", empId: "EMP-001", firstName: "Suman", lastName: "", locCode: "HYD", deptIndex: 0 },
+    { role: "HR", email: "hr@thestackly.com", empId: "EMP-002", firstName: "Ravi", lastName: "", locCode: "HYD", deptIndex: 1 },
+    { role: "Manager", email: "manager@thestackly.com", empId: "EMP-003", firstName: "Sridhika", lastName: "", locCode: "HYD", deptIndex: 0 },
     { role: "Employee", email: "employee@thestackly.com", empId: "EMP-004", firstName: "Pavan", lastName: "Reddy", locCode: "HYD", deptIndex: 0 },
   ];
 
   const createdEmployees = [];
   let globalEmpIndex = 1;
+
+  const roleCounters: Record<string, number> = {
+    Admin: 0,
+    HR: 0,
+    Manager: 0,
+    Employee: 0,
+  };
 
   for (const locDef of LOCATION_DEFS) {
     const loc = locationDocs[locDef.code];
@@ -270,13 +277,11 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
       const devCfg = devAccountsConfig.find((d) => d.empId === empIdStr);
 
       let role = "Employee";
-      let email = `employee${empIdNumber}@thestackly.com`;
       let firstName = prng.choice(FIRST_NAMES);
       let lastName = prng.choice(LAST_NAMES);
 
       if (devCfg) {
         role = devCfg.role;
-        email = devCfg.email;
         firstName = devCfg.firstName;
         lastName = devCfg.lastName;
       } else if (empIdNumber === 5) {
@@ -284,6 +289,13 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
       } else if (empIdNumber > 5 && empIdNumber <= 14) {
         role = "HR"; // 9 additional HRs
       }
+
+      const count = roleCounters[role] || 0;
+      roleCounters[role] = count + 1;
+
+      const email = count === 0
+        ? `${role.toLowerCase()}@thestackly.com`
+        : `${role.toLowerCase()}${count}@thestackly.com`;
 
       const passStr = devAccountsConfig.some(d => d.email === email)
         ? devAccountPasswords[role]
@@ -323,7 +335,7 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
         email: email.toLowerCase(),
         firstName,
         lastName,
-        fullName: `${firstName} ${lastName}`,
+        fullName: `${firstName} ${lastName}`.trim(),
         locationId: loc._id,
         locationCode: loc.code,
         departmentId: assignedDept._id,

@@ -320,7 +320,7 @@ const LoginForm = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: 1.5,
+        gap: 1.8,
       }}
     >
       <Box className="form-header">
@@ -344,12 +344,12 @@ const LoginForm = () => {
       )}
 
       {/* Demo Credentials Pill Bar */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mb: 0.5 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.6, mb: 0.5 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography
             variant="caption"
             sx={{
-              fontSize: "0.68rem",
+              fontSize: "0.72rem",
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.06em",
@@ -358,7 +358,7 @@ const LoginForm = () => {
           >
             Demo Credentials
           </Typography>
-          <Typography variant="caption" sx={{ fontSize: "0.68rem", color: "var(--text-light)" }}>
+          <Typography variant="caption" sx={{ fontSize: "0.72rem", color: "var(--text-light)" }}>
             Click role to auto-fill
           </Typography>
         </Box>
@@ -371,10 +371,10 @@ const LoginForm = () => {
               variant={selectedDemoRole === acc.role ? "contained" : "outlined"}
               onClick={() => handleFillDemo(acc)}
               sx={{
-                py: 0.35,
-                px: 0.5,
+                py: 0.5,
+                px: 0.6,
                 minWidth: 0,
-                fontSize: "0.72rem",
+                fontSize: "0.78rem",
                 fontWeight: 600,
                 textTransform: "none",
                 borderRadius: "8px",
@@ -485,11 +485,11 @@ const LoginForm = () => {
         fullWidth
         disabled={isLoading}
         sx={{
-          py: 1.1,
+          py: 1.3,
           fontWeight: 600,
-          fontSize: 15,
+          fontSize: 16,
           textTransform: "none",
-          borderRadius: 2,
+          borderRadius: "12px",
           background: "linear-gradient(135deg, rgba(59, 105, 120, 0.9) 0%, rgba(36, 70, 82, 1) 100%)",
           boxShadow: "0 8px 16px rgba(59, 105, 120, 0.2)",
           "&:hover": {

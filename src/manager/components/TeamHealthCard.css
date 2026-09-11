@@ -1,95 +1,239 @@
+/* ==========================================
+   TEAM HEALTH CARD COMPONENT STYLES
+========================================== */
+
 .team-health-card {
-  padding: 18px 20px;
-  border-radius: 14px !important;
+  padding: 24px;
+  border-radius: 16px !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  box-sizing: border-box;
 }
 
+.team-health-card:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Header */
 .health-header {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.health-header-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.05) 100%);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  flex-shrink: 0;
 }
 
 .health-title {
   font-weight: 700 !important;
   font-size: 1.05rem !important;
+  color: var(--text-h);
+  line-height: 1.25 !important;
 }
 
-.health-score {
-  text-align: center;
-  margin-bottom: 18px;
+.health-subtitle {
+  color: var(--text-light) !important;
+  font-size: 0.75rem !important;
+  display: block;
 }
 
-.health-icon {
-  font-size: 44px !important;
-  color: var(--error);
+.health-status-chip {
+  font-weight: 700 !important;
+  font-size: 0.72rem !important;
+  border-radius: 8px !important;
+  padding: 0 4px !important;
+}
+
+/* Primary Score Banner */
+.health-score-container {
+  margin: 0 0 18px 0;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(16, 185, 129, 0.06) 100%);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.health-score-overline {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--text-light);
+  font-size: 0.7rem;
+  display: block;
   margin-bottom: 4px;
 }
 
 .health-percentage {
-  font-weight: 700 !important;
-  font-size: 2rem !important;
+  font-weight: 800 !important;
+  color: var(--text-h);
+  font-size: 2.3rem !important;
+  line-height: 1 !important;
+  letter-spacing: -0.03em;
+}
+
+.health-score-tag {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+}
+
+.health-score-tag.positive {
+  color: var(--success, #10b981);
+}
+
+.health-score-tag.warning {
+  color: var(--warning, #f59e0b);
+}
+
+.health-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.health-badge.badge-success {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success, #10b981);
+  border: 2px solid rgba(16, 185, 129, 0.25);
+}
+
+.health-badge.badge-primary {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--primary, #3b82f6);
+  border: 2px solid rgba(59, 130, 246, 0.25);
+}
+
+/* Metrics Progress Bars */
+.health-metrics-list {
+  margin-bottom: 18px;
+}
+
+.metric-item {
+  width: 100%;
 }
 
 .metric-header {
   margin-bottom: 6px;
 }
 
-.health-progress {
-  height: 7px !important;
-  border-radius: 6px !important;
-  background: var(--border) !important;
+.metric-title {
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  color: var(--text);
 }
 
-.health-progress .MuiLinearProgress-bar {
+.metric-value {
+  font-weight: 700 !important;
+  font-size: 0.82rem !important;
+  color: var(--text-h);
+}
+
+.custom-progress-track {
+  height: 8px;
   border-radius: 6px;
+  background: var(--border, rgba(0, 0, 0, 0.07));
+  overflow: hidden;
+  position: relative;
 }
 
+.custom-progress-bar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Summary Footer Box */
 .health-summary {
-  margin-top: 18px;
-  padding: 12px 14px;
-  background: var(--bg);
-  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--bg, #f8fafc);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-top: auto;
 }
 
 .summary-row {
-  margin-bottom: 10px;
+  width: 100%;
 }
 
-.summary-row:last-child {
-  margin-bottom: 0;
+.summary-icon {
+  font-size: 1.15rem !important;
 }
-  
-  /* Tablet */
-  @media (max-width: 900px) {
-    .team-health-card {
-      padding: 20px;
-    }
-  
-    .health-icon {
-      font-size: 54px !important;
-    }
-  }
-  
-  /* Mobile */
-  @media (max-width: 600px) {
-    .team-health-card {
-      padding: 16px;
-    }
-  
-    .health-icon {
-      font-size: 48px !important;
-    }
-  
-    .health-percentage {
-      font-size: 2.2rem !important;
-    }
-  
-    .health-summary {
-      padding: 14px;
-    }
-  
-    .summary-row {
-      flex-direction: column;
-      align-items: flex-start !important;
-      gap: 8px;
-    }
-  }
+
+.icon-primary {
+  color: var(--primary, #3b82f6);
+}
+
+.icon-success {
+  color: var(--success, #10b981);
+}
+
+.icon-warning {
+  color: var(--warning, #f59e0b);
+}
+
+.summary-label {
+  color: var(--text-light) !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+}
+
+.summary-value {
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  color: var(--text-h);
+}
+
+.summary-value.value-growth {
+  color: var(--success, #10b981);
+}
+
+.summary-divider {
+  border-color: var(--border) !important;
+  opacity: 0.6;
+}
+
+.risk-chip {
+  height: 20px !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: var(--error, #ef4444) !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Dark Mode Tweaks */
+[data-theme="dark"] .health-summary {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .health-score-container {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .custom-progress-track {
+  background: rgba(255, 255, 255, 0.08);
+}
