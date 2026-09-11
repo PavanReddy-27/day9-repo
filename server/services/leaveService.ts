@@ -73,10 +73,20 @@ export const deductLeaveBalance = async (
   if (leaveType === "Unpaid") return; // Unpaid doesn't deduct from paid balance allocations
   
   const year = new Date().getFullYear();
-  const balance = await LeaveBalance.findOne({ companyId, employeeId, leaveType, year }).session(session);
+  let balance = await LeaveBalance.findOne({ companyId, employeeId, leaveType, year }).session(session);
 
   if (!balance) {
-    throw new Error(`Leave balance record not found for type ${leaveType}`);
+    const allocated = leaveType === "Casual" ? 12 : leaveType === "Sick" ? 10 : 15;
+    const created = await LeaveBalance.create([{
+      companyId,
+      employeeId,
+      leaveType,
+      year,
+      allocated,
+      used: 0,
+      available: allocated
+    }], { session });
+    balance = created[0];
   }
 
   if (balance.available < durationDays) {

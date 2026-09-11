@@ -162,13 +162,15 @@ export const login = async (req: any, res: any, next: any) => {
       String(user._id)
     );
 
+    const settingsRoute = user.role === 'Admin' ? '/admin/settings' : user.role === 'HR' ? '/hr/settings' : user.role === 'Manager' ? '/manager/settings' : '/employee/settings';
+
     void NotificationService.sendNotification(
       user._id,
       employee?.companyId ?? user.companyId,
       "Security Alert: New Login",
       `A new login was detected for your account.`,
       "INFO",
-      "/settings/security"
+      settingsRoute
     );
 
     const cookieOptions = {

@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import LeaveRequest from "../models/LeaveRequest.js";
 import Employee from "../models/Employee.js";
+import { User } from "../models/User.js";
 import Notification from "../models/Notification.js";
 import ApprovalHistory from "../models/ApprovalHistory.js";
 import { writeAuditLog } from "../utils/audit.js";
@@ -216,16 +217,51 @@ export const createLeaveRequest = async (req: Request, res: Response, next: Next
     
     // Notify Manager
     const employee = await Employee.findById(empId).lean();
-    if (employee && employee.managerId) {
-      const manager = await Employee.findById(employee.managerId).lean();
-      if (manager && manager.userId) {
+    if (employee) {
+      let managerUserId: any = null;
+
+      // 1. Direct manager
+      if (employee.managerId) {
+        const directManager = await Employee.findById(employee.managerId).lean();
+        if (directManager && directManager.userId) {
+          const directUser = await User.findById(directManager.userId).lean();
+          if (directUser && directUser.role === "Manager") {
+            managerUserId = directManager.userId;
+          }
+        }
+      }
+
+      // 2. Department manager
+      if (!managerUserId && employee.departmentId) {
+        const deptManager = await Employee.findOne({
+          companyId,
+          departmentId: employee.departmentId,
+          role: "Manager"
+        }).lean();
+        if (deptManager && deptManager.userId) {
+          managerUserId = deptManager.userId;
+        }
+      }
+
+      // 3. Fallback to primary company manager (e.g. manager@thestackly.com)
+      if (!managerUserId) {
+        const primaryManager = await Employee.findOne({
+          companyId,
+          role: "Manager"
+        }).lean();
+        if (primaryManager && primaryManager.userId) {
+          managerUserId = primaryManager.userId;
+        }
+      }
+
+      if (managerUserId) {
         await NotificationService.sendNotification(
-          manager.userId,
+          managerUserId,
           companyId,
           "New Leave Request",
           `${employee.firstName} ${employee.lastName} requested ${type} leave from ${startDate} to ${endDate}.`,
-          "INFO",
-          "/manager/leaves" // Will be replaced by routing logic in UI
+          "ALERT",
+          "/manager/leave-requests"
         );
       }
     }
@@ -385,7 +421,7 @@ export const updateLeaveStatus = async (req: Request, res: Response, next: NextF
         `Leave Request ${status}`,
         message,
         notifType,
-        "/employee/leaves"
+        "/employee/leave-requests"
       );
     }
     // We can also trigger a generic LEAVE_UPDATE for frontend refresh if needed, but the requirements just ask for Notifications.
