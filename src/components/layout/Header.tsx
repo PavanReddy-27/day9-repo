@@ -6,6 +6,7 @@ import {
   FiLogOut,
   FiUser,
   FiCheck,
+  FiTrash2,
 } from "react-icons/fi";
 
 import { useState, useEffect, useRef } from "react";
@@ -89,6 +90,29 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
     }
   };
 
+  const handleRemoveNotification = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // Optimistic update
+      setNotifications(prev => prev.filter(n => n._id !== id));
+      await notificationApi.deleteNotification(id);
+    } catch (err) {
+      console.error("Failed to remove notification", err);
+      fetchNotifications();
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      // Optimistic update
+      setNotifications([]);
+      await notificationApi.clearAll();
+    } catch (err) {
+      console.error("Failed to clear all notifications", err);
+      fetchNotifications();
+    }
+  };
+
   const handleNotificationClick = (notif: Notification) => {
     if (!notif.isRead) {
       notificationApi.markAsRead(notif._id).then(() => fetchNotifications());
@@ -159,17 +183,29 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
                     + Test Alert
                   </button>
                 </div>
-                {unreadCount > 0 && (
-                  <button 
-                    className="mark-all-read" 
-                    onClick={async () => { 
-                      await notificationApi.markAllAsRead(); 
-                      fetchNotifications(); 
-                    }}
-                  >
-                    Mark all read
-                  </button>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {unreadCount > 0 && (
+                    <button 
+                      className="mark-all-read" 
+                      onClick={async () => { 
+                        await notificationApi.markAllAsRead(); 
+                        fetchNotifications(); 
+                      }}
+                      title="Mark all notifications as read"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  {notifications.length > 0 && (
+                    <button 
+                      className="clear-all-notifs" 
+                      onClick={handleClearAll}
+                      title="Clear all notifications"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </div>
               </div>
               
               <div className="notification-list">
@@ -202,15 +238,24 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
                           {new Date(notif.createdAt).toLocaleDateString()} {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </span>
                       </div>
-                      {!notif.isRead && (
+                      <div className="notification-actions">
+                        {!notif.isRead && (
+                          <button 
+                            className="mark-read-btn" 
+                            onClick={(e) => handleMarkAsRead(notif._id, e)}
+                            title="Mark as read"
+                          >
+                            <FiCheck />
+                          </button>
+                        )}
                         <button 
-                          className="mark-read-btn" 
-                          onClick={(e) => handleMarkAsRead(notif._id, e)}
-                          title="Mark as read"
+                          className="remove-notif-btn" 
+                          onClick={(e) => handleRemoveNotification(notif._id, e)}
+                          title="Remove notification"
                         >
-                          <FiCheck />
+                          <FiTrash2 />
                         </button>
-                      )}
+                      </div>
                     </div>
                   ))
                 )}

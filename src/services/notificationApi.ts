@@ -26,5 +26,13 @@ export const notificationApi = {
       method: "POST",
       body: JSON.stringify(data || {}),
     });
+  },
+  deleteNotification: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string }>(`/notifications/${id}`, { method: "DELETE" });
+    return res.success;
+  },
+  clearAll: async () => {
+    const res = await apiClient<{ success: boolean; message: string }>("/notifications/clear-all", { method: "DELETE" });
+    return res.success;
   }
 };

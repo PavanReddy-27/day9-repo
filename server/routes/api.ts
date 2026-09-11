@@ -42,6 +42,8 @@ import { getAuditLogs } from "../controllers/auditController.js";
 import {
   getNotifications,
   generateNotification,
+  deleteNotification,
+  clearAllNotifications,
   markAsRead,
   markAllAsRead,
 } from "../controllers/notificationController.js";
@@ -138,6 +140,8 @@ router.patch("/leaves/:id/status", authenticateJWT, requireRole(["Manager", "HR"
 // Notifications Routes
 router.get("/notifications", authenticateJWT, getNotifications);
 router.post("/notifications/generate", authenticateJWT, generateNotification);
+router.delete("/notifications/clear-all", authenticateJWT, clearAllNotifications);
+router.delete("/notifications/:id", authenticateJWT, validateObjectId("id"), deleteNotification);
 router.patch("/notifications/read-all", authenticateJWT, markAllAsRead);
 router.patch("/notifications/:id/read", authenticateJWT, validateObjectId("id"), markAsRead);
 

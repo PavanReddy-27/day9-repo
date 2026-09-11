@@ -258,12 +258,10 @@ export const getNotifications = async (req: Request, res: Response): Promise<voi
       .sort({ createdAt: -1 })
       .limit(50);
 
-    // If user has no notifications or only the generic old login alert, auto-generate their role-tailored notifications
+    // If user only has the generic legacy login alert, replace it with their role-tailored notifications
     const isOnlyGeneric = notifications.length === 1 && notifications[0].title === "Security Alert: New Login";
-    if (notifications.length === 0 || isOnlyGeneric) {
-      if (isOnlyGeneric) {
-        await (Notification as any).deleteMany({ userId: { $in: userObjectIds } });
-      }
+    if (isOnlyGeneric) {
+      await (Notification as any).deleteMany({ userId: { $in: userObjectIds } });
 
       const defaultNotifs = buildDefaultNotificationsForUser(
         mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId,
@@ -394,6 +392,67 @@ export const markAllAsRead = async (req: Request, res: Response): Promise<void> 
     res.json({ success: true, message: "All notifications marked as read" });
   } catch (error: any) {
     console.error("Error marking all notifications as read:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// @desc    Delete a specific notification (strictly verified for this user)
+// @route   DELETE /api/v1/notifications/:id
+// @access  Private
+export const deleteNotification = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.id;
+    const employee = (req as any).employee;
+
+    const userObjectIds: any[] = [
+      userId,
+      ...(mongoose.Types.ObjectId.isValid(userId) ? [new mongoose.Types.ObjectId(userId)] : [])
+    ];
+    if (employee?._id) {
+      userObjectIds.push(employee._id);
+    }
+
+    const notification = await (Notification as any).findOneAndDelete({
+      _id: id,
+      userId: { $in: userObjectIds }
+    });
+
+    if (!notification) {
+      res.status(404).json({ success: false, message: "Notification not found or access denied" });
+      return;
+    }
+
+    res.json({ success: true, message: "Notification removed successfully" });
+  } catch (error: any) {
+    console.error("Error deleting notification:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// @desc    Clear all notifications for the authenticated user
+// @route   DELETE /api/v1/notifications/clear-all
+// @access  Private
+export const clearAllNotifications = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user?.id;
+    const employee = (req as any).employee;
+
+    const userObjectIds: any[] = [
+      userId,
+      ...(mongoose.Types.ObjectId.isValid(userId) ? [new mongoose.Types.ObjectId(userId)] : [])
+    ];
+    if (employee?._id) {
+      userObjectIds.push(employee._id);
+    }
+
+    const result = await (Notification as any).deleteMany({
+      userId: { $in: userObjectIds }
+    });
+
+    res.json({ success: true, message: "All notifications cleared successfully", deletedCount: result.deletedCount });
+  } catch (error: any) {
+    console.error("Error clearing notifications:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
