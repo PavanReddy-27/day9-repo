@@ -1,4 +1,4 @@
-﻿// ====================================
+// ====================================
 // File: src/routes/AppRoutes.tsx
 // ====================================
 
@@ -210,6 +210,8 @@ const AppRoutes = () => {
             path="/admin/leave-requests"
             element={<SharedLeaveRequests />}
           />
+          <Route path="/admin/leave" element={<Navigate to="/admin/leave-requests" replace />} />
+          <Route path="/admin/leaves" element={<Navigate to="/admin/leave-requests" replace />} />
 
           <Route
             path="/admin/payroll"
@@ -270,6 +272,8 @@ const AppRoutes = () => {
             path="/hr/leave-requests"
             element={<SharedLeaveRequests />}
           />
+          <Route path="/hr/leave" element={<Navigate to="/hr/leave-requests" replace />} />
+          <Route path="/hr/leaves" element={<Navigate to="/hr/leave-requests" replace />} />
 
           <Route
             path="/hr/payroll"
@@ -329,6 +333,8 @@ const AppRoutes = () => {
             path="/manager/leave-requests"
             element={<SharedLeaveRequests />}
           />
+          <Route path="/manager/leave" element={<Navigate to="/manager/leave-requests" replace />} />
+          <Route path="/manager/leaves" element={<Navigate to="/manager/leave-requests" replace />} />
 
           <Route
             path="/manager/payroll"
@@ -384,6 +390,8 @@ const AppRoutes = () => {
             path="/employee/leave-requests"
             element={<EmployeeLeaveRequests />}
           />
+          <Route path="/employee/leave" element={<Navigate to="/employee/leave-requests" replace />} />
+          <Route path="/employee/leaves" element={<Navigate to="/employee/leave-requests" replace />} />
           
           <Route
             path="/employee/payroll"
@@ -396,6 +404,25 @@ const AppRoutes = () => {
           />
         </Route>
       </Route>
+
+      {/* Aliases & Fallbacks */}
+      <Route
+        path="/settings/security"
+        element={
+          <Navigate
+            replace
+            to={
+              user?.role === "HR"
+                ? "/hr/settings"
+                : user?.role === "Manager"
+                ? "/manager/settings"
+                : user?.role === "Employee"
+                ? "/employee/settings"
+                : "/admin/settings"
+            }
+          />
+        }
+      />
 
       {/* 404 */}
 

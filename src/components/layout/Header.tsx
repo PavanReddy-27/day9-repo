@@ -113,12 +113,46 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
     }
   };
 
+  const resolveNotificationUrl = (linkUrl?: string) => {
+    if (!linkUrl) return null;
+
+    const role = (user?.role || "Employee").toLowerCase();
+    let target = linkUrl.trim();
+
+    // Normalize common aliases
+    if (target === "/hr/leave" || target === "/hr/leaves") target = "/hr/leave-requests";
+    if (target === "/manager/leave" || target === "/manager/leaves") target = "/manager/leave-requests";
+    if (target === "/employee/leave" || target === "/employee/leaves") target = "/employee/leave-requests";
+    if (target === "/admin/leave" || target === "/admin/leaves") target = "/admin/leave-requests";
+    if (target === "/settings/security" || target === "/settings") target = `/${role}/settings`;
+
+    // Role-safe routing to avoid 403 Unauthorized redirects
+    if (role === "hr") {
+      if (target.startsWith("/admin/")) target = target.replace("/admin/", "/hr/");
+      if (target.startsWith("/manager/")) target = target.replace("/manager/", "/hr/");
+    } else if (role === "manager") {
+      if (target.startsWith("/admin/")) target = target.replace("/admin/", "/manager/");
+      if (target.startsWith("/hr/")) target = target.replace("/hr/", "/manager/");
+    } else if (role === "employee") {
+      if (target.startsWith("/admin/") || target.startsWith("/hr/") || target.startsWith("/manager/")) {
+        if (target.includes("payroll")) target = "/employee/payroll";
+        else if (target.includes("attendance")) target = "/employee/attendance";
+        else if (target.includes("leave")) target = "/employee/leave-requests";
+        else if (target.includes("settings")) target = "/employee/settings";
+        else target = "/employee/dashboard";
+      }
+    }
+
+    return target;
+  };
+
   const handleNotificationClick = (notif: Notification) => {
     if (!notif.isRead) {
       notificationApi.markAsRead(notif._id).then(() => fetchNotifications());
     }
-    if (notif.linkUrl) {
-      navigate(notif.linkUrl);
+    const targetUrl = resolveNotificationUrl(notif.linkUrl);
+    if (targetUrl) {
+      navigate(targetUrl);
     }
     setShowNotifications(false);
   };
