@@ -54,15 +54,6 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
     return () => window.removeEventListener("notification_updated", handleUpdate);
   }, [user?.id, user?.email]);
 
-  const handleGenerateAlert = async () => {
-    try {
-      await notificationApi.generateNotification();
-      fetchNotifications();
-    } catch (err) {
-      console.error("Failed to generate alert", err);
-    }
-  };
-
   // Click outside to close notification popup
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -197,26 +188,7 @@ const Header = ({ toggleSidebar, user }: HeaderProps) => {
           {showNotifications && (
             <div className="notification-popup">
               <div className="notification-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4>Notifications</h4>
-                  <button 
-                    className="generate-alert-btn" 
-                    onClick={handleGenerateAlert}
-                    title="Generate a new personalized notification for your role"
-                    style={{
-                      fontSize: '11px',
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--border)',
-                      background: 'var(--hover)',
-                      color: 'var(--primary)',
-                      cursor: 'pointer',
-                      fontWeight: 600
-                    }}
-                  >
-                    + Test Alert
-                  </button>
-                </div>
+                <h4>Notifications</h4>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {unreadCount > 0 && (
                     <button 

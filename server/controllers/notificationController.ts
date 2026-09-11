@@ -258,27 +258,6 @@ export const getNotifications = async (req: Request, res: Response): Promise<voi
       .sort({ createdAt: -1 })
       .limit(50);
 
-    // If user only has the generic legacy login alert, replace it with their role-tailored notifications
-    const isOnlyGeneric = notifications.length === 1 && notifications[0].title === "Security Alert: New Login";
-    if (isOnlyGeneric) {
-      await (Notification as any).deleteMany({ userId: { $in: userObjectIds } });
-
-      const defaultNotifs = buildDefaultNotificationsForUser(
-        mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId,
-        companyId || employee?.companyId || new mongoose.Types.ObjectId("6aa2a59d576fe6ecc7bff601"),
-        role,
-        employee
-      );
-
-      await (Notification as any).insertMany(defaultNotifs);
-
-      notifications = await (Notification as any).find({
-        userId: { $in: userObjectIds }
-      })
-        .sort({ createdAt: -1 })
-        .limit(50);
-    }
-
     res.json({ success: true, data: notifications });
   } catch (error: any) {
     console.error("Error fetching notifications:", error);
