@@ -17,7 +17,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security & Middleware
+import requestIdMiddleware from "./middleware/requestId.js";
+import { httpLoggerMiddleware } from "./utils/logger.js";
+import { healthHandler, readyHandler, versionHandler } from "./routes/systemRoutes.js";
+
+// Security & Observability Middleware
 app.use(helmet());
+app.use(requestIdMiddleware);
+app.use(httpLoggerMiddleware);
 app.use(cookieParser());
 app.use(morgan("dev"));
 
@@ -85,6 +92,11 @@ app.use(async (req, res, next) => {
   next();
 });
 
+// Production Liveness, Readiness and Version Probes (Root level)
+app.get("/health", healthHandler);
+app.get("/ready", readyHandler);
+app.get("/version", versionHandler);
+
 // API Routes
 app.use("/api/v1", apiRoutes);
 
@@ -140,6 +152,12 @@ async function startServer() {
   // Graceful Shutdown
   const gracefulShutdown = async (signal) => {
     console.log(`[Server] Received ${signal}. Shutting down gracefully...`);
+    try {
+      const { JobQueueService } = await import("./services/jobQueueService.js");
+      JobQueueService.stopWorker();
+    } catch {
+      // Ignore
+    }
     if (server) {
       server.close(async () => {
         await closeDB();

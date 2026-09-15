@@ -36,3 +36,5 @@ mingit.zip
 node*_extracted/
 local-node/
 test-mongo*
+backups/
+!backups/.gitkeep

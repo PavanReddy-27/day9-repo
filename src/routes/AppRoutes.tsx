@@ -2,6 +2,7 @@
 // File: src/routes/AppRoutes.tsx
 // ====================================
 
+import { lazy, Suspense } from "react";
 import {
   Routes,
   Route,
@@ -13,6 +14,8 @@ import { useAppSelector } from "../hooks/redux";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 import DashboardLayout from "../layouts/DashboardLayout";
+
+const AdminSystemHealth = lazy(() => import("../pages/admin/SystemHealth/SystemHealth"));
 
 import Login from "../pages/Login/Login";
 
@@ -178,6 +181,15 @@ const AppRoutes = () => {
           <Route
             path="/admin/audit-logs"
             element={<AdminAuditLogs />}
+          />
+
+          <Route
+            path="/admin/system-health"
+            element={
+              <Suspense fallback={<div style={{ padding: "2rem", color: "#94a3b8" }}>Loading System Health...</div>}>
+                <AdminSystemHealth />
+              </Suspense>
+            }
           />
 
           <Route
@@ -422,6 +434,11 @@ const AppRoutes = () => {
             }
           />
         }
+      />
+
+      <Route
+        path="/system-health"
+        element={<Navigate replace to="/admin/system-health" />}
       />
 
       {/* 404 */}
