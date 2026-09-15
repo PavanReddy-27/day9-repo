@@ -156,4 +156,7 @@ router.post("/recruitment/jobs", authenticateJWT, requireRole(["Admin", "HR"]), 
 import payrollRoutes from "./payrollRoutes.js";
 router.use("/payroll", authenticateJWT, payrollRoutes);
 
+import monitoringRoutes from "./admin/monitoring.js";
+router.use("/admin/monitoring", monitoringRoutes);
+
 export default router;

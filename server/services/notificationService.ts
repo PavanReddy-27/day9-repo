@@ -1,7 +1,8 @@
 import Notification from "../models/Notification.js";
 import { sendSSEToUser } from "../utils/sse.js";
 import mongoose from "mongoose";
-
+import { logger } from "../utils/logger.js";
+import SystemLog from "../models/SystemLog.js";
 export class NotificationService {
   /**
    * Creates a notification in the database and pushes it to the user via SSE.
@@ -40,8 +41,16 @@ export class NotificationService {
       });
 
       return notification;
-    } catch (error) {
-      console.error("[NotificationService] Error creating/sending notification:", error);
+    } catch (error: any) {
+      logger.error(`[NotificationService] Error creating/sending notification: ${error.message}`, { context: 'Notification', userId });
+      await SystemLog.create({
+        level: 'error',
+        category: 'Notification',
+        message: `Failed to deliver notification: ${title}`,
+        userId: userId,
+        stack: error.stack,
+        metadata: { title, type },
+      }).catch(() => {});
     }
   }
 }

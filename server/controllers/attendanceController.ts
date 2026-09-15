@@ -15,7 +15,8 @@ import { writeAuditLog } from "../utils/audit.js";
 import { logComplianceViolation } from "../utils/compliance.js";
 import { checkEmployeeScope, isTeamInManagerDepartment } from "../middleware/dataScopeMiddleware.js";
 import { NotificationService } from "../services/notificationService.js";
-
+import { logger } from "../utils/logger.js";
+import SystemLog from "../models/SystemLog.js";
 // Haversine formula for geofence validation
 export function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371000; // Radius of Earth in meters
@@ -188,6 +189,16 @@ export const checkIn = async (req, res) => {
               message: `OUTSIDE_GEOFENCE`,
               distance: Math.round(distanceMeters)
             };
+            
+            logger.warn(`Check-in failed: Outside geofence by ${distanceMeters}m`, { context: 'Attendance', userId: req.employee._id, source: req.body.source });
+            await SystemLog.create({
+              level: 'warn',
+              category: 'Attendance',
+              message: `Check-in failed: Outside geofence by ${Math.round(distanceMeters)}m`,
+              userId: req.employee._id,
+              metadata: { source: req.body.source, location: coordinates },
+            }).catch(() => {});
+
             await session.abortTransaction();
             session.endSession();
             return res.status(403).json(resp);
@@ -267,6 +278,17 @@ export const checkIn = async (req, res) => {
   } catch (error: any) {
     if (session && session.inTransaction()) await session.abortTransaction();
     if (session) session.endSession();
+    
+    if (req.body?.source === 'Offline') {
+      await SystemLog.create({
+        level: 'error',
+        category: 'Attendance',
+        message: 'Offline queue processing failure (Check-in)',
+        userId: req.employee?._id,
+        metadata: { error: error.message }
+      }).catch(() => {});
+    }
+
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -568,6 +590,16 @@ export const checkOut = async (req: any, res: any) => {
       }
     }
     
+    if (req.body?.source === 'Offline') {
+      await SystemLog.create({
+        level: 'error',
+        category: 'Attendance',
+        message: 'Offline queue processing failure (Check-out)',
+        userId: req.employee?._id,
+        metadata: { error: error.message }
+      }).catch(() => {});
+    }
+
     return res.status(500).json({ success: false, message: error.message });
   }
 };

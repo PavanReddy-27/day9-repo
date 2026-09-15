@@ -25,6 +25,9 @@ const connectDB = async () => {
 
   connectionPromise = (async () => {
     try {
+      if (process.env.USE_IN_MEMORY_DB === 'true') {
+        throw new Error('Skipping primary DB due to USE_IN_MEMORY_DB=true');
+      }
       const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/workforce_analytics";
       const conn = await mongoose.connect(mongoUri, {
         serverSelectionTimeoutMS: 15000,

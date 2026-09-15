@@ -22,6 +22,7 @@ import AdminRoles from "../pages/admin/Roles";
 import AdminDepartments from "../pages/admin/Departments";
 import AdminReports from "../pages/admin/Reports";
 import AdminAuditLogs from "../pages/admin/AuditLogs";
+import AdminMonitoring from "../pages/admin/MonitoringDashboard";
 import Settings from "../pages/Settings";
 
 // HR Pages
@@ -178,6 +179,11 @@ const AppRoutes = () => {
           <Route
             path="/admin/audit-logs"
             element={<AdminAuditLogs />}
+          />
+
+          <Route
+            path="/admin/monitoring"
+            element={<AdminMonitoring />}
           />
 
           <Route

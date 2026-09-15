@@ -8,6 +8,8 @@ interface SSEClient {
 
 let clients: SSEClient[] = [];
 
+export const getConnectedClientsCount = () => clients.length;
+
 /**
  * SSE Middleware to handle incoming event stream connections.
  * Note: Uses authenticateJWT so req.employee and req.companyId are available.
