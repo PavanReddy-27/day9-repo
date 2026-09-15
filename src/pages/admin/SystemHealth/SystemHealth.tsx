@@ -230,9 +230,9 @@ const SystemHealth = () => {
 
   if (loading && !metrics) {
     return (
-      <div className="system-health-page" style={{ padding: "48px", textAlign: "center", color: "#94a3b8" }}>
-        <FiRefreshCw className="spin-animate" style={{ fontSize: "2rem", marginBottom: "16px" }} />
-        <h2>Connecting to Workforce Telemetry Engine...</h2>
+      <div className="system-health-page" style={{ padding: "48px", textAlign: "center", color: "var(--text-light)" }}>
+        <FiRefreshCw className="spin-animate" style={{ fontSize: "2rem", marginBottom: "16px", color: "var(--primary)" }} />
+        <h2 style={{ color: "var(--text-h)", fontSize: "1.25rem" }}>Connecting to Workforce Telemetry Engine...</h2>
       </div>
     );
   }
@@ -320,12 +320,12 @@ const SystemHealth = () => {
             <span className="card-icon-badge"><FiActivity /></span>
           </div>
           <div className="card-body">
-            <div className="main-stat" style={{ color: metrics?.database.status === "connected" ? "#10b981" : "#ef4444" }}>
+            <div className="main-stat" style={{ color: metrics?.database.status === "connected" ? "var(--success)" : "var(--error)" }}>
               {metrics?.database.status === "connected" ? "Connected" : "Offline"}
             </div>
             <div className="sub-stat">
               <span>Roundtrip Latency</span>
-              <span style={{ fontWeight: 600, color: "#38bdf8" }}>{metrics?.database.pingMs ?? 0} ms</span>
+              <span style={{ fontWeight: 600, color: "var(--primary)" }}>{metrics?.database.pingMs ?? 0} ms</span>
             </div>
             <div className="sub-stat">
               <span>Active Collections</span>
@@ -347,30 +347,24 @@ const SystemHealth = () => {
           <div className="card-body">
             <div className="main-stat">{metrics?.traffic.totalRequests ?? 0} reqs</div>
             <div className="sub-stat">
-              <span>p95 Response Time</span>
-              <span style={{ fontWeight: 600, color: "#34d399" }}>{metrics?.traffic.p95LatencyMs ?? 0} ms</span>
               <span>Average / p95 Latency</span>
-              <span style={{ fontWeight: 600, color: "#34d399" }}>
+              <span style={{ fontWeight: 600, color: "var(--success)" }}>
                 {metrics?.traffic.avgLatencyMs ?? 12} ms / {metrics?.traffic.p95LatencyMs ?? 0} ms
               </span>
             </div>
             <div className="sub-stat">
               <span>Status 2xx / 4xx / 5xx</span>
               <span>
-                <span style={{ color: "#34d399" }}>{metrics?.traffic.status2xx ?? 0}</span> /{" "}
-                <span style={{ color: "#fbbf24" }}>{metrics?.traffic.status4xx ?? 0}</span> /{" "}
-                <span style={{ color: "#f87171" }}>{metrics?.traffic.status5xx ?? 0}</span>
+                <span style={{ color: "var(--success)" }}>{metrics?.traffic.status2xx ?? 0}</span> /{" "}
+                <span style={{ color: "var(--warning)" }}>{metrics?.traffic.status4xx ?? 0}</span> /{" "}
+                <span style={{ color: "var(--error)" }}>{metrics?.traffic.status5xx ?? 0}</span>
               </span>
             </div>
             <div className="sub-stat">
-              <span>Error Rate</span>
               <span>Availability / Error Rate</span>
               <span>
-                {metrics?.traffic.totalRequests
-                  ? `${Math.round(((metrics.traffic.status5xx) / metrics.traffic.totalRequests) * 100)}%`
-                  : "0%"}
-                <span style={{ color: "#34d399" }}>{metrics?.traffic.availabilityPct ?? 99.98}%</span> /{" "}
-                <span style={{ color: (metrics?.traffic?.status5xx ?? 0) > 0 ? "#f87171" : "#94a3b8" }}>
+                <span style={{ color: "var(--success)" }}>{metrics?.traffic.availabilityPct ?? 99.98}%</span> /{" "}
+                <span style={{ color: (metrics?.traffic?.status5xx ?? 0) > 0 ? "var(--error)" : "var(--text-light)" }}>
                   {metrics?.traffic.totalRequests
                     ? `${Math.round(((metrics.traffic.status5xx) / metrics.traffic.totalRequests) * 100)}%`
                     : "0%"}
@@ -384,12 +378,12 @@ const SystemHealth = () => {
         <div className="metric-card">
           <div className="card-header">
             <h3><FiHardDrive /> Background Jobs & DLQ</h3>
-            <span className="card-icon-badge" style={{ color: (jobStats?.deadLetterCount ?? 0) > 0 ? "#ef4444" : "#10b981" }}>
+            <span className="card-icon-badge" style={{ color: (jobStats?.deadLetterCount ?? 0) > 0 ? "var(--error)" : "var(--primary)" }}>
               <FiAlertTriangle />
             </span>
           </div>
           <div className="card-body">
-            <div className="main-stat" style={{ color: (jobStats?.deadLetterCount ?? 0) > 0 ? "#f87171" : "#f8fafc" }}>
+            <div className="main-stat" style={{ color: (jobStats?.deadLetterCount ?? 0) > 0 ? "var(--error)" : "var(--text-h)" }}>
               {jobStats?.deadLetterCount ?? 0} in DLQ
             </div>
             <div className="sub-stat">
@@ -398,7 +392,7 @@ const SystemHealth = () => {
             </div>
             <div className="sub-stat">
               <span>Completed Jobs</span>
-              <span style={{ color: "#34d399" }}>{jobStats?.completed ?? 0}</span>
+              <span style={{ color: "var(--success)" }}>{jobStats?.completed ?? 0}</span>
             </div>
             <div className="sub-stat">
               <span>Worker State</span>
@@ -414,22 +408,22 @@ const SystemHealth = () => {
             <span className="card-icon-badge"><FiLock /></span>
           </div>
           <div className="card-body">
-            <div className="main-stat" style={{ color: "#38bdf8" }}>
+            <div className="main-stat" style={{ color: "var(--primary)" }}>
               {metrics?.monitoring?.activeSessions ?? 1} Sessions
             </div>
             <div className="sub-stat">
               <span>Connected Clients (SSE)</span>
-              <span style={{ fontWeight: 600, color: "#34d399" }}>{metrics?.monitoring?.connectedClients ?? 1}</span>
+              <span style={{ fontWeight: 600, color: "var(--success)" }}>{metrics?.monitoring?.connectedClients ?? 1}</span>
             </div>
             <div className="sub-stat">
               <span>Failed Logins (24h)</span>
-              <span style={{ color: (metrics?.monitoring?.failedLogins ?? 0) > 0 ? "#fbbf24" : "#94a3b8" }}>
+              <span style={{ color: (metrics?.monitoring?.failedLogins ?? 0) > 0 ? "var(--warning)" : "var(--text-light)" }}>
                 {metrics?.monitoring?.failedLogins ?? 0}
               </span>
             </div>
             <div className="sub-stat">
               <span>Locked Accounts</span>
-              <span style={{ color: (metrics?.monitoring?.lockedAccounts ?? 0) > 0 ? "#f87171" : "#34d399" }}>
+              <span style={{ color: (metrics?.monitoring?.lockedAccounts ?? 0) > 0 ? "var(--error)" : "var(--success)" }}>
                 {metrics?.monitoring?.lockedAccounts ?? 0}
               </span>
             </div>
@@ -443,7 +437,7 @@ const SystemHealth = () => {
             <span className="card-icon-badge"><FiAlertTriangle /></span>
           </div>
           <div className="card-body">
-            <div className="main-stat" style={{ color: ((metrics?.monitoring?.offlineSyncFailures ?? 0) + (metrics?.monitoring?.notificationFailures ?? 0)) > 0 ? "#f87171" : "#34d399" }}>
+            <div className="main-stat" style={{ color: ((metrics?.monitoring?.offlineSyncFailures ?? 0) + (metrics?.monitoring?.notificationFailures ?? 0)) > 0 ? "var(--error)" : "var(--success)" }}>
               {((metrics?.monitoring?.offlineSyncFailures ?? 0) + (metrics?.monitoring?.notificationFailures ?? 0))} Failures
             </div>
             <div className="sub-stat">
@@ -502,27 +496,27 @@ const SystemHealth = () => {
         {/* Tab 1: Infrastructure Overview */}
         {activeTab === "overview" && (
           <div>
-            <h3 style={{ margin: "0 0 16px 0", fontSize: "1.1rem" }}>Runtime Environment</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-              <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>Node.js Runtime</span>
-                <p style={{ margin: "4px 0 0 0", fontWeight: 600 }}>{metrics?.server.nodeVersion || "v20.x"}</p>
+            <h3 className="tab-section-title">Runtime Environment</h3>
+            <div className="subcard-grid">
+              <div className="health-subcard">
+                <span className="health-subcard-label">Node.js Runtime</span>
+                <p className="health-subcard-value">{metrics?.server.nodeVersion || "v20.x"}</p>
               </div>
-              <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>Host Platform</span>
-                <p style={{ margin: "4px 0 0 0", fontWeight: 600 }}>{metrics?.server.platform || "Linux/Windows (x64)"}</p>
+              <div className="health-subcard">
+                <span className="health-subcard-label">Host Platform</span>
+                <p className="health-subcard-value">{metrics?.server.platform || "Linux/Windows (x64)"}</p>
               </div>
-              <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>CPU Cores</span>
-                <p style={{ margin: "4px 0 0 0", fontWeight: 600 }}>{metrics?.server.cpuCount ?? 4} Cores</p>
+              <div className="health-subcard">
+                <span className="health-subcard-label">CPU Cores</span>
+                <p className="health-subcard-value">{metrics?.server.cpuCount ?? 4} Cores</p>
               </div>
-              <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>Available Memory</span>
-                <p style={{ margin: "4px 0 0 0", fontWeight: 600 }}>{metrics?.server.freeMemoryMB ?? 0} MB / {metrics?.server.totalMemoryMB ?? 0} MB</p>
+              <div className="health-subcard">
+                <span className="health-subcard-label">Available Memory</span>
+                <p className="health-subcard-value">{metrics?.server.freeMemoryMB ?? 0} MB / {metrics?.server.totalMemoryMB ?? 0} MB</p>
               </div>
             </div>
 
-            <h3 style={{ margin: "0 0 16px 0", fontSize: "1.1rem" }}>Collection Document Volumes</h3>
+            <h3 className="tab-section-title">Collection Document Volumes</h3>
             <div className="health-table-wrapper">
               <table className="health-table">
                 <thead>
@@ -543,7 +537,7 @@ const SystemHealth = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: "center", color: "#94a3b8" }}>
+                      <td colSpan={3} style={{ textAlign: "center", color: "var(--text-light)" }}>
                         Active collections reporting nominal volumes.
                       </td>
                     </tr>
@@ -559,8 +553,8 @@ const SystemHealth = () => {
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.1rem" }}>Dead-Letter Queue (DLQ)</h3>
-                <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "0.85rem" }}>
+                <h3 className="tab-section-title" style={{ margin: 0 }}>Dead-Letter Queue (DLQ)</h3>
+                <p style={{ margin: "4px 0 0 0", color: "var(--text-light)", fontSize: "13px" }}>
                   Failed jobs that exceeded max retry limit. Inspect errors, re-drive, or discard.
                 </p>
               </div>
@@ -584,8 +578,8 @@ const SystemHealth = () => {
                 <tbody>
                   {dlqItems.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: "center", padding: "32px", color: "#94a3b8" }}>
-                        <FiCheckCircle style={{ color: "#10b981", fontSize: "1.5rem", marginBottom: "8px" }} />
+                      <td colSpan={5} style={{ textAlign: "center", padding: "32px", color: "var(--text-light)" }}>
+                        <FiCheckCircle style={{ color: "var(--success)", fontSize: "1.5rem", marginBottom: "8px" }} />
                         <div>No dead-letter items. All background jobs running reliably!</div>
                       </td>
                     </tr>
@@ -602,14 +596,14 @@ const SystemHealth = () => {
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button
                               className="action-btn primary"
-                              style={{ padding: "4px 10px", fontSize: "0.75rem" }}
+                              style={{ padding: "4px 10px", fontSize: "12px" }}
                               onClick={() => handleRetryJob(item._id)}
                             >
                               Re-drive
                             </button>
                             <button
                               className="action-btn danger"
-                              style={{ padding: "4px 10px", fontSize: "0.75rem" }}
+                              style={{ padding: "4px 10px", fontSize: "12px" }}
                               onClick={() => handleDiscardJob(item._id)}
                             >
                               Discard
@@ -630,8 +624,8 @@ const SystemHealth = () => {
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.1rem" }}>Disaster Recovery Snapshots</h3>
-                <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "0.85rem" }}>
+                <h3 className="tab-section-title" style={{ margin: 0 }}>Disaster Recovery Snapshots</h3>
+                <p style={{ margin: "4px 0 0 0", color: "var(--text-light)", fontSize: "13px" }}>
                   Cryptographically verified snapshots with SHA-256 manifests. Target RTO: &lt;15m | RPO: &lt;1h.
                 </p>
               </div>
@@ -656,14 +650,14 @@ const SystemHealth = () => {
                 <tbody>
                   {backups.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "#94a3b8" }}>
+                      <td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "var(--text-light)" }}>
                         No snapshot history recorded yet. Click "Create Immediate Snapshot" to generate a baseline.
                       </td>
                     </tr>
                   ) : (
                     backups.map((b) => (
                       <tr key={b.backupId || b.id}>
-                        <td style={{ fontWeight: 600, color: "#60a5fa" }}>{b.backupId || b.id}</td>
+                        <td style={{ fontWeight: 600, color: "var(--primary)" }}>{b.backupId || b.id}</td>
                         <td>{new Date(b.createdAt).toLocaleString()}</td>
                         <td>{b.totalCollections}</td>
                         <td>{b.totalDocuments.toLocaleString()}</td>
@@ -681,29 +675,29 @@ const SystemHealth = () => {
         {/* Tab 4: Data Retention & Governance */}
         {activeTab === "retention" && (
           <div>
-            <h3 style={{ margin: "0 0 16px 0", fontSize: "1.1rem" }}>Data Retention & Privacy Policies</h3>
-            <p style={{ color: "#94a3b8", fontSize: "0.875rem", marginBottom: "20px" }}>
+            <h3 className="tab-section-title">Data Retention & Privacy Policies</h3>
+            <p style={{ color: "var(--text-light)", fontSize: "13px", marginBottom: "20px" }}>
               Automated data retention keeps database storage lean and satisfies privacy compliance requirements.
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-              <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <h4 style={{ margin: "0 0 8px 0" }}>Audit Logs Retention</h4>
-                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.85rem" }}>
+            <div className="subcard-grid">
+              <div className="health-subcard">
+                <h4 className="health-subcard-title">Audit Logs Retention</h4>
+                <p className="health-subcard-desc">
                   Purges operational logs older than <strong>90 days</strong>. Sensitive security events are preserved.
                 </p>
               </div>
 
-              <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <h4 style={{ margin: "0 0 8px 0" }}>Notifications Retention</h4>
-                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.85rem" }}>
+              <div className="health-subcard">
+                <h4 className="health-subcard-title">Notifications Retention</h4>
+                <p className="health-subcard-desc">
                   Purges read and cleared notifications older than <strong>30 days</strong>.
                 </p>
               </div>
 
-              <div style={{ background: "rgba(15, 23, 42, 0.6)", padding: "16px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <h4 style={{ margin: "0 0 8px 0" }}>Session Token Expiry</h4>
-                <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.85rem" }}>
+              <div className="health-subcard">
+                <h4 className="health-subcard-title">Session Token Expiry</h4>
+                <p className="health-subcard-desc">
                   Removes expired or revoked refresh tokens after <strong>7 days</strong>.
                 </p>
               </div>

@@ -28,12 +28,8 @@ router.get('/dead-letter', async (req: Request, res: Response) => {
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
-      DeadLetterJob.find({ resolution: 'unresolved' })
-        .sort({ failedAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      DeadLetterJob.countDocuments({ resolution: 'unresolved' }),
+      DeadLetterJob.find().sort({ failedAt: -1 }).skip(skip).limit(limit),
+      DeadLetterJob.countDocuments(),
     ]);
 
     res.status(200).json({
