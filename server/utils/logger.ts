@@ -77,3 +77,38 @@ export const logger = winston.createLogger({
     new winston.transports.Console()
   ],
 });
+
+export const requestMetrics = {
+  totalRequests: 0,
+  status2xx: 0,
+  status4xx: 0,
+  status5xx: 0,
+  latencies: [] as number[],
+  get p95Latency(): number {
+    if (this.latencies.length === 0) return 0;
+    const sorted = [...this.latencies].sort((a, b) => a - b);
+    const index = Math.floor(sorted.length * 0.95);
+    return Math.round(sorted[index] ?? 0);
+  },
+  get avgLatency(): number {
+    if (this.latencies.length === 0) return 0;
+    const sum = this.latencies.reduce((a, b) => a + b, 0);
+    return Math.round(sum / this.latencies.length);
+  },
+  get availabilityPct(): number {
+    if (this.totalRequests === 0) return 100;
+    const successful = this.status2xx + this.status4xx;
+    return parseFloat(((successful / this.totalRequests) * 100).toFixed(2));
+  },
+  record(status: number, durationMs: number): void {
+    this.totalRequests++;
+    if (status >= 500) this.status5xx++;
+    else if (status >= 400) this.status4xx++;
+    else if (status >= 200) this.status2xx++;
+
+    this.latencies.push(durationMs);
+    if (this.latencies.length > 500) {
+      this.latencies.shift();
+    }
+  }
+};

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { requestContext, logger } from "../utils/logger.js";
+import { requestContext, logger, requestMetrics } from "../utils/logger.js";
 
 const responseTimes: number[] = [];
 export const getAverageResponseTime = () => {
@@ -26,6 +26,9 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       // Update rolling average
       responseTimes.push(duration);
       if (responseTimes.length > 100) responseTimes.shift();
+      
+      // Update system metrics
+      requestMetrics.record(res.statusCode, duration);
 
       // Attempt to extract userId and companyId if set by auth middleware
       const userId = (req as any).user?.id || (req as any).employee?._id;

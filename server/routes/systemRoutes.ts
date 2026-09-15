@@ -8,7 +8,7 @@ import { RetentionService } from '../services/retentionService.js';
 import { ExportService } from '../services/exportService.js';
 import fs from 'fs';
 import path from 'path';
-import { getConnectedSSECount } from '../utils/sse.js';
+import { getConnectedClientsCount } from '../utils/sse.js';
 
 const router = express.Router();
 
@@ -175,7 +175,7 @@ router.get('/system/metrics', authenticateJWT, requireRole(['Admin']), async (_r
         },
         monitoring: {
           activeSessions,
-          connectedClients: getConnectedSSECount(),
+          connectedClients: getConnectedClientsCount(),
           failedLogins,
           lockedAccounts,
           offlineSyncFailures,
