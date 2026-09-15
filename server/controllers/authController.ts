@@ -156,8 +156,13 @@ export const login = async (req: any, res: any, next: any) => {
       await user.save();
     }
 
-    if (!user.isActive) {
-      return res.status(403).json({ success: false, message: 'Account is deactivated' });
+    if (user.isActive === false || user.isDeleted) {
+      return res.status(403).json({ success: false, message: 'Account is deactivated or deleted' });
+    }
+
+    const employee: any = await Employee.findOne({ email } as any);
+    if (employee && (employee.isActive === false || employee.isDeleted === true || employee.employmentStatus === 'Inactive')) {
+      return res.status(403).json({ success: false, message: 'Employee record is deactivated or deleted' });
     }
 
     if (user.mfaEnabled) {
@@ -168,7 +173,6 @@ export const login = async (req: any, res: any, next: any) => {
       });
     }
 
-    const employee: any = await Employee.findOne({ email } as any);
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = await createRefreshToken(user._id, undefined, req.headers['user-agent'], req.ip);
 

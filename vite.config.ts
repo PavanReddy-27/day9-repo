@@ -33,7 +33,10 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           ui: ['@mui/material', '@mui/icons-material', 'lucide-react', 'framer-motion'],
+          datagrid: ['@mui/x-data-grid'],
           charting: ['recharts', 'd3'],
+          export: ['jspdf', 'jspdf-autotable', 'papaparse'],
+          state: ['@reduxjs/toolkit', 'react-redux', '@tanstack/react-query'],
         },
       },
     },

@@ -72,6 +72,12 @@ router.get("/health", (req, res) => {
     serverTimestamp: new Date().toISOString(),
   });
 });
+import systemRoutes from "./systemRoutes.js";
+import jobRoutes from "./jobRoutes.js";
+
+// System Monitoring, Probes & Disaster Recovery Routes
+router.use("/", systemRoutes);
+router.use("/jobs", jobRoutes);
 
 // Authentication Rate Limiter
 const loginLimiter = rateLimit({

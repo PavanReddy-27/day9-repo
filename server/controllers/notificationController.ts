@@ -252,7 +252,7 @@ export const getNotifications = async (req: Request, res: Response): Promise<voi
       }
     }
 
-    let notifications = await (Notification as any).find({
+    const notifications = await (Notification as any).find({
       userId: { $in: userObjectIds }
     })
       .sort({ createdAt: -1 })
