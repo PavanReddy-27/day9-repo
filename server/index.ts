@@ -19,7 +19,6 @@ const PORT = process.env.PORT || 5000;
 
 // Security & Middleware
 import requestIdMiddleware from "./middleware/requestId.js";
-import { httpLoggerMiddleware } from "./utils/logger.js";
 import { healthHandler, readyHandler, versionHandler } from "./routes/systemRoutes.js";
 import { validateEnvironment } from "./config/envValidator.js";
 
@@ -29,7 +28,6 @@ validateEnvironment();
 // Security & Observability Middleware
 app.use(helmet());
 app.use(requestIdMiddleware);
-app.use(httpLoggerMiddleware);
 app.use(cookieParser());
 import { requestLogger } from "./middleware/requestLogger.js";
 app.use(requestLogger);
