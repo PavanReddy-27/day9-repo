@@ -20,6 +20,10 @@ const PORT = process.env.PORT || 5000;
 import requestIdMiddleware from "./middleware/requestId.js";
 import { httpLoggerMiddleware } from "./utils/logger.js";
 import { healthHandler, readyHandler, versionHandler } from "./routes/systemRoutes.js";
+import { validateEnvironment } from "./config/envValidator.js";
+
+// Validate required environment variables at startup
+validateEnvironment();
 
 // Security & Observability Middleware
 app.use(helmet());

@@ -8,6 +8,7 @@ import { RetentionService } from '../services/retentionService.js';
 import { ExportService } from '../services/exportService.js';
 import fs from 'fs';
 import path from 'path';
+import { getConnectedSSECount } from '../utils/sse.js';
 
 const router = express.Router();
 
@@ -86,21 +87,53 @@ router.get('/system/metrics', authenticateJWT, requireRole(['Admin']), async (_r
     let dbPingMs = 0;
     let collectionsCount = 0;
     const documentCounts: Record<string, number> = {};
+    let activeSessions = 0;
+    let failedLogins = 0;
+    let lockedAccounts = 0;
+    let offlineSyncFailures = 0;
+    let notificationFailures = 0;
 
     if (mongoose.connection.readyState === 1 && mongoose.connection.db) {
+      const db = mongoose.connection.db;
       const pingStart = Date.now();
-      await mongoose.connection.db.admin().ping();
+      await db.admin().ping();
       dbPingMs = Date.now() - pingStart;
 
-      const colls = await mongoose.connection.db.listCollections().toArray();
+      const colls = await db.listCollections().toArray();
       collectionsCount = colls.length;
+      const collNames = colls.map((c) => c.name);
 
       // Sample counts of primary collections
       const tracked = ['users', 'employees', 'attendancerecords', 'auditlogs', 'leaverequests', 'jobs'];
       for (const name of tracked) {
-        if (colls.some((c) => c.name === name)) {
-          documentCounts[name] = await mongoose.connection.db.collection(name).countDocuments();
+        if (collNames.includes(name)) {
+          documentCounts[name] = await db.collection(name).countDocuments();
         }
+      }
+
+      if (collNames.includes('sessions')) {
+        activeSessions = await db.collection('sessions').countDocuments();
+      } else if (collNames.includes('refreshtokens')) {
+        activeSessions = await db.collection('refreshtokens').countDocuments({ expiresAt: { $gt: new Date() } });
+      }
+
+      if (collNames.includes('auditlogs')) {
+        failedLogins = await db.collection('auditlogs').countDocuments({ action: 'LOGIN_FAILED' });
+      }
+
+      if (collNames.includes('users')) {
+        lockedAccounts = await db.collection('users').countDocuments({ lockUntil: { $gt: new Date() } });
+      }
+
+      if (collNames.includes('deadletterjobs')) {
+        offlineSyncFailures = await db.collection('deadletterjobs').countDocuments({
+          type: { $in: ['ATTENDANCE_SYNC', 'OFFLINE_ATTENDANCE'] },
+          resolution: 'unresolved',
+        });
+        notificationFailures = await db.collection('deadletterjobs').countDocuments({
+          type: 'NOTIFICATION_DELIVERY',
+          resolution: 'unresolved',
+        });
       }
     }
 
@@ -137,6 +170,16 @@ router.get('/system/metrics', authenticateJWT, requireRole(['Admin']), async (_r
           status4xx: requestMetrics.status4xx,
           status5xx: requestMetrics.status5xx,
           p95LatencyMs: requestMetrics.p95Latency,
+          avgLatencyMs: requestMetrics.avgLatency,
+          availabilityPct: requestMetrics.availabilityPct,
+        },
+        monitoring: {
+          activeSessions,
+          connectedClients: getConnectedSSECount(),
+          failedLogins,
+          lockedAccounts,
+          offlineSyncFailures,
+          notificationFailures,
         },
       },
     });

@@ -9,6 +9,7 @@ export interface IJob extends Document {
   priority: number;
   attempts: number;
   maxRetries: number;
+  idempotencyKey?: string;
   lastError?: string;
   errorStack?: string;
   runAt: Date;
@@ -32,6 +33,7 @@ const JobSchema = new Schema<IJob>(
     priority: { type: Number, default: 0, index: true },
     attempts: { type: Number, default: 0 },
     maxRetries: { type: Number, default: 3 },
+    idempotencyKey: { type: String, sparse: true, index: true },
     lastError: { type: String },
     errorStack: { type: String },
     runAt: { type: Date, default: Date.now, index: true },

@@ -10,6 +10,7 @@ export interface EnqueueOptions {
   priority?: number;
   maxRetries?: number;
   runAt?: Date;
+  idempotencyKey?: string;
 }
 
 export class JobQueueService {
@@ -39,17 +40,30 @@ export class JobQueueService {
    * Enqueue a new background job
    */
   public static async enqueue(type: string, payload: Record<string, any> = {}, options: EnqueueOptions = {}): Promise<IJob> {
+    if (options.idempotencyKey) {
+      const existing = await Job.findOne({
+        idempotencyKey: options.idempotencyKey,
+        status: { $in: ['pending', 'processing', 'completed'] },
+      });
+      if (existing) {
+        logger.info(`Duplicate job execution prevented by idempotency key: ${options.idempotencyKey}`, { jobId: existing._id });
+        return existing;
+      }
+    }
+
     const job = await Job.create({
       type,
       payload,
       priority: options.priority ?? 0,
       maxRetries: options.maxRetries ?? 3,
+      idempotencyKey: options.idempotencyKey,
       runAt: options.runAt ?? new Date(),
       nextRunAt: options.runAt ?? new Date(),
       status: 'pending',
     });
 
     logger.info(`Job enqueued: ${type} [${job._id}]`, { jobId: job._id, type });
+    logger.info(`Job enqueued: ${type} [${job._id}]`, { jobId: job._id, type, idempotencyKey: options.idempotencyKey });
     return job;
   }
 

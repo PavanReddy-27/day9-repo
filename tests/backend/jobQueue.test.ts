@@ -97,4 +97,12 @@ describe('Reliable Background Job Queue & Dead-Letter Management Suite (Task 16)
       expect(updatedDlq?.resolvedBy).toBe('admin@test.com');
     }
   });
+
+  it('prevents duplicate job execution when idempotency key is provided', async () => {
+    const key = `idemp-${Date.now()}`;
+    const job1 = await JobQueueService.enqueue('UNIT_TEST_SUCCESS', { run: 1 }, { idempotencyKey: key });
+    const job2 = await JobQueueService.enqueue('UNIT_TEST_SUCCESS', { run: 2 }, { idempotencyKey: key });
+
+    expect(job1._id.toString()).toBe(job2._id.toString());
+  });
 });

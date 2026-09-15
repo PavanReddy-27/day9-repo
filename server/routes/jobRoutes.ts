@@ -3,6 +3,7 @@ import { authenticateJWT, requireRole } from '../middleware/authMiddleware.js';
 import { JobQueueService } from '../services/jobQueueService.js';
 import DeadLetterJob from '../models/DeadLetterJob.js';
 import Job from '../models/Job.js';
+import { writeAuditLog } from '../utils/audit.js';
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.get('/stats', async (_req: Request, res: Response) => {
 router.get('/dead-letter', async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, parseInt(req.query.limit as string) || 10);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
@@ -54,7 +55,23 @@ router.get('/dead-letter', async (req: Request, res: Response) => {
 router.post('/dead-letter/:id/retry', async (req: any, res: Response) => {
   try {
     const { id } = req.params;
-    const reDrivenJob = await JobQueueService.redriveDeadLetter(id, req.user?.email);
+    const actorEmail = req.user?.email || 'admin@thestackly.com';
+    const reDrivenJob = await JobQueueService.redriveDeadLetter(id, actorEmail);
+
+    // Record every manual retry in the audit log (Task 16 requirement)
+    await writeAuditLog(
+      {
+        companyId: req.user?.companyId || req.companyId,
+        role: req.user?.role || 'Admin',
+        userEmail: actorEmail,
+        ip: req.ip,
+        headers: req.headers,
+      },
+      'JOB_MANUAL_RETRY',
+      `Manual re-drive of dead-letter job [${id}] of type ${reDrivenJob.type}`,
+      'JobQueue',
+      String(reDrivenJob._id)
+    );
 
     res.status(200).json({
       success: true,
@@ -79,6 +96,20 @@ router.delete('/dead-letter/:id', async (req: any, res: Response) => {
     dlq.resolvedAt = new Date();
     dlq.resolvedBy = req.user?.email || 'admin';
     await dlq.save();
+
+    await writeAuditLog(
+      {
+        companyId: req.user?.companyId || req.companyId,
+        role: req.user?.role || 'Admin',
+        userEmail: req.user?.email || 'admin',
+        ip: req.ip,
+        headers: req.headers,
+      },
+      'JOB_DISCARDED',
+      `Discarded dead-letter job [${id}] of type ${dlq.type}`,
+      'JobQueue',
+      String(dlq._id)
+    );
 
     res.status(200).json({ success: true, message: 'Dead-letter job marked as discarded' });
   } catch (error: any) {

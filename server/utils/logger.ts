@@ -96,6 +96,16 @@ export const requestMetrics = {
     const index = Math.floor(sorted.length * 0.95);
     return Math.round(sorted[index] ?? 0);
   },
+  get avgLatency(): number {
+    if (this.latencies.length === 0) return 0;
+    const sum = this.latencies.reduce((a, b) => a + b, 0);
+    return Math.round(sum / this.latencies.length);
+  },
+  get availabilityPct(): number {
+    if (this.totalRequests === 0) return 100;
+    const successful = this.status2xx + this.status4xx;
+    return parseFloat(((successful / this.totalRequests) * 100).toFixed(2));
+  },
   record(status: number, durationMs: number): void {
     this.totalRequests++;
     if (status >= 500) this.status5xx++;
@@ -123,6 +133,7 @@ export const httpLoggerMiddleware = (req: Request, res: Response, next: NextFunc
     requestMetrics.record(res.statusCode, durationMs);
 
     if (!isProbe) {
+      const user = (req as any).user;
       logger.info(`${req.method} ${req.originalUrl || req.url} ${res.statusCode} in ${durationMs}ms`, {
         method: req.method,
         url: req.originalUrl || req.url,
@@ -130,6 +141,10 @@ export const httpLoggerMiddleware = (req: Request, res: Response, next: NextFunc
         durationMs,
         ip: req.ip,
         userAgent: req.headers['user-agent'],
+        userId: user?.id,
+        companyId: user?.companyId || (req as any).companyId,
+        userRole: user?.role,
+        sessionId: req.headers['x-session-id'] || req.cookies?.sessionId,
       }, req.id);
     }
   });

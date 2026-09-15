@@ -53,7 +53,12 @@ function reviveMongoTypes(obj: any): any {
   return obj;
 }
 
-export async function runRestore(backupTargetId?: string, shouldClose = true, collectionsFilter?: string[]): Promise<RestoreResult> {
+export async function runRestore(
+  backupTargetId?: string,
+  shouldClose = true,
+  collectionsFilter?: string[],
+  targetDbName?: string
+): Promise<RestoreResult> {
   const start = Date.now();
   console.log('====================================================');
   console.log('[Disaster Recovery] Initiating MongoDB Restoration...');
@@ -110,7 +115,12 @@ export async function runRestore(backupTargetId?: string, shouldClose = true, co
     await connectDB();
   }
 
-  const db = mongoose.connection.db;
+  let db = mongoose.connection.db;
+  if (targetDbName) {
+    console.log(`[Disaster Recovery] Restoring into separate test database: "${targetDbName}" (Production preserved)`);
+    db = mongoose.connection.useDb(targetDbName).db;
+  }
+
   if (!db) {
     throw new Error('Database connection is not ready');
   }
@@ -156,6 +166,7 @@ export async function runRestore(backupTargetId?: string, shouldClose = true, co
     restoredCollsCount,
     restoredDocCount,
     durationMs,
+    targetDb: targetDbName || 'default',
   });
 
   if (shouldClose) {
@@ -173,8 +184,10 @@ export async function runRestore(backupTargetId?: string, shouldClose = true, co
 }
 
 if (process.argv[1]?.includes('restore.ts')) {
-  const target = process.argv[2];
-  runRestore(target, true).catch(console.error);
+  const target = process.argv[2]?.startsWith('--') ? undefined : process.argv[2];
+  const targetDbIdx = process.argv.indexOf('--target-db');
+  const targetDb = targetDbIdx !== -1 ? process.argv[targetDbIdx + 1] : undefined;
+  runRestore(target, true, undefined, targetDb).catch(console.error);
 }
 
 export default runRestore;

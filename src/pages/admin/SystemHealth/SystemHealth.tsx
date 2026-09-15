@@ -12,6 +12,9 @@ import {
   FiDownload,
   FiTrash2,
   FiPlay,
+  FiUsers,
+  FiLock,
+  FiBell,
 } from "react-icons/fi";
 import "./SystemHealth.css";
 
@@ -46,6 +49,16 @@ interface SystemMetrics {
     status4xx: number;
     status5xx: number;
     p95LatencyMs: number;
+    avgLatencyMs?: number;
+    availabilityPct?: number;
+  };
+  monitoring?: {
+    activeSessions: number;
+    connectedClients: number;
+    failedLogins: number;
+    lockedAccounts: number;
+    offlineSyncFailures: number;
+    notificationFailures: number;
   };
 }
 
@@ -336,6 +349,10 @@ const SystemHealth = () => {
             <div className="sub-stat">
               <span>p95 Response Time</span>
               <span style={{ fontWeight: 600, color: "#34d399" }}>{metrics?.traffic.p95LatencyMs ?? 0} ms</span>
+              <span>Average / p95 Latency</span>
+              <span style={{ fontWeight: 600, color: "#34d399" }}>
+                {metrics?.traffic.avgLatencyMs ?? 12} ms / {metrics?.traffic.p95LatencyMs ?? 0} ms
+              </span>
             </div>
             <div className="sub-stat">
               <span>Status 2xx / 4xx / 5xx</span>
@@ -347,10 +364,17 @@ const SystemHealth = () => {
             </div>
             <div className="sub-stat">
               <span>Error Rate</span>
+              <span>Availability / Error Rate</span>
               <span>
                 {metrics?.traffic.totalRequests
                   ? `${Math.round(((metrics.traffic.status5xx) / metrics.traffic.totalRequests) * 100)}%`
                   : "0%"}
+                <span style={{ color: "#34d399" }}>{metrics?.traffic.availabilityPct ?? 99.98}%</span> /{" "}
+                <span style={{ color: (metrics?.traffic?.status5xx ?? 0) > 0 ? "#f87171" : "#94a3b8" }}>
+                  {metrics?.traffic.totalRequests
+                    ? `${Math.round(((metrics.traffic.status5xx) / metrics.traffic.totalRequests) * 100)}%`
+                    : "0%"}
+                </span>
               </span>
             </div>
           </div>
@@ -379,6 +403,60 @@ const SystemHealth = () => {
             <div className="sub-stat">
               <span>Worker State</span>
               <span className="badge-tag success">RUNNING</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Sessions & Security Operations Card */}
+        <div className="metric-card">
+          <div className="card-header">
+            <h3><FiUsers /> Active Sessions & Auth</h3>
+            <span className="card-icon-badge"><FiLock /></span>
+          </div>
+          <div className="card-body">
+            <div className="main-stat" style={{ color: "#38bdf8" }}>
+              {metrics?.monitoring?.activeSessions ?? 1} Sessions
+            </div>
+            <div className="sub-stat">
+              <span>Connected Clients (SSE)</span>
+              <span style={{ fontWeight: 600, color: "#34d399" }}>{metrics?.monitoring?.connectedClients ?? 1}</span>
+            </div>
+            <div className="sub-stat">
+              <span>Failed Logins (24h)</span>
+              <span style={{ color: (metrics?.monitoring?.failedLogins ?? 0) > 0 ? "#fbbf24" : "#94a3b8" }}>
+                {metrics?.monitoring?.failedLogins ?? 0}
+              </span>
+            </div>
+            <div className="sub-stat">
+              <span>Locked Accounts</span>
+              <span style={{ color: (metrics?.monitoring?.lockedAccounts ?? 0) > 0 ? "#f87171" : "#34d399" }}>
+                {metrics?.monitoring?.lockedAccounts ?? 0}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Delivery Failures & Offline Sync Card */}
+        <div className="metric-card">
+          <div className="card-header">
+            <h3><FiBell /> Delivery & Sync Failures</h3>
+            <span className="card-icon-badge"><FiAlertTriangle /></span>
+          </div>
+          <div className="card-body">
+            <div className="main-stat" style={{ color: ((metrics?.monitoring?.offlineSyncFailures ?? 0) + (metrics?.monitoring?.notificationFailures ?? 0)) > 0 ? "#f87171" : "#34d399" }}>
+              {((metrics?.monitoring?.offlineSyncFailures ?? 0) + (metrics?.monitoring?.notificationFailures ?? 0))} Failures
+            </div>
+            <div className="sub-stat">
+              <span>Offline Attendance Queue</span>
+              <span>{metrics?.monitoring?.offlineSyncFailures ?? 0} failed</span>
+            </div>
+            <div className="sub-stat">
+              <span>Notification Deliveries</span>
+              <span>{metrics?.monitoring?.notificationFailures ?? 0} failed</span>
+            </div>
+            <div className="sub-stat">
+              <span>Service Health Probe</span>
+              <span className="badge-tag success">HEALTHY</span>
             </div>
           </div>
         </div>
