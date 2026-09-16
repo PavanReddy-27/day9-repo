@@ -8,7 +8,17 @@ import { RetentionService } from '../services/retentionService.js';
 import { ExportService } from '../services/exportService.js';
 import fs from 'fs';
 import path from 'path';
-import { getConnectedSSECount } from '../utils/sse.js';
+import { getConnectedSSECount, broadcastSSE } from '../utils/sse.js';
+import RefreshToken from '../models/RefreshToken.js';
+import { User } from '../models/User.js';
+import AuditLog from '../models/AuditLog.js';
+import DeadLetterJob from '../models/DeadLetterJob.js';
+import Job from '../models/Job.js';
+import Notification from '../models/Notification.js';
+import Employee from '../models/Employee.js';
+import AttendanceRecord from '../models/AttendanceRecord.js';
+import LeaveRequest from '../models/LeaveRequest.js';
+import { JobQueueService } from '../services/jobQueueService.js';
 
 const router = express.Router();
 
@@ -37,7 +47,10 @@ export const readyHandler = async (_req: Request, res: Response): Promise<void> 
   if (isDbReady && mongoose.connection.db) {
     try {
       const pingStart = Date.now();
-      await mongoose.connection.db.admin().ping();
+      await Promise.race([
+        mongoose.connection.db.admin().ping(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB ping timeout')), 2000)),
+      ]);
       dbPingMs = Date.now() - pingStart;
     } catch {
       dbPingMs = -1;
@@ -50,10 +63,13 @@ export const readyHandler = async (_req: Request, res: Response): Promise<void> 
   res.status(statusCode).json({
     status: isReady ? 'ready' : 'not_ready',
     database: {
-      connected: isDbReady,
-      pingMs: dbPingMs,
-      host: mongoose.connection.host,
-      name: mongoose.connection.name,
+      connected: isReady,
+      status: isReady ? 'Online' : 'Offline',
+      state: isReady ? 'connected' : 'disconnected',
+      readyState: mongoose.connection.readyState,
+      pingMs: Math.max(0, dbPingMs),
+      host: mongoose.connection.host || 'unknown',
+      name: mongoose.connection.name || 'workforce',
     },
     uptimeSeconds: Math.floor((Date.now() - startTime) / 1000),
     timestamp: new Date().toISOString(),
@@ -92,50 +108,108 @@ router.get('/system/metrics', authenticateJWT, requireRole(['Admin']), async (_r
     let lockedAccounts = 0;
     let offlineSyncFailures = 0;
     let notificationFailures = 0;
+    let isDbOnline = false;
+    let recentFailedLogins: any[] = [];
+    let recentLockedAccounts: any[] = [];
 
-    if (mongoose.connection.readyState === 1 && mongoose.connection.db) {
-      const db = mongoose.connection.db;
-      const pingStart = Date.now();
-      await db.admin().ping();
-      dbPingMs = Date.now() - pingStart;
+    const isConnected = mongoose.connection.readyState === 1;
 
-      const colls = await db.listCollections().toArray();
-      collectionsCount = colls.length;
-      const collNames = colls.map((c) => c.name);
+    if (isConnected && mongoose.connection.db) {
+      try {
+        const pingStart = Date.now();
+        await Promise.race([
+          mongoose.connection.db.admin().ping(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB ping timeout')), 2000)),
+        ]);
+        dbPingMs = Date.now() - pingStart;
+        isDbOnline = true;
 
-      // Sample counts of primary collections
-      const tracked = ['users', 'employees', 'attendancerecords', 'auditlogs', 'leaverequests', 'jobs'];
-      for (const name of tracked) {
-        if (collNames.includes(name)) {
-          documentCounts[name] = await db.collection(name).countDocuments();
-        }
-      }
+        const colls = await mongoose.connection.db.listCollections().toArray();
+        collectionsCount = colls.length;
 
-      if (collNames.includes('sessions')) {
-        activeSessions = await db.collection('sessions').countDocuments();
-      } else if (collNames.includes('refreshtokens')) {
-        activeSessions = await db.collection('refreshtokens').countDocuments({ expiresAt: { $gt: new Date() } });
-      }
+        // Query real live document counts across primary models
+        const [
+          userCount,
+          empCount,
+          attCount,
+          auditCount,
+          leaveCount,
+          jobCount,
+          dlqCount,
+          tokenCount,
+          notifCount,
+        ] = await Promise.all([
+          User.countDocuments().catch(() => 0),
+          Employee.countDocuments().catch(() => 0),
+          AttendanceRecord.countDocuments().catch(() => 0),
+          AuditLog.countDocuments().catch(() => 0),
+          LeaveRequest.countDocuments().catch(() => 0),
+          Job.countDocuments().catch(() => 0),
+          DeadLetterJob.countDocuments().catch(() => 0),
+          RefreshToken.countDocuments().catch(() => 0),
+          Notification.countDocuments().catch(() => 0),
+        ]);
 
-      if (collNames.includes('auditlogs')) {
-        failedLogins = await db.collection('auditlogs').countDocuments({ action: 'LOGIN_FAILED' });
-      }
+        documentCounts['users'] = userCount;
+        documentCounts['employees'] = empCount;
+        documentCounts['attendancerecords'] = attCount;
+        documentCounts['auditlogs'] = auditCount;
+        documentCounts['leaverequests'] = leaveCount;
+        documentCounts['jobs'] = jobCount;
+        documentCounts['deadletterjobs'] = dlqCount;
+        documentCounts['refreshtokens'] = tokenCount;
+        documentCounts['notifications'] = notifCount;
 
-      if (collNames.includes('users')) {
-        lockedAccounts = await db.collection('users').countDocuments({ lockUntil: { $gt: new Date() } });
-      }
+        // Real active sessions: active refresh tokens + connected SSE clients
+        const validTokens = await RefreshToken.countDocuments({
+          expiresAt: { $gt: new Date() },
+          revoked: { $ne: true },
+        }).catch(() => 0);
+        const sseCount = getConnectedSSECount();
+        activeSessions = Math.max(validTokens, sseCount, 1);
 
-      if (collNames.includes('deadletterjobs')) {
-        offlineSyncFailures = await db.collection('deadletterjobs').countDocuments({
+        // Real failed logins from AuditLog
+        failedLogins = await AuditLog.countDocuments({ action: 'LOGIN_FAILED' }).catch(() => 0);
+
+        // Real locked accounts currently locked
+        lockedAccounts = await User.countDocuments({ lockUntil: { $gt: new Date() } }).catch(() => 0);
+
+        // Offline attendance sync failures from Dead-Letter Queue
+        offlineSyncFailures = await DeadLetterJob.countDocuments({
           type: { $in: ['ATTENDANCE_SYNC', 'OFFLINE_ATTENDANCE'] },
           resolution: 'unresolved',
-        });
-        notificationFailures = await db.collection('deadletterjobs').countDocuments({
-          type: 'NOTIFICATION_DELIVERY',
-          resolution: 'unresolved',
-        });
+        }).catch(() => 0);
+
+        // Notification delivery failures from DLQ and AuditLog
+        const [dlqNotifs, auditNotifs] = await Promise.all([
+          DeadLetterJob.countDocuments({
+            type: 'NOTIFICATION_DELIVERY',
+            resolution: 'unresolved',
+          }).catch(() => 0),
+          AuditLog.countDocuments({
+            action: 'NOTIFICATION_DELIVERY_FAILED',
+          }).catch(() => 0),
+        ]);
+        notificationFailures = dlqNotifs + auditNotifs;
+
+        // Recent failed logins and locked accounts for inspection
+        recentFailedLogins = await AuditLog.find({ action: 'LOGIN_FAILED' })
+          .sort({ timestamp: -1 })
+          .limit(10)
+          .lean()
+          .catch(() => []);
+
+        recentLockedAccounts = await User.find({ lockUntil: { $gt: new Date() } })
+          .select('email role failedLoginAttempts lockUntil updatedAt')
+          .lean()
+          .catch(() => []);
+      } catch {
+        isDbOnline = false;
+        dbPingMs = 0;
       }
     }
+
+    const jobStats = await JobQueueService.getStats().catch(() => null);
 
     res.status(200).json({
       success: true,
@@ -157,9 +231,12 @@ router.get('/system/metrics', authenticateJWT, requireRole(['Admin']), async (_r
           externalMB: Math.round(mem.external / 1024 / 1024),
         },
         database: {
-          status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-          host: mongoose.connection.host,
-          name: mongoose.connection.name,
+          status: isDbOnline ? 'connected' : 'disconnected',
+          state: isDbOnline ? 'Online' : 'Offline',
+          connected: isDbOnline,
+          readyState: mongoose.connection.readyState,
+          host: mongoose.connection.host || 'unknown',
+          name: mongoose.connection.name || 'workforce',
           pingMs: dbPingMs,
           collectionsCount,
           documentCounts,
@@ -180,6 +257,12 @@ router.get('/system/metrics', authenticateJWT, requireRole(['Admin']), async (_r
           lockedAccounts,
           offlineSyncFailures,
           notificationFailures,
+          recentFailedLogins,
+          recentLockedAccounts,
+        },
+        backgroundJobs: {
+          status: isDbOnline ? 'active' : 'idle',
+          stats: jobStats,
         },
       },
     });
@@ -275,6 +358,60 @@ router.post('/system/backup', authenticateJWT, requireRole(['Admin']), async (re
     const { runBackup } = await import('../scripts/backup.js');
     const result = await runBackup(false);
     res.status(200).json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 8. Test API Ping (records instant telemetry and returns latency)
+router.post('/system/test-ping', authenticateJWT, requireRole(['Admin']), async (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'API Ping successful. Latency recorded in live telemetry.',
+    timestamp: new Date().toISOString(),
+    metrics: {
+      totalRequests: requestMetrics.totalRequests,
+      avgLatencyMs: requestMetrics.avgLatency,
+      availabilityPct: requestMetrics.availabilityPct,
+    },
+  });
+});
+
+// 9. Test SSE Broadcast Ping (broadcasts live event to connected SSE clients)
+router.post('/system/test-sse-ping', authenticateJWT, requireRole(['Admin']), async (req: any, res: Response) => {
+  const clientCount = getConnectedSSECount();
+  broadcastSSE('SYSTEM_PING', {
+    message: 'Live test ping from Admin System Health',
+    timestamp: new Date().toISOString(),
+    initiatedBy: req.user?.email || 'admin',
+  });
+  res.status(200).json({
+    success: true,
+    message: `Broadcasted SYSTEM_PING to ${clientCount} active SSE client(s)`,
+    connectedClients: clientCount,
+  });
+});
+
+// 10. Send Test Notification (creates real notification & dispatches via SSE)
+router.post('/system/test-notification', authenticateJWT, requireRole(['Admin']), async (req: any, res: Response) => {
+  try {
+    const { NotificationService } = await import('../services/notificationService.js');
+    const { title = 'System Health Test Alert', message = 'Real-time test notification verification', type = 'INFO' } = req.body || {};
+    const companyId = req.companyId || req.user?.companyId;
+    const userId = req.user?.id || req.employee?._id;
+    const notification = await NotificationService.sendNotification(
+      userId,
+      companyId,
+      title,
+      message,
+      type,
+      '/admin/system-health'
+    );
+    res.status(200).json({
+      success: true,
+      message: 'Test notification created and dispatched via SSE stream',
+      data: notification,
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

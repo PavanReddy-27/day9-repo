@@ -15,6 +15,7 @@ import { writeAuditLog } from "../utils/audit.js";
 import { logComplianceViolation } from "../utils/compliance.js";
 import { checkEmployeeScope, isTeamInManagerDepartment } from "../middleware/dataScopeMiddleware.js";
 import { NotificationService } from "../services/notificationService.js";
+import { logger } from "../utils/logger.js";
 
 // Haversine formula for geofence validation
 export function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -183,6 +184,14 @@ export const checkIn = async (req, res) => {
             actualWorkMode = "WFH";
             isGeofenced = false;
           } else {
+            logger.warn(`Attendance synchronization failure: Outside geofence for employee '${req.employee?._id}' (${Math.round(distanceMeters)}m)`, {
+              employeeId: req.employee?._id,
+              companyId: req.companyId,
+              distanceMeters: Math.round(distanceMeters),
+              allowedRadius,
+              source: req.body?.source,
+            }, req.id);
+            writeAuditLog(req, "ATTENDANCE_SYNC_FAILED", `Check-in rejected: Outside geofence (${Math.round(distanceMeters)}m > ${allowedRadius}m)`, "AttendanceRecord", req.employee?._id);
             const resp = {
               success: false,
               message: `OUTSIDE_GEOFENCE`,
@@ -267,6 +276,13 @@ export const checkIn = async (req, res) => {
   } catch (error: any) {
     if (session && session.inTransaction()) await session.abortTransaction();
     if (session) session.endSession();
+    logger.error(`Attendance synchronization failure: Check-in error for employee '${req.employee?._id}'`, {
+      employeeId: req.employee?._id,
+      companyId: req.companyId,
+      source: req.body?.source,
+      error: error.message,
+    }, req.id);
+    writeAuditLog(req, "ATTENDANCE_SYNC_FAILED", `Check-in sync failure: ${error.message}`, "AttendanceRecord", req.employee?._id);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -350,6 +366,13 @@ export const startBreak = async (req, res) => {
   } catch (error: any) {
     if (session && session.inTransaction()) await session.abortTransaction();
     if (session) session.endSession();
+    logger.error(`Attendance synchronization failure: Start break error for employee '${req.employee?._id}'`, {
+      employeeId: req.employee?._id,
+      companyId: req.companyId,
+      source: req.body?.source,
+      error: error.message,
+    }, req.id);
+    writeAuditLog(req, "ATTENDANCE_SYNC_FAILED", `Start break sync failure: ${error.message}`, "AttendanceRecord", req.employee?._id);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -427,6 +450,13 @@ export const resumeWork = async (req, res) => {
   } catch (error: any) {
     if (session && session.inTransaction()) await session.abortTransaction();
     if (session) session.endSession();
+    logger.error(`Attendance synchronization failure: Resume work error for employee '${req.employee?._id}'`, {
+      employeeId: req.employee?._id,
+      companyId: req.companyId,
+      source: req.body?.source,
+      error: error.message,
+    }, req.id);
+    writeAuditLog(req, "ATTENDANCE_SYNC_FAILED", `Resume work sync failure: ${error.message}`, "AttendanceRecord", req.employee?._id);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -568,6 +598,13 @@ export const checkOut = async (req: any, res: any) => {
       }
     }
     
+    logger.error(`Attendance synchronization failure: Check-out error for employee '${req.employee?._id}'`, {
+      employeeId: req.employee?._id,
+      companyId: req.companyId,
+      source: req.body?.source,
+      error: error.message,
+    }, req.id);
+    writeAuditLog(req, "ATTENDANCE_SYNC_FAILED", `Check-out sync failure: ${error.message}`, "AttendanceRecord", req.employee?._id);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

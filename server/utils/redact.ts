@@ -4,9 +4,17 @@
  */
 
 const SENSITIVE_KEYS = new Set([
+  // Passwords & Secrets
   'password',
   'passwd',
+  'passwordhash',
+  'oldpassword',
+  'newpassword',
   'secret',
+  'privatekey',
+  'apikey',
+
+  // Tokens & Auth Headers
   'token',
   'accesstoken',
   'refreshtoken',
@@ -15,6 +23,26 @@ const SENSITIVE_KEYS = new Set([
   'mfatoken',
   'authorization',
   'cookie',
+  'setcookie',
+
+  // Payroll Data
+  'salary',
+  'basicsalary',
+  'allowances',
+  'deductions',
+  'netpay',
+  'grosspay',
+  'bankaccount',
+  'accountnumber',
+  'routingnumber',
+  'iban',
+  'swiftcode',
+  'taxid',
+  'payslip',
+  'bonus',
+  'hourlyrate',
+
+  // Personal Data & PII
   'creditcard',
   'cardnumber',
   'cvv',
@@ -23,6 +51,16 @@ const SENSITIVE_KEYS = new Set([
   'routingnumber',
   'apikey',
   'privatekey',
+  'socialsecurity',
+  'nationalid',
+  'passport',
+  'pan',
+  'aadhar',
+  'dateofbirth',
+  'dob',
+  'phone',
+  'phonenumber',
+  'address',
 ]);
 
 export const redactSensitiveData = <T = any>(input: T, depth = 0): T => {

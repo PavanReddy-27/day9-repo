@@ -9,6 +9,7 @@ import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
 import { NotificationService } from '../services/notificationService.js';
+import { logger } from '../utils/logger.js';
 
 // Google Authenticator uses 30s TOTP steps. Allow ±1 step (±30s) so small clock
 // drift between the phone and the server doesn't reject otherwise-valid codes.
@@ -104,10 +105,27 @@ export const login = async (req: any, res: any, next: any) => {
     const user: any = await findUserByEmail(email);
 
     if (!user) {
+      logger.warn(`Authentication failure: User not found for '${email}'`, {
+        email,
+        ip: req.ip,
+      }, req.id);
+      void writeAuditLog(
+        { companyId: undefined, role: 'Unknown', userEmail: email, ip: (req as any).ip, headers: (req as any).headers },
+        "LOGIN_FAILED",
+        `Failed login attempt for non-existent email: ${email}`,
+        "Auth",
+        "unknown"
+      );
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
     if (user.lockUntil && user.lockUntil > new Date()) {
+      logger.warn(`Authentication failure: Attempted login to locked account '${email}'`, {
+        email,
+        userId: user._id,
+        lockUntil: user.lockUntil,
+        ip: req.ip,
+      }, req.id);
       return res.status(403).json({ success: false, message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' });
     }
 
@@ -115,6 +133,20 @@ export const login = async (req: any, res: any, next: any) => {
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
       if (user.failedLoginAttempts >= 5) {
         user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
+        logger.warn(`Security alert: Account '${email}' locked due to excessive failed attempts`, {
+          email,
+          userId: user._id,
+          failedAttempts: user.failedLoginAttempts,
+          lockUntil: user.lockUntil,
+          ip: req.ip,
+        }, req.id);
+      } else {
+        logger.warn(`Authentication failure: Incorrect password for '${email}' (attempt ${user.failedLoginAttempts})`, {
+          email,
+          userId: user._id,
+          failedAttempts: user.failedLoginAttempts,
+          ip: req.ip,
+        }, req.id);
       }
       await user.save();
       
@@ -138,6 +170,13 @@ export const login = async (req: any, res: any, next: any) => {
     }
 
     if (user.isActive === false || user.isDeleted) {
+      logger.warn(`Authentication failure: Inactive or deleted account '${email}' login attempt`, {
+        email,
+        userId: user._id,
+        isActive: user.isActive,
+        isDeleted: user.isDeleted,
+        ip: req.ip,
+      }, req.id);
       return res.status(403).json({ success: false, message: 'Account is deactivated or deleted' });
     }
 

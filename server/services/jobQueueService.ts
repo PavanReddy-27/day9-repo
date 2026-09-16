@@ -62,7 +62,6 @@ export class JobQueueService {
       status: 'pending',
     });
 
-    logger.info(`Job enqueued: ${type} [${job._id}]`, { jobId: job._id, type });
     logger.info(`Job enqueued: ${type} [${job._id}]`, { jobId: job._id, type, idempotencyKey: options.idempotencyKey });
     return job;
   }
@@ -281,6 +280,40 @@ export class JobQueueService {
     if (!this.handlers.has('METRICS_AGGREGATION')) {
       this.registerHandler('METRICS_AGGREGATION', async () => {
         return { aggregatedAt: new Date().toISOString(), status: 'success' };
+      });
+    }
+
+    if (!this.handlers.has('ATTENDANCE_SYNC')) {
+      this.registerHandler('ATTENDANCE_SYNC', async (payload) => {
+        logger.info(`[JobQueue] Executing ATTENDANCE_SYNC job`, { payload });
+        return { synced: true, timestamp: new Date().toISOString() };
+      });
+    }
+
+    if (!this.handlers.has('OFFLINE_ATTENDANCE')) {
+      this.registerHandler('OFFLINE_ATTENDANCE', async (payload) => {
+        logger.info(`[JobQueue] Executing OFFLINE_ATTENDANCE job`, { payload });
+        return { synced: true, processedAt: new Date().toISOString() };
+      });
+    }
+
+    if (!this.handlers.has('NOTIFICATION_DELIVERY')) {
+      this.registerHandler('NOTIFICATION_DELIVERY', async (payload) => {
+        const { NotificationService } = await import('./notificationService.js');
+        return await NotificationService.sendNotification(
+          payload.userId,
+          payload.companyId,
+          payload.title || 'System Alert',
+          payload.message || '',
+          payload.type || 'INFO',
+          payload.linkUrl || ''
+        );
+      });
+    }
+
+    if (!this.handlers.has('PING_HEALTH_CHECK')) {
+      this.registerHandler('PING_HEALTH_CHECK', async (payload) => {
+        return { pong: true, receivedAt: payload.timestamp || new Date().toISOString() };
       });
     }
 

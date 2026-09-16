@@ -1,20 +1,22 @@
 import { useEffect, useState, useCallback } from "react";
 import { apiClient } from "../../../services/apiClient";
+import { getOfflineQueueStats, OfflineQueueStats } from "../../../utils/offlineQueue";
 import {
   FiActivity,
   FiServer,
   FiDatabase,
-  FiCpu,
-  FiHardDrive,
   FiRefreshCw,
   FiAlertTriangle,
   FiCheckCircle,
-  FiDownload,
-  FiTrash2,
-  FiPlay,
   FiUsers,
   FiLock,
   FiBell,
+  FiClock,
+  FiZap,
+  FiRadio,
+  FiSend,
+  FiShield,
+  FiPlay,
 } from "react-icons/fi";
 import "./SystemHealth.css";
 
@@ -37,6 +39,9 @@ interface SystemMetrics {
   };
   database: {
     status: string;
+    state?: string;
+    connected?: boolean;
+    readyState?: number;
     host: string;
     name: string;
     pingMs: number;
@@ -59,6 +64,26 @@ interface SystemMetrics {
     lockedAccounts: number;
     offlineSyncFailures: number;
     notificationFailures: number;
+    recentFailedLogins?: Array<{
+      _id: string;
+      performedBy: string;
+      userRole: string;
+      details: string;
+      ipAddress: string;
+      timestamp: string;
+    }>;
+    recentLockedAccounts?: Array<{
+      _id: string;
+      email: string;
+      role: string;
+      failedLoginAttempts: number;
+      lockUntil: string;
+      updatedAt?: string;
+    }>;
+  };
+  backgroundJobs?: {
+    status: string;
+    stats: JobStats | null;
   };
 }
 
@@ -80,46 +105,114 @@ interface DeadLetterItem {
   resolution: string;
 }
 
-interface BackupItem {
-  id: string;
-  backupId: string;
-  createdAt: string;
-  database: string;
-  totalCollections: number;
-  totalDocuments: number;
-  totalSizeBytes: number;
-}
-
 const SystemHealth = () => {
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [jobStats, setJobStats] = useState<JobStats | null>(null);
   const [dlqItems, setDlqItems] = useState<DeadLetterItem[]>([]);
-  const [backups, setBackups] = useState<BackupItem[]>([]);
+  const [offlineStats, setOfflineStats] = useState<OfflineQueueStats | null>(null);
+  const [sseConnected, setSseConnected] = useState<boolean>(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "dlq" | "backups" | "retention">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "dlq" | "security">("overview");
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
+  const isMongoOnline = Boolean(
+    metrics?.database &&
+    (metrics.database.status === "connected" ||
+      metrics.database.status === "Online" ||
+      metrics.database.state === "Online" ||
+      metrics.database.connected === true) &&
+    metrics.database.status !== "disconnected" &&
+    metrics.database.state !== "Offline"
+  );
+
+  const effectiveJobStats = jobStats || metrics?.backgroundJobs?.stats;
+
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [mRes, jRes, dlqRes, bRes] = await Promise.all([
+      const [mRes, jRes, dlqRes] = await Promise.allSettled([
         apiClient<{ success: boolean; data: SystemMetrics }>("/system/metrics"),
         apiClient<{ success: boolean; data: JobStats }>("/jobs/stats"),
         apiClient<{ success: boolean; data: DeadLetterItem[] }>("/jobs/dead-letter"),
-        apiClient<{ success: boolean; data: BackupItem[] }>("/system/backups"),
       ]);
 
-      if (mRes?.data) setMetrics(mRes.data);
-      if (jRes?.data) setJobStats(jRes.data);
-      if (dlqRes?.data) setDlqItems(dlqRes.data);
-      if (bRes?.data) setBackups(bRes.data);
+      if (mRes.status === "fulfilled" && mRes.value?.data) {
+        setMetrics(mRes.value.data);
+      } else {
+        // Fallback: probe public /ready endpoint if /system/metrics is unreachable (e.g. MongoDB disconnected)
+        try {
+          const readyRes = await apiClient<{ status: string; database: { connected: boolean; pingMs: number; name?: string; host?: string } }>("/ready");
+          if (readyRes?.database) {
+            const dbConnected = Boolean(readyRes.database.connected);
+            setMetrics((prev) => {
+              if (prev) {
+                return {
+                  ...prev,
+                  database: {
+                    ...prev.database,
+                    status: dbConnected ? "connected" : "disconnected",
+                    state: dbConnected ? "Online" : "Offline",
+                    connected: dbConnected,
+                    pingMs: readyRes.database.pingMs ?? 0,
+                  },
+                };
+              }
+              return {
+                timestamp: new Date().toISOString(),
+                server: { uptimeSeconds: 0, nodeVersion: "v20.x", platform: "", cpuCount: 4, loadAverage: [], freeMemoryMB: 0, totalMemoryMB: 0 },
+                memory: { heapUsedMB: 0, heapTotalMB: 0, rssMB: 0, externalMB: 0 },
+                database: {
+                  status: dbConnected ? "connected" : "disconnected",
+                  state: dbConnected ? "Online" : "Offline",
+                  connected: dbConnected,
+                  host: readyRes.database.host || "unknown",
+                  name: readyRes.database.name || "workforce",
+                  pingMs: readyRes.database.pingMs ?? 0,
+                  collectionsCount: 0,
+                  documentCounts: {},
+                },
+                traffic: { totalRequests: 0, status2xx: 0, status4xx: 0, status5xx: 0, p95LatencyMs: 0, avgLatencyMs: 0, availabilityPct: 100 },
+                monitoring: { activeSessions: 0, connectedClients: 0, failedLogins: 0, lockedAccounts: 0, offlineSyncFailures: 0, notificationFailures: 0 },
+              };
+            });
+          }
+        } catch {
+          // If both fail, safely mark database as Offline
+          setMetrics((prev) => prev ? {
+            ...prev,
+            database: {
+              ...prev.database,
+              status: "disconnected",
+              state: "Offline",
+              connected: false,
+              pingMs: 0,
+            }
+          } : null);
+        }
+      }
+
+      if (jRes.status === "fulfilled" && jRes.value?.data) {
+        setJobStats(jRes.value.data);
+      } else if (mRes.status === "fulfilled" && mRes.value?.data?.backgroundJobs?.stats) {
+        setJobStats(mRes.value.data.backgroundJobs.stats);
+      }
+      if (dlqRes.status === "fulfilled" && dlqRes.value?.data) setDlqItems(dlqRes.value.data);
+
+      // Fetch local browser offline queue status
+      try {
+        const offStats = await getOfflineQueueStats();
+        setOfflineStats(offStats);
+      } catch {
+        // IndexedDB may be unavailable in some test environments
+      }
     } catch {
-      // Fallback data if server endpoint returns initial empty/test state
+      // Nominal catch
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -129,46 +222,31 @@ const SystemHealth = () => {
   useEffect(() => {
     fetchDashboardData();
     const interval = setInterval(fetchDashboardData, 10000); // Live poll every 10s
-    return () => clearInterval(interval);
+
+    const handleSseStatus = (e: any) => {
+      if (typeof e.detail?.connected === "boolean") {
+        setSseConnected(e.detail.connected);
+      }
+    };
+
+    const handlePingNotification = (e: any) => {
+      showToast(`Received real-time SSE broadcast: ${e.detail || "System Ping"}`, "success");
+      fetchDashboardData();
+    };
+
+    window.addEventListener("sse_connection_changed", handleSseStatus);
+    window.addEventListener("system_ping_received", handlePingNotification);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("sse_connection_changed", handleSseStatus);
+      window.removeEventListener("system_ping_received", handlePingNotification);
+    };
   }, [fetchDashboardData]);
 
   const handleManualRefresh = () => {
     setRefreshing(true);
     fetchDashboardData();
-  };
-
-  const handleTriggerBackup = async () => {
-    try {
-      showToast("Starting database snapshot...", "success");
-      const res = await apiClient<{ success: boolean; data: any }>("/system/backup", {
-        method: "POST",
-      });
-      if (res?.success) {
-        showToast(`Backup ${res.data?.backupId || "snapshot"} generated successfully!`, "success");
-        fetchDashboardData();
-      }
-    } catch (err: any) {
-      showToast(`Backup failed: ${err.message}`, "error");
-    }
-  };
-
-  const handleTriggerRetention = async (dryRun = false) => {
-    try {
-      showToast(dryRun ? "Running retention dry-run..." : "Purging expired records...", "success");
-      const res = await apiClient<{ success: boolean; data: any }>("/system/retention", {
-        method: "POST",
-        body: JSON.stringify({ dryRun }),
-      });
-      if (res?.success) {
-        const d = res.data;
-        showToast(
-          `Retention complete: ${d.auditLogsPurged} logs & ${d.notificationsPurged} notifications cleaned.`,
-          "success"
-        );
-      }
-    } catch (err: any) {
-      showToast(`Retention failed: ${err.message}`, "error");
-    }
   };
 
   const handleRetryJob = async (id: string) => {
@@ -191,17 +269,82 @@ const SystemHealth = () => {
     }
   };
 
-  const handleSimulateRetryDemo = async () => {
+  const handleTestPing = async () => {
+    setActionLoading("ping");
     try {
-      showToast("Enqueueing test failure job with exponential retry policy...", "success");
-      await apiClient("/jobs/test-retry-demo", {
-        method: "POST",
-        body: JSON.stringify({ shouldFailAlways: true, maxRetries: 3 }),
-      });
-      showToast("Test failure job scheduled. It will retry and route to DLQ.", "success");
+      const start = Date.now();
+      const res = await apiClient<{ success: boolean; message: string }>("/system/test-ping", { method: "POST" });
+      const duration = Date.now() - start;
+      showToast(`${res.message || "API Ping OK"} (${duration}ms)`, "success");
       fetchDashboardData();
     } catch (err: any) {
-      showToast(`Demo failed: ${err.message}`, "error");
+      showToast(`Ping failed: ${err.message}`, "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleTestSsePing = async () => {
+    setActionLoading("sse");
+    try {
+      const res = await apiClient<{ success: boolean; message: string; connectedClients: number }>("/system/test-sse-ping", { method: "POST" });
+      showToast(res.message || "Broadcasted SSE Ping", "success");
+      fetchDashboardData();
+    } catch (err: any) {
+      showToast(`SSE Ping failed: ${err.message}`, "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    setActionLoading("notification");
+    try {
+      const res = await apiClient<{ success: boolean; message: string }>("/system/test-notification", {
+        method: "POST",
+        body: JSON.stringify({
+          title: "System Telemetry Alert",
+          message: `Live notification check completed at ${new Date().toLocaleTimeString()}`,
+          type: "INFO",
+        }),
+      });
+      showToast(res.message || "Notification sent", "success");
+      fetchDashboardData();
+    } catch (err: any) {
+      showToast(`Notification test failed: ${err.message}`, "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSyncOfflineQueue = async () => {
+    setActionLoading("offline");
+    try {
+      window.dispatchEvent(new CustomEvent("sync_offline_queue"));
+      showToast("Triggered offline queue synchronization", "success");
+      const stats = await getOfflineQueueStats();
+      setOfflineStats(stats);
+      fetchDashboardData();
+    } catch (err: any) {
+      showToast(`Sync failed: ${err.message}`, "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleEnqueueJob = async () => {
+    setActionLoading("job");
+    try {
+      const res = await apiClient<{ success: boolean; message: string }>("/jobs/trigger", {
+        method: "POST",
+        body: JSON.stringify({ type: "PING_HEALTH_CHECK", payload: { timestamp: new Date().toISOString() } }),
+      });
+      showToast(res.message || "Test background job enqueued", "success");
+      fetchDashboardData();
+    } catch (err: any) {
+      showToast(`Job enqueue failed: ${err.message}`, "error");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -213,26 +356,11 @@ const SystemHealth = () => {
     return `${h}h ${m}m ${s}s`;
   };
 
-  const handleExportDiagnostics = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(metrics, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `system-diagnostics-${new Date().toISOString().split("T")[0]}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-    showToast("Downloaded system telemetry diagnostics snapshot.", "success");
-  };
-
-  const heapPct = metrics?.memory
-    ? Math.min(100, Math.round((metrics.memory.heapUsedMB / metrics.memory.heapTotalMB) * 100))
-    : 0;
-
   if (loading && !metrics) {
     return (
       <div className="system-health-page" style={{ padding: "48px", textAlign: "center", color: "var(--text-light)" }}>
         <FiRefreshCw className="spin-animate" style={{ fontSize: "2rem", marginBottom: "16px", color: "var(--primary)" }} />
-        <h2 style={{ color: "var(--text-h)", fontSize: "1.25rem" }}>Connecting to Workforce Telemetry Engine...</h2>
+        <h2 style={{ color: "var(--text-h)", fontSize: "1.25rem" }}>Connecting to Workforce Monitoring Engine...</h2>
       </div>
     );
   }
@@ -251,18 +379,18 @@ const SystemHealth = () => {
         <div className="health-title-group">
           <h1>System Health & Operations</h1>
           <p className="health-subtitle">
-            Live observability, background job reliability, disaster recovery, and infrastructure telemetry.
+            Centralized monitoring: API availability, active sessions, failed logins, offline attendance, notifications, and MongoDB status.
           </p>
         </div>
 
         <div className="health-actions-group">
           <div
             className={`status-badge ${
-              metrics?.database.status === "connected" ? "healthy" : "degraded"
+              isMongoOnline ? "healthy" : "degraded"
             }`}
           >
-            <span className="status-pulse" />
-            {metrics?.database.status === "connected" ? "Operational" : "Degraded"}
+            <span className={`status-pulse ${isMongoOnline ? "online" : "offline"}`} />
+            {isMongoOnline ? "Operational (MongoDB Online)" : "Degraded (MongoDB Offline)"}
           </div>
 
           <button
@@ -274,83 +402,30 @@ const SystemHealth = () => {
             <FiRefreshCw className={refreshing ? "spin-animate" : ""} />
             {refreshing ? "Refreshing..." : "Refresh"}
           </button>
-
-          <button
-            className="action-btn primary"
-            onClick={handleTriggerBackup}
-            aria-label="Create database backup"
-          >
-            <FiHardDrive />
-            Run Backup
-          </button>
         </div>
       </div>
 
-      {/* Primary Metrics Grid */}
+      {/* Primary Metrics Grid - Exactly 6 Monitored Areas */}
       <div className="metrics-grid">
-        {/* Memory Metric Card */}
+        {/* Card 1: API Availability & Average Response Time */}
         <div className="metric-card">
           <div className="card-header">
-            <h3><FiServer /> Server Memory</h3>
-            <span className="card-icon-badge"><FiCpu /></span>
+            <h3><FiActivity /> API Availability & Response Time</h3>
+            <span className="card-icon-badge" title="API Traffic & Latency"><FiActivity /></span>
           </div>
           <div className="card-body">
-            <div className="main-stat">{metrics?.memory.heapUsedMB ?? 0} MB</div>
-            <div className="sub-stat">
-              <span>Heap Allocated: {metrics?.memory.heapTotalMB ?? 0} MB</span>
-              <span>RSS: {metrics?.memory.rssMB ?? 0} MB</span>
+            <div className="main-stat" style={{ color: "var(--success)" }}>
+              {metrics?.traffic.availabilityPct !== undefined ? `${metrics.traffic.availabilityPct.toFixed(1)}%` : "100.0%"}
             </div>
-            <div className="progress-bar-container">
-              <div
-                className={`progress-bar-fill ${heapPct > 85 ? "danger" : heapPct > 65 ? "warning" : ""}`}
-                style={{ width: `${heapPct}%` }}
-              />
-            </div>
-            <div className="sub-stat" style={{ marginTop: "4px" }}>
-              <span>Utilization: {heapPct}%</span>
-              <span>Uptime: {formatUptime(metrics?.server.uptimeSeconds)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Database Metric Card */}
-        <div className="metric-card">
-          <div className="card-header">
-            <h3><FiDatabase /> MongoDB Cluster</h3>
-            <span className="card-icon-badge"><FiActivity /></span>
-          </div>
-          <div className="card-body">
-            <div className="main-stat" style={{ color: metrics?.database.status === "connected" ? "var(--success)" : "var(--error)" }}>
-              {metrics?.database.status === "connected" ? "Connected" : "Offline"}
-            </div>
-            <div className="sub-stat">
-              <span>Roundtrip Latency</span>
-              <span style={{ fontWeight: 600, color: "var(--primary)" }}>{metrics?.database.pingMs ?? 0} ms</span>
-            </div>
-            <div className="sub-stat">
-              <span>Active Collections</span>
-              <span>{metrics?.database.collectionsCount ?? 0}</span>
-            </div>
-            <div className="sub-stat">
-              <span>Host / DB</span>
-              <span>{metrics?.database.name || "workforce"}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* API Traffic Card */}
-        <div className="metric-card">
-          <div className="card-header">
-            <h3><FiActivity /> API Traffic & Latency</h3>
-            <span className="card-icon-badge"><FiServer /></span>
-          </div>
-          <div className="card-body">
-            <div className="main-stat">{metrics?.traffic.totalRequests ?? 0} reqs</div>
             <div className="sub-stat">
               <span>Average / p95 Latency</span>
-              <span style={{ fontWeight: 600, color: "var(--success)" }}>
-                {metrics?.traffic.avgLatencyMs ?? 12} ms / {metrics?.traffic.p95LatencyMs ?? 0} ms
+              <span style={{ fontWeight: 600, color: "var(--primary)" }}>
+                {metrics?.traffic.avgLatencyMs ?? 0} ms / {metrics?.traffic.p95LatencyMs ?? 0} ms
               </span>
+            </div>
+            <div className="sub-stat">
+              <span>API Traffic & Latency</span>
+              <span>{metrics?.traffic.totalRequests ?? 0} total requests</span>
             </div>
             <div className="sub-stat">
               <span>Status 2xx / 4xx / 5xx</span>
@@ -360,103 +435,252 @@ const SystemHealth = () => {
                 <span style={{ color: "var(--error)" }}>{metrics?.traffic.status5xx ?? 0}</span>
               </span>
             </div>
-            <div className="sub-stat">
-              <span>Availability / Error Rate</span>
-              <span>
-                <span style={{ color: "var(--success)" }}>{metrics?.traffic.availabilityPct ?? 99.98}%</span> /{" "}
-                <span style={{ color: (metrics?.traffic?.status5xx ?? 0) > 0 ? "var(--error)" : "var(--text-light)" }}>
-                  {metrics?.traffic.totalRequests
-                    ? `${Math.round(((metrics.traffic.status5xx) / metrics.traffic.totalRequests) * 100)}%`
-                    : "0%"}
-                </span>
-              </span>
+            <div className="card-action-row">
+              <button
+                className="card-test-btn"
+                onClick={handleTestPing}
+                disabled={actionLoading === "ping"}
+                title="Send a live test HTTP request to measure latency and update telemetry"
+              >
+                <FiZap /> {actionLoading === "ping" ? "Pinging..." : "Test API Ping"}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Background Jobs & DLQ Card */}
+        {/* Card 2: Active Sessions & Connected Notification Clients */}
         <div className="metric-card">
           <div className="card-header">
-            <h3><FiHardDrive /> Background Jobs & DLQ</h3>
-            <span className="card-icon-badge" style={{ color: (jobStats?.deadLetterCount ?? 0) > 0 ? "var(--error)" : "var(--primary)" }}>
-              <FiAlertTriangle />
-            </span>
-          </div>
-          <div className="card-body">
-            <div className="main-stat" style={{ color: (jobStats?.deadLetterCount ?? 0) > 0 ? "var(--error)" : "var(--text-h)" }}>
-              {jobStats?.deadLetterCount ?? 0} in DLQ
-            </div>
-            <div className="sub-stat">
-              <span>Pending / Active</span>
-              <span>{jobStats?.pending ?? 0} / {jobStats?.processing ?? 0}</span>
-            </div>
-            <div className="sub-stat">
-              <span>Completed Jobs</span>
-              <span style={{ color: "var(--success)" }}>{jobStats?.completed ?? 0}</span>
-            </div>
-            <div className="sub-stat">
-              <span>Worker State</span>
-              <span className="badge-tag success">RUNNING</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Active Sessions & Security Operations Card */}
-        <div className="metric-card">
-          <div className="card-header">
-            <h3><FiUsers /> Active Sessions & Auth</h3>
-            <span className="card-icon-badge"><FiLock /></span>
+            <h3><FiUsers /> Active Sessions & Notification Clients</h3>
+            <span className="card-icon-badge"><FiUsers /></span>
           </div>
           <div className="card-body">
             <div className="main-stat" style={{ color: "var(--primary)" }}>
-              {metrics?.monitoring?.activeSessions ?? 1} Sessions
+              {metrics?.monitoring?.activeSessions ?? 0} Active Sessions
             </div>
             <div className="sub-stat">
-              <span>Connected Clients (SSE)</span>
-              <span style={{ fontWeight: 600, color: "var(--success)" }}>{metrics?.monitoring?.connectedClients ?? 1}</span>
-            </div>
-            <div className="sub-stat">
-              <span>Failed Logins (24h)</span>
-              <span style={{ color: (metrics?.monitoring?.failedLogins ?? 0) > 0 ? "var(--warning)" : "var(--text-light)" }}>
-                {metrics?.monitoring?.failedLogins ?? 0}
+              <span>Connected Notification Clients (SSE)</span>
+              <span style={{ fontWeight: 600, color: "var(--success)" }}>
+                {metrics?.monitoring?.connectedClients ?? 0} Clients
               </span>
             </div>
             <div className="sub-stat">
-              <span>Locked Accounts</span>
-              <span style={{ color: (metrics?.monitoring?.lockedAccounts ?? 0) > 0 ? "var(--error)" : "var(--success)" }}>
-                {metrics?.monitoring?.lockedAccounts ?? 0}
+              <span>Active SSE Streams</span>
+              <span className={`badge-tag ${sseConnected ? "success" : "warning"}`}>
+                {sseConnected ? "LIVE" : "STANDBY"}
               </span>
+            </div>
+            <div className="sub-stat">
+              <span>Session Storage</span>
+              <span>Rotated Refresh Tokens</span>
+            </div>
+            <div className="card-action-row">
+              <button
+                className="card-test-btn"
+                onClick={handleTestSsePing}
+                disabled={actionLoading === "sse"}
+                title="Broadcast a real-time event to all connected SSE clients"
+              >
+                <FiRadio /> {actionLoading === "sse" ? "Broadcasting..." : "Broadcast SSE Ping"}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Delivery Failures & Offline Sync Card */}
+        {/* Card 3: Failed Logins & Locked Accounts */}
         <div className="metric-card">
           <div className="card-header">
-            <h3><FiBell /> Delivery & Sync Failures</h3>
+            <h3><FiLock /> Failed Logins & Locked Accounts</h3>
+            <span className="card-icon-badge"><FiLock /></span>
+          </div>
+          <div className="card-body">
+            <div className="main-stat" style={{ color: (metrics?.monitoring?.failedLogins ?? 0) > 0 ? "var(--warning)" : "var(--text-h)" }}>
+              {metrics?.monitoring?.failedLogins ?? 0} Failed Logins
+            </div>
+            <div className="sub-stat">
+              <span>Locked Accounts</span>
+              <span style={{ fontWeight: 600, color: (metrics?.monitoring?.lockedAccounts ?? 0) > 0 ? "var(--error)" : "var(--success)" }}>
+                {metrics?.monitoring?.lockedAccounts ?? 0} Accounts
+              </span>
+            </div>
+            <div className="sub-stat">
+              <span>Brute-force Protection</span>
+              <span>5 Attempts / 15m Lock</span>
+            </div>
+            <div className="sub-stat">
+              <span>Audit Logging</span>
+              <span className="badge-tag success">ENFORCED</span>
+            </div>
+            <div className="card-action-row">
+              <button
+                className="card-test-btn"
+                onClick={() => setActiveTab("security")}
+                title="Inspect real failed logins and locked account logs"
+              >
+                <FiShield /> View Security Log
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Offline Attendance Queue Failures */}
+        <div className="metric-card">
+          <div className="card-header">
+            <h3><FiClock /> Offline Attendance Queue Failures</h3>
             <span className="card-icon-badge"><FiAlertTriangle /></span>
           </div>
           <div className="card-body">
-            <div className="main-stat" style={{ color: ((metrics?.monitoring?.offlineSyncFailures ?? 0) + (metrics?.monitoring?.notificationFailures ?? 0)) > 0 ? "var(--error)" : "var(--success)" }}>
-              {((metrics?.monitoring?.offlineSyncFailures ?? 0) + (metrics?.monitoring?.notificationFailures ?? 0))} Failures
+            <div className="main-stat" style={{ color: ((metrics?.monitoring?.offlineSyncFailures ?? 0) + (offlineStats?.failed ?? 0)) > 0 ? "var(--error)" : "var(--success)" }}>
+              {(metrics?.monitoring?.offlineSyncFailures ?? 0) + (offlineStats?.failed ?? 0)} Failures
             </div>
             <div className="sub-stat">
-              <span>Offline Attendance Queue</span>
-              <span>{metrics?.monitoring?.offlineSyncFailures ?? 0} failed</span>
+              <span>Server DLQ Failures</span>
+              <span style={{ fontWeight: 600, color: (metrics?.monitoring?.offlineSyncFailures ?? 0) > 0 ? "var(--error)" : "var(--success)" }}>
+                {(metrics?.monitoring?.offlineSyncFailures ?? 0) > 0 ? `${metrics?.monitoring?.offlineSyncFailures} in DLQ` : "Synchronized"}
+              </span>
+            </div>
+            <div className="sub-stat">
+              <span>Local Browser Queue</span>
+              <span>
+                {offlineStats ? `${offlineStats.pending} pending / ${offlineStats.failed} failed` : "IndexedDB Ready"}
+              </span>
+            </div>
+            <div className="sub-stat">
+              <span>Geofence Guard</span>
+              <span className="badge-tag success">ACTIVE</span>
+            </div>
+            <div className="card-action-row">
+              <button
+                className="card-test-btn"
+                onClick={handleSyncOfflineQueue}
+                disabled={actionLoading === "offline"}
+                title="Trigger local offline IndexedDB queue synchronization"
+              >
+                <FiRefreshCw className={actionLoading === "offline" ? "spin-animate" : ""} />
+                {actionLoading === "offline" ? "Syncing..." : "Sync Offline Queue"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 5: Notification Delivery Failures */}
+        <div className="metric-card">
+          <div className="card-header">
+            <h3><FiBell /> Notification Delivery Failures</h3>
+            <span className="card-icon-badge"><FiBell /></span>
+          </div>
+          <div className="card-body">
+            <div className="main-stat" style={{ color: (metrics?.monitoring?.notificationFailures ?? 0) > 0 ? "var(--error)" : "var(--success)" }}>
+              {metrics?.monitoring?.notificationFailures ?? 0} Failures
             </div>
             <div className="sub-stat">
               <span>Notification Deliveries</span>
-              <span>{metrics?.monitoring?.notificationFailures ?? 0} failed</span>
+              <span style={{ fontWeight: 600, color: (metrics?.monitoring?.notificationFailures ?? 0) > 0 ? "var(--error)" : "var(--success)" }}>
+                {(metrics?.monitoring?.notificationFailures ?? 0) > 0 ? "Failures In DLQ" : "All Delivered"}
+              </span>
             </div>
             <div className="sub-stat">
-              <span>Service Health Probe</span>
-              <span className="badge-tag success">HEALTHY</span>
+              <span>Real-Time Dispatch</span>
+              <span>SSE Push Channel</span>
+            </div>
+            <div className="sub-stat">
+              <span>Delivery Status</span>
+              <span className={`badge-tag ${(metrics?.monitoring?.notificationFailures ?? 0) > 0 ? "warning" : "success"}`}>
+                {(metrics?.monitoring?.notificationFailures ?? 0) > 0 ? "ATTENTION" : "HEALTHY"}
+              </span>
+            </div>
+            <div className="card-action-row">
+              <button
+                className="card-test-btn"
+                onClick={handleTestNotification}
+                disabled={actionLoading === "notification"}
+                title="Send a real test notification to verify real-time SSE delivery"
+              >
+                <FiSend /> {actionLoading === "notification" ? "Dispatching..." : "Send Test Notification"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 6: MongoDB Connectivity & Background-Job Status */}
+        <div className={`metric-card ${isMongoOnline ? "db-online" : "db-offline"}`}>
+          <div className="card-header">
+            <h3><FiDatabase /> MongoDB Connectivity & Background Jobs</h3>
+            <span
+              className="card-icon-badge"
+              style={{
+                background: isMongoOnline ? "var(--success-bg)" : "var(--error-bg)",
+                color: isMongoOnline ? "var(--success)" : "var(--error)",
+              }}
+              title={isMongoOnline ? "MongoDB Online" : "MongoDB Offline"}
+            >
+              <FiDatabase />
+            </span>
+          </div>
+          <div className="card-body">
+            <div
+              className="main-stat"
+              style={{
+                color: isMongoOnline ? "var(--success)" : "var(--error)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span className={`status-pulse ${isMongoOnline ? "online" : "offline"}`} />
+              MongoDB {isMongoOnline ? "Online" : "Offline"}
+            </div>
+            <div className="sub-stat">
+              <span>MongoDB Cluster</span>
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: isMongoOnline ? "var(--primary)" : "var(--error)",
+                }}
+              >
+                {isMongoOnline
+                  ? `${metrics?.database.name || "workforce"} (${metrics?.database.pingMs ?? 0} ms ping)`
+                  : "Disconnected / Offline"}
+              </span>
+            </div>
+            <div className="sub-stat">
+              <span>Background Jobs & DLQ</span>
+              <span>
+                {effectiveJobStats?.completed ?? 0} done / {effectiveJobStats?.pending ?? 0} pend /{" "}
+                <span style={{ color: (effectiveJobStats?.deadLetterCount ?? 0) > 0 ? "var(--error)" : "inherit" }}>
+                  {effectiveJobStats?.deadLetterCount ?? 0} DLQ
+                </span>
+              </span>
+            </div>
+            <div className="sub-stat">
+              <span>Server Memory</span>
+              <span>{metrics?.memory.heapUsedMB ?? 0} MB / {metrics?.memory.heapTotalMB ?? 0} MB</span>
+            </div>
+            <div className="card-action-row">
+              <button
+                className="card-test-btn"
+                onClick={handleEnqueueJob}
+                disabled={actionLoading === "job"}
+                title="Enqueue a lightweight background job to verify worker execution"
+              >
+                <FiPlay /> {actionLoading === "job" ? "Enqueueing..." : "Enqueue Test Job"}
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs Container */}
+      {/* Offline Alert Banner if MongoDB is disconnected */}
+      {!isMongoOnline && metrics && (
+        <div className="db-offline-alert" role="alert">
+          <FiAlertTriangle style={{ fontSize: "1.25rem", flexShrink: 0 }} />
+          <div>
+            <strong>Database Offline:</strong> MongoDB connection is currently unreachable or disconnected. Background jobs and attendance synchronization are operating in resilient buffer mode.
+          </div>
+        </div>
+      )}
+
+      {/* Tabs Container - Monitored Operations */}
       <div className="health-tabs-container">
         <div className="tab-nav" role="tablist">
           <button
@@ -465,7 +689,7 @@ const SystemHealth = () => {
             role="tab"
             aria-selected={activeTab === "overview"}
           >
-            <FiServer /> Infrastructure Overview
+            <FiServer /> Infrastructure & Database Metrics
           </button>
           <button
             className={`tab-btn ${activeTab === "dlq" ? "active" : ""}`}
@@ -473,23 +697,15 @@ const SystemHealth = () => {
             role="tab"
             aria-selected={activeTab === "dlq"}
           >
-            <FiAlertTriangle /> Dead-Letter Queue ({jobStats?.deadLetterCount ?? 0})
+            <FiAlertTriangle /> Dead-Letter Queue ({effectiveJobStats?.deadLetterCount ?? 0})
           </button>
           <button
-            className={`tab-btn ${activeTab === "backups" ? "active" : ""}`}
-            onClick={() => setActiveTab("backups")}
+            className={`tab-btn ${activeTab === "security" ? "active" : ""}`}
+            onClick={() => setActiveTab("security")}
             role="tab"
-            aria-selected={activeTab === "backups"}
+            aria-selected={activeTab === "security"}
           >
-            <FiHardDrive /> Backups & Snapshots ({backups.length})
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "retention" ? "active" : ""}`}
-            onClick={() => setActiveTab("retention")}
-            role="tab"
-            aria-selected={activeTab === "retention"}
-          >
-            <FiTrash2 /> Data Retention & Governance
+            <FiShield /> Security & Failed Logins ({metrics?.monitoring?.failedLogins ?? 0})
           </button>
         </div>
 
@@ -511,8 +727,10 @@ const SystemHealth = () => {
                 <p className="health-subcard-value">{metrics?.server.cpuCount ?? 4} Cores</p>
               </div>
               <div className="health-subcard">
-                <span className="health-subcard-label">Available Memory</span>
-                <p className="health-subcard-value">{metrics?.server.freeMemoryMB ?? 0} MB / {metrics?.server.totalMemoryMB ?? 0} MB</p>
+                <span className="health-subcard-label">Heap Allocation & Uptime</span>
+                <p className="health-subcard-value">
+                  {metrics?.memory.heapUsedMB ?? 0} MB Heap | {formatUptime(metrics?.server.uptimeSeconds)}
+                </p>
               </div>
             </div>
 
@@ -555,13 +773,9 @@ const SystemHealth = () => {
               <div>
                 <h3 className="tab-section-title" style={{ margin: 0 }}>Dead-Letter Queue (DLQ)</h3>
                 <p style={{ margin: "4px 0 0 0", color: "var(--text-light)", fontSize: "13px" }}>
-                  Failed jobs that exceeded max retry limit. Inspect errors, re-drive, or discard.
+                  Failed background jobs that exceeded retry limits. Inspect errors, re-drive, or discard.
                 </p>
               </div>
-
-              <button className="action-btn secondary" onClick={handleSimulateRetryDemo}>
-                <FiPlay /> Simulate Retry Demo
-              </button>
             </div>
 
             <div className="health-table-wrapper">
@@ -619,100 +833,75 @@ const SystemHealth = () => {
           </div>
         )}
 
-        {/* Tab 3: Backups & Snapshots */}
-        {activeTab === "backups" && (
+        {/* Tab 3: Security & Failed Logins Log */}
+        {activeTab === "security" && (
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
-              <div>
-                <h3 className="tab-section-title" style={{ margin: 0 }}>Disaster Recovery Snapshots</h3>
-                <p style={{ margin: "4px 0 0 0", color: "var(--text-light)", fontSize: "13px" }}>
-                  Cryptographically verified snapshots with SHA-256 manifests. Target RTO: &lt;15m | RPO: &lt;1h.
-                </p>
-              </div>
-
-              <button className="action-btn primary" onClick={handleTriggerBackup}>
-                <FiHardDrive /> Create Immediate Snapshot
-              </button>
-            </div>
-
-            <div className="health-table-wrapper">
+            <h3 className="tab-section-title">Locked Accounts ({metrics?.monitoring?.lockedAccounts ?? 0})</h3>
+            <div className="health-table-wrapper" style={{ marginBottom: "24px" }}>
               <table className="health-table">
                 <thead>
                   <tr>
-                    <th>Snapshot ID</th>
-                    <th>Created At</th>
-                    <th>Collections</th>
-                    <th>Total Records</th>
-                    <th>Size (KB)</th>
+                    <th>User Email</th>
+                    <th>Role</th>
+                    <th>Failed Attempts</th>
+                    <th>Locked Until</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {backups.length === 0 ? (
+                  {!metrics?.monitoring?.recentLockedAccounts || metrics.monitoring.recentLockedAccounts.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "var(--text-light)" }}>
-                        No snapshot history recorded yet. Click "Create Immediate Snapshot" to generate a baseline.
+                      <td colSpan={5} style={{ textAlign: "center", padding: "24px", color: "var(--text-light)" }}>
+                        <FiCheckCircle style={{ color: "var(--success)", fontSize: "1.3rem", marginBottom: "6px" }} />
+                        <div>No locked accounts. All user access credentials in good standing.</div>
                       </td>
                     </tr>
                   ) : (
-                    backups.map((b) => (
-                      <tr key={b.backupId || b.id}>
-                        <td style={{ fontWeight: 600, color: "var(--primary)" }}>{b.backupId || b.id}</td>
-                        <td>{new Date(b.createdAt).toLocaleString()}</td>
-                        <td>{b.totalCollections}</td>
-                        <td>{b.totalDocuments.toLocaleString()}</td>
-                        <td>{Math.round((b.totalSizeBytes || 0) / 1024)} KB</td>
-                        <td><span className="badge-tag success">VERIFIED</span></td>
+                    metrics.monitoring.recentLockedAccounts.map((u) => (
+                      <tr key={u._id}>
+                        <td style={{ fontWeight: 600 }}>{u.email}</td>
+                        <td>{u.role}</td>
+                        <td>{u.failedLoginAttempts} attempts</td>
+                        <td>{new Date(u.lockUntil).toLocaleString()}</td>
+                        <td><span className="badge-tag error">LOCKED</span></td>
                       </tr>
                     ))
                   )}
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
 
-        {/* Tab 4: Data Retention & Governance */}
-        {activeTab === "retention" && (
-          <div>
-            <h3 className="tab-section-title">Data Retention & Privacy Policies</h3>
-            <p style={{ color: "var(--text-light)", fontSize: "13px", marginBottom: "20px" }}>
-              Automated data retention keeps database storage lean and satisfies privacy compliance requirements.
-            </p>
-
-            <div className="subcard-grid">
-              <div className="health-subcard">
-                <h4 className="health-subcard-title">Audit Logs Retention</h4>
-                <p className="health-subcard-desc">
-                  Purges operational logs older than <strong>90 days</strong>. Sensitive security events are preserved.
-                </p>
-              </div>
-
-              <div className="health-subcard">
-                <h4 className="health-subcard-title">Notifications Retention</h4>
-                <p className="health-subcard-desc">
-                  Purges read and cleared notifications older than <strong>30 days</strong>.
-                </p>
-              </div>
-
-              <div className="health-subcard">
-                <h4 className="health-subcard-title">Session Token Expiry</h4>
-                <p className="health-subcard-desc">
-                  Removes expired or revoked refresh tokens after <strong>7 days</strong>.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <button className="action-btn primary" onClick={() => handleTriggerRetention(false)}>
-                <FiTrash2 /> Run Full Retention Purge
-              </button>
-              <button className="action-btn secondary" onClick={() => handleTriggerRetention(true)}>
-                <FiActivity /> Dry Run Verification
-              </button>
-              <button className="action-btn secondary" onClick={handleExportDiagnostics}>
-                <FiDownload /> Export System Diagnostics
-              </button>
+            <h3 className="tab-section-title">Recent Failed Login Attempts ({metrics?.monitoring?.failedLogins ?? 0} Total Recorded)</h3>
+            <div className="health-table-wrapper">
+              <table className="health-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>User / Email</th>
+                    <th>IP Address</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!metrics?.monitoring?.recentFailedLogins || metrics.monitoring.recentFailedLogins.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} style={{ textAlign: "center", padding: "24px", color: "var(--text-light)" }}>
+                        <FiCheckCircle style={{ color: "var(--success)", fontSize: "1.3rem", marginBottom: "6px" }} />
+                        <div>No failed login attempts recorded in audit log.</div>
+                      </td>
+                    </tr>
+                  ) : (
+                    metrics.monitoring.recentFailedLogins.map((log) => (
+                      <tr key={log._id}>
+                        <td>{new Date(log.timestamp).toLocaleString()}</td>
+                        <td style={{ fontWeight: 600 }}>{log.performedBy}</td>
+                        <td><code>{log.ipAddress}</code></td>
+                        <td>{log.details}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

@@ -1,40 +1,44 @@
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../redux/store";
 import { fetchEmployees } from "../redux/dashboardSlice";
 import { getAccessToken } from "../utils/authStorage";
 
 /**
  * Custom hook to establish a Server-Sent Events (SSE) connection.
- * When the server broadcasts an ATTENDANCE_UPDATE, it automatically triggers
- * a global DOM event and Redux fetch so that dashboards stay 100% in sync without polling.
+ * Dynamically binds to Redux auth state so the connection activates
+ * immediately upon user sign-in and tears down on logout.
  */
 export const useSSE = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   useEffect(() => {
-    const token = getAccessToken() || "";
+    const token = accessToken || getAccessToken() || "";
     
-    if (!token) {
+    if (!token || !isAuthenticated) {
+      window.dispatchEvent(new CustomEvent("sse_connection_changed", { detail: { connected: false } }));
       return;
     }
-    const url = `${import.meta.env.VITE_API_BASE_URL || "/api/v1"}/events/stream?token=${token}`;
-    const eventSource = new EventSource(url);
+
+    const base = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+    const url = `${base.replace(/\/$/, "")}/events/stream?token=${encodeURIComponent(token)}`;
+    const eventSource = new EventSource(url, { withCredentials: true });
 
     eventSource.onopen = () => {
-      console.log("SSE Connection established.");
+      console.log("[SSE] Connection established successfully.");
+      window.dispatchEvent(new CustomEvent("sse_connection_changed", { detail: { connected: true } }));
     };
 
     eventSource.addEventListener("ATTENDANCE_UPDATE", (event) => {
-      console.log("Received SSE Event:", event.data);
-      // Trigger Redux re-fetch for KPI cards/dashboards
+      console.log("[SSE] Received ATTENDANCE_UPDATE:", event.data);
       dispatch(fetchEmployees());
-      // Trigger custom window event for independent components (like Attendance tables)
       window.dispatchEvent(new Event("attendance_updated"));
     });
 
     eventSource.addEventListener("NOTIFICATION_UPDATE", (event) => {
-      console.log("Received Notification SSE Event:", event.data);
+      console.log("[SSE] Received NOTIFICATION_UPDATE:", event.data);
       let payload;
       try {
         payload = JSON.parse(event.data);
@@ -45,17 +49,23 @@ export const useSSE = () => {
     });
 
     eventSource.addEventListener("LEAVE_UPDATE", (event) => {
-      console.log("Received Leave SSE Event:", event.data);
+      console.log("[SSE] Received LEAVE_UPDATE:", event.data);
       window.dispatchEvent(new Event("leave_updated"));
     });
 
+    eventSource.addEventListener("SYSTEM_PING", (event) => {
+      console.log("[SSE] Received SYSTEM_PING:", event.data);
+      window.dispatchEvent(new CustomEvent("system_ping_received", { detail: event.data }));
+    });
+
     eventSource.onerror = (error) => {
-      console.error("SSE Error:", error);
-      // EventSource auto-reconnects, but we can handle specific close logic here if needed
+      console.warn("[SSE] Stream interrupted or reconnecting:", error);
+      window.dispatchEvent(new CustomEvent("sse_connection_changed", { detail: { connected: false } }));
     };
 
     return () => {
       eventSource.close();
+      window.dispatchEvent(new CustomEvent("sse_connection_changed", { detail: { connected: false } }));
     };
-  }, [dispatch]);
+  }, [dispatch, accessToken, isAuthenticated]);
 };

@@ -145,6 +145,7 @@ export const httpLoggerMiddleware = (req: Request, res: Response, next: NextFunc
         companyId: user?.companyId || (req as any).companyId,
         userRole: user?.role,
         sessionId: req.headers['x-session-id'] || req.cookies?.sessionId,
+        correlationId: (req as any).correlationId || req.headers['x-correlation-id'] || req.id,
       }, req.id);
     }
   });

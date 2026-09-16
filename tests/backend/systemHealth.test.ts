@@ -98,5 +98,45 @@ describe('System Health, Probes & Observability Suite (Task 16)', () => {
     expect(res.body.data).toHaveProperty('memory');
     expect(res.body.data).toHaveProperty('database');
     expect(res.body.data).toHaveProperty('traffic');
+    expect(res.body.data.traffic).toHaveProperty('availabilityPct');
+    expect(res.body.data.traffic).toHaveProperty('avgLatencyMs');
+    expect(res.body.data).toHaveProperty('monitoring');
+    expect(res.body.data.monitoring).toHaveProperty('activeSessions');
+    expect(res.body.data.monitoring).toHaveProperty('connectedClients');
+    expect(res.body.data.monitoring).toHaveProperty('failedLogins');
+    expect(res.body.data.monitoring).toHaveProperty('lockedAccounts');
+    expect(res.body.data.monitoring).toHaveProperty('offlineSyncFailures');
+    expect(res.body.data.monitoring).toHaveProperty('notificationFailures');
+    expect(res.body.data.monitoring).toHaveProperty('recentFailedLogins');
+    expect(res.body.data.monitoring).toHaveProperty('recentLockedAccounts');
+  });
+
+  it('POST /api/v1/system/test-ping records real latency and returns updated traffic stats', async () => {
+    const res = await request(app)
+      .post('/api/v1/system/test-ping')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.metrics).toHaveProperty('totalRequests');
+    expect(res.body.metrics.totalRequests).toBeGreaterThan(0);
+  });
+
+  it('POST /api/v1/system/test-sse-ping broadcasts live ping and returns active connected count', async () => {
+    const res = await request(app)
+      .post('/api/v1/system/test-sse-ping')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body).toHaveProperty('connectedClients');
+  });
+
+  it('POST /api/v1/system/test-notification dispatches real-time test notification', async () => {
+    const res = await request(app)
+      .post('/api/v1/system/test-notification')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ title: 'Test Alert', message: 'Verifying notification dispatch', type: 'INFO' });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toHaveProperty('_id');
   });
 });
