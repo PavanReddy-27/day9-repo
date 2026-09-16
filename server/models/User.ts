@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import * as argon2 from 'argon2';
 
 const userSchema = new mongoose.Schema({
   companyId: {
@@ -73,15 +72,8 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare password method (supports both Argon2 and Bcrypt)
+// Compare password method
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  if (this.password && this.password.startsWith('$argon2')) {
-    try {
-      return await argon2.verify(this.password, enteredPassword);
-    } catch {
-      return false;
-    }
-  }
   return bcrypt.compare(enteredPassword, this.password);
 };
 

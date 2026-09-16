@@ -10,7 +10,7 @@ import QRCode from 'qrcode';
 import crypto from 'crypto';
 import { NotificationService } from '../services/notificationService.js';
 import { logger } from '../utils/logger.js';
-
+import SystemLog from '../models/SystemLog.js';
 // Google Authenticator uses 30s TOTP steps. Allow ±1 step (±30s) so small clock
 // drift between the phone and the server doesn't reject otherwise-valid codes.
 authenticator.options = { window: 1 };
@@ -131,17 +131,36 @@ export const login = async (req: any, res: any, next: any) => {
 
     if (!(await (user as any).matchPassword(password))) {
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      
+      logger.warn(`Failed login attempt for ${user.email}`, { context: 'Auth', userId: user._id });
+      await SystemLog.create({
+        level: 'warn',
+        category: 'Auth',
+        message: `Failed login attempt for ${user.email}`,
+        userId: user._id,
+        metadata: { email: user.email, ip: req.ip },
+      }).catch(() => {});
+
       if (user.failedLoginAttempts >= 5) {
         user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
         logger.warn(`Security alert: Account '${email}' locked due to excessive failed attempts`, {
+          context: 'Auth',
           email,
           userId: user._id,
           failedAttempts: user.failedLoginAttempts,
           lockUntil: user.lockUntil,
           ip: req.ip,
         }, req.id);
+        await SystemLog.create({
+          level: 'warn',
+          category: 'Auth',
+          message: `Account locked due to multiple failed logins`,
+          userId: user._id,
+          metadata: { email: user.email, ip: req.ip },
+        }).catch(() => {});
       } else {
         logger.warn(`Authentication failure: Incorrect password for '${email}' (attempt ${user.failedLoginAttempts})`, {
+          context: 'Auth',
           email,
           userId: user._id,
           failedAttempts: user.failedLoginAttempts,

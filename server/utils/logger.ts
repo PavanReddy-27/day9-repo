@@ -1,89 +1,83 @@
-import { Request, Response, NextFunction } from 'express';
-import { redactSensitiveData } from './redact.js';
+import winston from "winston";
+import { AsyncLocalStorage } from "async_hooks";
 
-export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
+// Async context for request tracing
+export const requestContext = new AsyncLocalStorage<Map<string, any>>();
 
-export interface StructuredLog {
-  timestamp: string;
-  level: LogLevel;
-  service: string;
-  message: string;
-  requestId?: string;
-  method?: string;
-  url?: string;
-  status?: number;
-  durationMs?: number;
-  user?: {
-    id?: string;
-    role?: string;
-  };
-  context?: Record<string, any>;
-}
+// Sensitive fields that should be redacted from logs
+const SENSITIVE_KEYS = new Set([
+  "password",
+  "token",
+  "accesstoken",
+  "refreshtoken",
+  "mfasecret",
+  "authorization",
+  "cookie",
+  // Additional PII and Payroll Redaction
+  "salary",
+  "ssn",
+  "bankaccount",
+  "accountnumber",
+  "pan",
+  "aadhar",
+  "personalemail",
+  "phonenumber",
+]);
 
-class StructuredLogger {
-  private serviceName = 'workforce-analytics-api';
+// Recursive redaction function
+const redact = (obj: any): any => {
+  if (obj == null || typeof obj !== "object") return obj;
 
-  private emit(log: StructuredLog): void {
-    const serialized = JSON.stringify(redactSensitiveData(log));
-    if (log.level === 'error') {
-      console.error(serialized);
-    } else if (log.level === 'warn') {
-      console.warn(serialized);
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map(redact);
+  }
+
+  // Handle objects
+  const redactedObj: Record<string, any> = {};
+  for (const key of Object.keys(obj)) {
+    if (SENSITIVE_KEYS.has(key.toLowerCase())) {
+      redactedObj[key] = "[REDACTED]";
+    } else if (typeof obj[key] === "object") {
+      redactedObj[key] = redact(obj[key]);
     } else {
-      console.log(serialized);
+      redactedObj[key] = obj[key];
     }
   }
+  return redactedObj;
+};
 
-  public info(message: string, context?: Record<string, any>, requestId?: string): void {
-    this.emit({
-      timestamp: new Date().toISOString(),
-      level: 'info',
-      service: this.serviceName,
-      message,
-      requestId,
-      context,
-    });
-  }
+// Custom Winston formatter to inject async context and redact fields
+const customFormat = winston.format.printf((info) => {
+  const store = requestContext.getStore();
+  const reqId = store?.get("requestId");
+  const userId = store?.get("userId");
+  const sessionId = store?.get("sessionId");
+  const orgId = store?.get("orgId");
 
-  public warn(message: string, context?: Record<string, any>, requestId?: string): void {
-    this.emit({
-      timestamp: new Date().toISOString(),
-      level: 'warn',
-      service: this.serviceName,
-      message,
-      requestId,
-      context,
-    });
-  }
+  const baseInfo = {
+    ...info,
+    reqId,
+    userId,
+    sessionId,
+    orgId,
+  };
 
-  public error(message: string, context?: Record<string, any>, requestId?: string): void {
-    this.emit({
-      timestamp: new Date().toISOString(),
-      level: 'error',
-      service: this.serviceName,
-      message,
-      requestId,
-      context,
-    });
-  }
+  const redactedInfo = redact(baseInfo);
+  return JSON.stringify(redactedInfo);
+});
 
-  public debug(message: string, context?: Record<string, any>, requestId?: string): void {
-    if (process.env.NODE_ENV !== 'production') {
-      this.emit({
-        timestamp: new Date().toISOString(),
-        level: 'debug',
-        service: this.serviceName,
-        message,
-        requestId,
-        context,
-      });
-    }
-  }
-}
+export const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    customFormat
+  ),
+  transports: [
+    new winston.transports.Console()
+  ],
+});
 
-export const logger = new StructuredLogger();
-
-// In-memory traffic window for telemetry
 export const requestMetrics = {
   totalRequests: 0,
   status2xx: 0,
@@ -118,40 +112,5 @@ export const requestMetrics = {
     }
   }
 };
-
-/**
- * Express Request Logger Middleware
- * Correlates request IDs, measures duration, logs completion, and records traffic telemetry.
- */
-export const httpLoggerMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  // Skip logging high-frequency automated health check polling from cluttering console
-  const isProbe = req.path === '/health' || req.path === '/ready' || req.path === '/api/v1/health' || req.path === '/api/v1/ready';
-  const start = Date.now();
-
-  res.on('finish', () => {
-    const durationMs = Date.now() - start;
-    requestMetrics.record(res.statusCode, durationMs);
-
-    if (!isProbe) {
-      const user = (req as any).user;
-      logger.info(`${req.method} ${req.originalUrl || req.url} ${res.statusCode} in ${durationMs}ms`, {
-        method: req.method,
-        url: req.originalUrl || req.url,
-        status: res.statusCode,
-        durationMs,
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
-        userId: user?.id,
-        companyId: user?.companyId || (req as any).companyId,
-        userRole: user?.role,
-        sessionId: req.headers['x-session-id'] || req.cookies?.sessionId,
-        correlationId: (req as any).correlationId || req.headers['x-correlation-id'] || req.id,
-      }, req.id);
-    }
-  });
-
-  next();
-};
-
 export default logger;
 

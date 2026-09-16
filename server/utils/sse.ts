@@ -8,7 +8,8 @@ interface SSEClient {
 
 let clients: SSEClient[] = [];
 
-export const getConnectedSSECount = (): number => clients.length;
+export const getConnectedClientsCount = () => clients.length;
+export const getConnectedSSECount = getConnectedClientsCount;
 
 /**
  * SSE Middleware to handle incoming event stream connections.

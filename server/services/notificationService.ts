@@ -3,7 +3,7 @@ import { sendSSEToUser } from "../utils/sse.js";
 import mongoose from "mongoose";
 import { logger } from "../utils/logger.js";
 import { writeAuditLog } from "../utils/audit.js";
-
+import SystemLog from "../models/SystemLog.js";
 export class NotificationService {
   /**
    * Creates a notification in the database and pushes it to the user via SSE.
@@ -43,12 +43,21 @@ export class NotificationService {
 
       return notification;
     } catch (error: any) {
-      logger.error("[NotificationService] Notification delivery failure", {
+      logger.error(`[NotificationService] Notification delivery failure: ${error?.message || 'Unknown error'}`, {
+        context: 'Notification',
         userId: userId?.toString(),
         companyId: companyId?.toString(),
         title,
         error: error?.message || "Unknown error",
       });
+      await SystemLog.create({
+        level: 'error',
+        category: 'Notification',
+        message: `Failed to deliver notification: ${title}`,
+        userId: userId,
+        stack: error.stack,
+        metadata: { title, type },
+      }).catch(() => {});
       void writeAuditLog(
         { companyId: companyId as any, role: 'System', userEmail: 'system@workforce.local' },
         'NOTIFICATION_DELIVERY_FAILED',
@@ -57,7 +66,7 @@ export class NotificationService {
         userId?.toString()
       );
       console.error("[NotificationService] Error creating/sending notification:", error);
-      throw error;
+      return null;
     }
   }
 }

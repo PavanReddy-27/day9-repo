@@ -2,7 +2,6 @@
 // File: src/routes/AppRoutes.tsx
 // ====================================
 
-import { lazy, Suspense } from "react";
 import {
   Routes,
   Route,
@@ -15,8 +14,6 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 import DashboardLayout from "../layouts/DashboardLayout";
 
-const AdminSystemHealth = lazy(() => import("../pages/admin/SystemHealth/SystemHealth"));
-
 import Login from "../pages/Login/Login";
 
 import AdminDashboard from "../pages/admin/Dashboard";
@@ -25,6 +22,7 @@ import AdminRoles from "../pages/admin/Roles";
 import AdminDepartments from "../pages/admin/Departments";
 import AdminReports from "../pages/admin/Reports";
 import AdminAuditLogs from "../pages/admin/AuditLogs";
+import AdminMonitoring from "../pages/admin/MonitoringDashboard";
 import Settings from "../pages/Settings";
 
 // HR Pages
@@ -184,12 +182,8 @@ const AppRoutes = () => {
           />
 
           <Route
-            path="/admin/system-health"
-            element={
-              <Suspense fallback={<div style={{ padding: "2rem", color: "#94a3b8" }}>Loading System Health...</div>}>
-                <AdminSystemHealth />
-              </Suspense>
-            }
+            path="/admin/monitoring"
+            element={<AdminMonitoring />}
           />
 
           <Route
@@ -434,11 +428,6 @@ const AppRoutes = () => {
             }
           />
         }
-      />
-
-      <Route
-        path="/system-health"
-        element={<Navigate replace to="/admin/system-health" />}
       />
 
       {/* 404 */}

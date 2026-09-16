@@ -52,7 +52,6 @@
     "@tanstack/react-query": "^5.101.4",
     "@types/cookie-parser": "^1.4.10",
     "@types/morgan": "^1.9.10",
-    "argon2": "^0.45.1",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -79,6 +78,8 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.1",
     "recharts": "^3.10.1",
+    "uuid": "^14.0.2",
+    "winston": "^3.19.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -93,6 +94,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/supertest": "^7.2.1",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.6.0",

@@ -8,7 +8,7 @@ import { RetentionService } from '../services/retentionService.js';
 import { ExportService } from '../services/exportService.js';
 import fs from 'fs';
 import path from 'path';
-import { getConnectedSSECount, broadcastSSE } from '../utils/sse.js';
+import { getConnectedClientsCount, getConnectedSSECount, broadcastSSE } from '../utils/sse.js';
 import RefreshToken from '../models/RefreshToken.js';
 import { User } from '../models/User.js';
 import AuditLog from '../models/AuditLog.js';
@@ -252,7 +252,7 @@ router.get('/system/metrics', authenticateJWT, requireRole(['Admin']), async (_r
         },
         monitoring: {
           activeSessions,
-          connectedClients: getConnectedSSECount(),
+          connectedClients: getConnectedClientsCount(),
           failedLogins,
           lockedAccounts,
           offlineSyncFailures,

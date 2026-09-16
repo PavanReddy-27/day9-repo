@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'url';
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -18,7 +19,6 @@ const PORT = process.env.PORT || 5000;
 
 // Security & Middleware
 import requestIdMiddleware from "./middleware/requestId.js";
-import { httpLoggerMiddleware } from "./utils/logger.js";
 import { healthHandler, readyHandler, versionHandler } from "./routes/systemRoutes.js";
 import { validateEnvironment } from "./config/envValidator.js";
 
@@ -28,9 +28,9 @@ validateEnvironment();
 // Security & Observability Middleware
 app.use(helmet());
 app.use(requestIdMiddleware);
-app.use(httpLoggerMiddleware);
 app.use(cookieParser());
-app.use(morgan("dev"));
+import { requestLogger } from "./middleware/requestLogger.js";
+app.use(requestLogger);
 
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
@@ -82,15 +82,22 @@ const authLimiter = rateLimit({
 app.use("/api/v1/auth/login", authLimiter);
 app.use("/api/v1/auth/refresh", authLimiter);
 
-// __dirname is natively available in CommonJS
+import { logger } from "./utils/logger.js";
+import SystemLog from "./models/SystemLog.js";
 
-// Ensure DB Connection Middleware
+// __dirname is natively available in CommonJS
 app.use(async (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
     try {
       await connectDB();
     } catch (dbErr: any) {
-      console.error("[DB Connection Error]", dbErr.message);
+      logger.error("[DB Connection Error] " + dbErr.message, { context: 'Database' });
+      await SystemLog.create({
+        level: 'error',
+        category: 'Database',
+        message: 'Database connection failed during request',
+        stack: dbErr.stack,
+      }).catch(() => {});
     }
   }
   next();
@@ -178,8 +185,8 @@ async function startServer() {
   process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 }
 
-if (process.argv[1]?.includes("index.ts")) {
-  startServer();
+if (process.env.NODE_ENV !== "test") {
+  startServer().catch(console.error);
 }
 
 export default app;

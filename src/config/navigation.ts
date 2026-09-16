@@ -7,7 +7,7 @@ import {
   FiBriefcase,
   FiList,
   FiShield,
-  FiActivity,
+  FiMonitor,
 } from "react-icons/fi";
 import type { IconType } from "react-icons";
 import type { UserRole } from "../types/auth";
@@ -34,8 +34,8 @@ export const navigationItems: NavigationItem[] = [
   { name: "Roles", icon: FiShield, route: "roles", roles: ["Admin"] },
   { name: "Departments", icon: FiBriefcase, route: "departments", roles: ["Admin"] },
   { name: "Audit Logs", icon: FiList, route: "audit-logs", roles: ["Admin"] },
+  { name: "Monitoring", icon: FiMonitor, route: "monitoring", roles: ["Admin"] },
   { name: "Reports", icon: FiFileText, route: "reports", roles: ["Admin"] },
-  { name: "System Health", icon: FiActivity, route: "system-health", roles: ["Admin"] },
   { name: "Settings", icon: FiSettings, route: "settings", roles: ["Admin", "HR", "Manager", "Employee"] },
 
   // Shared by HR & Manager & Employee
