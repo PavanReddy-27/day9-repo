@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'url';
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -112,11 +111,12 @@ app.get("/version", versionHandler);
 app.use("/api/v1", apiRoutes);
 
 // Serve static frontend in production
-app.use(express.static(path.join(__dirname, "../dist")));
+const distPath = path.resolve(process.cwd(), "dist");
+app.use(express.static(distPath));
 
 app.get(/.*/, (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(__dirname, "../dist/index.html"));
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 import { errorHandler } from './middleware/errorHandler.js';
