@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Grid, Paper, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { Box, Typography, Grid, Paper, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Button } from '@mui/material';
 import { monitoringApi, SystemHealthData } from '../../services/api/monitoring';
 import { ShieldAlert, Activity, Users, Database } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -35,9 +36,25 @@ export default function MonitoringDashboard() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ fontWeight: 'bold' }} gutterBottom>
-        System Monitoring & Health
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          System Monitoring & Health
+        </Typography>
+        <Button
+          component={Link}
+          to="/admin/system-health"
+          variant="contained"
+          sx={{
+            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)',
+          }}
+        >
+          View Operations Telemetry & DLQ &rarr;
+        </Button>
+      </Box>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>

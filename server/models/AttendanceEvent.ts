@@ -37,4 +37,4 @@ attendanceEventSchema.index(
   { unique: true, partialFilterExpression: { idempotencyKey: { $type: "string" } } }
 );
 
-export default mongoose.models.AttendanceEvent || mongoose.model("AttendanceEvent", attendanceEventSchema, "attendanceevents");
+export default (mongoose.models.AttendanceEvent || mongoose.model("AttendanceEvent", attendanceEventSchema, "attendanceevents")) as mongoose.Model<any>;

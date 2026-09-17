@@ -9,4 +9,4 @@ const departmentSchema = new mongoose.Schema({
   deletedAt: { type: Date },
 }, { timestamps: true });
 
-export default mongoose.model('Department', departmentSchema);
+export default (mongoose.models.Department || mongoose.model('Department', departmentSchema)) as mongoose.Model<any>;

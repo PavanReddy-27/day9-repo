@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const systemLogSchema = new mongoose.Schema({
-  timestamp: { type: Date, default: Date.now, index: true },
+  timestamp: { type: Date, default: Date.now },
   level: { type: String, enum: ['info', 'warn', 'error', 'fatal'], required: true },
   category: { 
     type: String, 

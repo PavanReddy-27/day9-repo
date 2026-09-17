@@ -6,6 +6,4 @@ const teamSchema = new mongoose.Schema({
   name: { type: String, required: true },
 }, { timestamps: true });
 
-teamSchema.index({ companyId: 1, departmentId: 1 });
-
-export default mongoose.model('Team', teamSchema);
+export default (mongoose.models.Team || mongoose.model('Team', teamSchema)) as mongoose.Model<any>;

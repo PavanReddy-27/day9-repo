@@ -12,4 +12,4 @@ const skillSchema = new mongoose.Schema(
 
 skillSchema.index({ companyId: 1, name: 1 }, { unique: true });
 
-export default mongoose.models.Skill || mongoose.model("Skill", skillSchema, "skills");
+export default (mongoose.models.Skill || mongoose.model("Skill", skillSchema, "skills")) as mongoose.Model<any>;

@@ -18,4 +18,4 @@ const approvalHistorySchema = new mongoose.Schema(
 approvalHistorySchema.index({ companyId: 1, correctionRequestId: 1, timestamp: 1 });
 approvalHistorySchema.index({ companyId: 1, leaveRequestId: 1, timestamp: 1 });
 
-export default mongoose.models.ApprovalHistory || mongoose.model("ApprovalHistory", approvalHistorySchema, "approvalhistories");
+export default (mongoose.models.ApprovalHistory || mongoose.model("ApprovalHistory", approvalHistorySchema, "approvalhistories")) as mongoose.Model<any>;

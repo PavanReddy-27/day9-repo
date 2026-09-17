@@ -70,3 +70,5 @@ export const requestMetrics = {
     }
   }
 };
+export default logger;
+

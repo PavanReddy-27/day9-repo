@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'url';
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -112,11 +111,12 @@ app.get("/version", versionHandler);
 app.use("/api/v1", apiRoutes);
 
 // Serve static frontend in production
-app.use(express.static(path.join(__dirname, "../dist")));
+const distPath = path.resolve(process.cwd(), "dist");
+app.use(express.static(distPath));
 
 app.get(/.*/, (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(__dirname, "../dist/index.html"));
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 import { errorHandler } from './middleware/errorHandler.js';
@@ -135,6 +135,10 @@ async function startServer() {
       console.log("[Server] Database is empty. Seeding initial accounts...");
       const { runSeed } = await import("./seed/seed.js");
       await runSeed(false, false);
+    } else if (userCount !== 250 && process.env.NODE_ENV !== "production") {
+      console.log(`[Server] Detected ${userCount} users (expected 250). Running automated cleanup and deduplication...`);
+      const { cleanAndDeduplicateUsers } = await import("./scripts/cleanUsers.js");
+      await cleanAndDeduplicateUsers(false);
     }
   } catch (seedErr: any) {
     console.error("[Server] Auto-seed check error:", seedErr.message);

@@ -3,6 +3,10 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
+if (!process.env.VITE_COMPANY_NAME) {
+  process.env.VITE_COMPANY_NAME = 'Stackly';
+}
+
 export default defineConfig({
   plugins: [react()],
   server: {

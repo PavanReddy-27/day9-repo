@@ -53,8 +53,8 @@ async function main() {
   }
 
   // Collect the record ids for that day so we can also drop their child docs.
-  const recs = await AttendanceRecord.find({ date } as any).select("_id").lean();
-  const ids = recs.map((r: { _id: mongoose.Types.ObjectId }) => r._id);
+  const recs: any = await AttendanceRecord.find({ date } as any).select("_id").lean();
+  const ids = (recs as any[]).map((r: any) => r._id);
 
   const [delRecords, delEvents, delBreaks] = await Promise.all([
     AttendanceRecord.deleteMany({ date } as any),

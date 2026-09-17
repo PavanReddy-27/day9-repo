@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import Employee from '../models/Employee.js';
 import TokenBlacklist from '../models/TokenBlacklist.js';
+import { logger } from '../utils/logger.js';
 
 import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from '../models/User.js';
 
@@ -29,12 +30,21 @@ export const authenticateJWT = async (req, res, next) => {
     }
     
     if (!token) {
+      logger.warn(`Authentication failure: Missing token for ${req.method} ${req.originalUrl || req.url}`, {
+        ip: req.ip,
+        url: req.originalUrl || req.url,
+        method: req.method,
+      }, req.id);
       return res.status(401).json({ success: false, message: 'Not authorized, no token' });
     }
     
     // Check if token is blacklisted
     const isBlacklisted = await TokenBlacklist.findOne({ token });
     if (isBlacklisted) {
+      logger.warn(`Authentication failure: Blacklisted token used on ${req.method} ${req.originalUrl || req.url}`, {
+        ip: req.ip,
+        url: req.originalUrl || req.url,
+      }, req.id);
       return res.status(401).json({ success: false, message: 'Not authorized, token revoked' });
     }
 
@@ -44,6 +54,10 @@ export const authenticateJWT = async (req, res, next) => {
     // Also set employee/company info for controllers
     const userDoc = await findUserById(decoded.id) as any;
     if (!userDoc) {
+      logger.warn(`Authentication failure: User ${decoded.id} no longer exists`, {
+        ip: req.ip,
+        userId: decoded.id,
+      }, req.id);
       return res.status(401).json({ success: false, message: 'User no longer exists. Please log in again.' });
     }
     
@@ -87,7 +101,10 @@ export const authenticateJWT = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('[AuthMiddleware] Token verification failed:', error);
+    logger.warn(`Authentication failure: Token verification error`, {
+      ip: req.ip,
+      error: (error as any)?.message,
+    }, req.id);
     res.status(401).json({ success: false, message: 'Not authorized, token failed' });
   }
 };
@@ -95,6 +112,14 @@ export const authenticateJWT = async (req, res, next) => {
 export const requireRole = (roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
+      logger.warn(`Authorization failure: User role '${req.user?.role || 'Unauthenticated'}' denied access to restricted route (requires ${roles.join(',')})`, {
+        userId: req.user?.id,
+        userRole: req.user?.role,
+        requiredRoles: roles,
+        companyId: req.companyId,
+        ip: req.ip,
+        url: req.originalUrl || req.url,
+      }, req.id);
       return res.status(403).json({ success: false, message: 'Forbidden: Insufficient permissions' });
     }
     next();

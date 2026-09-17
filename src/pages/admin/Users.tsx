@@ -28,7 +28,7 @@ const Users = () => {
   useEffect(() => {
     const loadRealUsers = async () => {
       try {
-        const empData = await apiClient('/employees');
+        const empData = await apiClient('/employees?limit=300');
         if (Array.isArray(empData)) {
           const mapped = empData.map((emp: any) => ({
             id: emp.employeeId || emp._id,

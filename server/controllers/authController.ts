@@ -105,10 +105,27 @@ export const login = async (req: any, res: any, next: any) => {
     const user: any = await findUserByEmail(email);
 
     if (!user) {
+      logger.warn(`Authentication failure: User not found for '${email}'`, {
+        email,
+        ip: req.ip,
+      }, req.id);
+      void writeAuditLog(
+        { companyId: undefined, role: 'Unknown', userEmail: email, ip: (req as any).ip, headers: (req as any).headers },
+        "LOGIN_FAILED",
+        `Failed login attempt for non-existent email: ${email}`,
+        "Auth",
+        "unknown"
+      );
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
     if (user.lockUntil && user.lockUntil > new Date()) {
+      logger.warn(`Authentication failure: Attempted login to locked account '${email}'`, {
+        email,
+        userId: user._id,
+        lockUntil: user.lockUntil,
+        ip: req.ip,
+      }, req.id);
       return res.status(403).json({ success: false, message: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' });
     }
 
@@ -126,7 +143,14 @@ export const login = async (req: any, res: any, next: any) => {
 
       if (user.failedLoginAttempts >= 5) {
         user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
-        logger.warn(`Account locked due to multiple failed logins: ${user.email}`, { context: 'Auth', userId: user._id });
+        logger.warn(`Security alert: Account '${email}' locked due to excessive failed attempts`, {
+          context: 'Auth',
+          email,
+          userId: user._id,
+          failedAttempts: user.failedLoginAttempts,
+          lockUntil: user.lockUntil,
+          ip: req.ip,
+        }, req.id);
         await SystemLog.create({
           level: 'warn',
           category: 'Auth',
@@ -134,6 +158,14 @@ export const login = async (req: any, res: any, next: any) => {
           userId: user._id,
           metadata: { email: user.email, ip: req.ip },
         }).catch(() => {});
+      } else {
+        logger.warn(`Authentication failure: Incorrect password for '${email}' (attempt ${user.failedLoginAttempts})`, {
+          context: 'Auth',
+          email,
+          userId: user._id,
+          failedAttempts: user.failedLoginAttempts,
+          ip: req.ip,
+        }, req.id);
       }
       await user.save();
       
@@ -157,6 +189,13 @@ export const login = async (req: any, res: any, next: any) => {
     }
 
     if (user.isActive === false || user.isDeleted) {
+      logger.warn(`Authentication failure: Inactive or deleted account '${email}' login attempt`, {
+        email,
+        userId: user._id,
+        isActive: user.isActive,
+        isDeleted: user.isDeleted,
+        ip: req.ip,
+      }, req.id);
       return res.status(403).json({ success: false, message: 'Account is deactivated or deleted' });
     }
 

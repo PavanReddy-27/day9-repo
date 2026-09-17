@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import connectDB, { closeDB } from "../config/db.js";
 import Employee from "../models/Employee.js";
+import { User } from "../models/User.js";
 import Company from "../models/Company.js";
 import Location from "../models/Location.js";
 import Department from "../models/Department.js";
@@ -13,11 +14,16 @@ async function runVerification() {
   console.log("Starting DB Verification...");
   await connectDB();
 
-  // 1. Total Employee Count
+  // 1. Total Employee & User Counts
   const totalEmployees = await Employee.countDocuments();
+  const totalUsers = await User.countDocuments();
   console.log(`\nTotal Employee Count: ${totalEmployees} (Expected: 250)`);
+  console.log(`Total User Count    : ${totalUsers} (Expected: 250)`);
   if (totalEmployees !== 250) {
     console.error(`ERROR: Expected 250 employees but found ${totalEmployees}`);
+  }
+  if (totalUsers !== 250) {
+    console.error(`ERROR: Expected 250 users in users collection but found ${totalUsers}`);
   }
 
   // 2. Location-wise counts
@@ -56,6 +62,26 @@ async function runVerification() {
     console.error("ERROR: Duplicate Emails found:", dupEmails);
   } else {
     console.log("Zero duplicate Emails.");
+  }
+
+  // Check duplicate users
+  const dupUserEmails = await User.aggregate([
+    { $group: { _id: "$email", count: { $sum: 1 } } },
+    { $match: { count: { $gt: 1 } } }
+  ]);
+  const dupUserIds = await User.aggregate([
+    { $group: { _id: "$employeeId", count: { $sum: 1 } } },
+    { $match: { count: { $gt: 1 } } }
+  ]);
+  if (dupUserEmails.length > 0) {
+    console.error("ERROR: Duplicate User Emails found:", dupUserEmails);
+  } else {
+    console.log("Zero duplicate User Emails.");
+  }
+  if (dupUserIds.length > 0) {
+    console.error("ERROR: Duplicate User Employee IDs found:", dupUserIds);
+  } else {
+    console.log("Zero duplicate User Employee IDs.");
   }
 
   // 4. Orphan checks

@@ -31,6 +31,7 @@
     "backup:db": "tsx server/scripts/backup.ts",
     "restore:db": "tsx server/scripts/restore.ts",
     "reset:passwords": "tsx server/scripts/resetPasswords.ts",
+    "clean:users": "tsx server/scripts/cleanUsers.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && tsc --project server/tsconfig.json --noEmit",

@@ -11,4 +11,4 @@ const weeklyOffSchema = new mongoose.Schema(
 
 weeklyOffSchema.index({ companyId: 1, employeeId: 1, dayOfWeek: 1 }, { unique: true });
 
-export default mongoose.models.WeeklyOff || mongoose.model("WeeklyOff", weeklyOffSchema, "weeklyoffs");
+export default (mongoose.models.WeeklyOff || mongoose.model("WeeklyOff", weeklyOffSchema, "weeklyoffs")) as mongoose.Model<any>;

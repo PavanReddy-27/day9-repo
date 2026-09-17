@@ -45,5 +45,4 @@ employeeSchema.post('save', function(doc) {
   });
 });
 
-const Employee = mongoose.models.Employee || mongoose.model('Employee', employeeSchema);
-export default Employee as typeof mongoose.Model;
+export default (mongoose.models.Employee || mongoose.model('Employee', employeeSchema)) as mongoose.Model<any>;

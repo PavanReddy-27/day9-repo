@@ -146,6 +146,28 @@ export const syncOfflineQueue = async (apiCall: (action: OfflineAction) => Promi
   return { synced, failed };
 };
 
+export interface OfflineQueueStats {
+  pending: number;
+  failed: number;
+  conflict: number;
+  synced: number;
+  total: number;
+}
+
+export const getOfflineQueueStats = async (): Promise<OfflineQueueStats> => {
+  try {
+    const db = await getDB();
+    const all = await db.getAll("offlineActions");
+    const pending = all.filter((a) => a.status === "Pending").length;
+    const failed = all.filter((a) => a.status === "Failed").length;
+    const conflict = all.filter((a) => a.status === "Conflict").length;
+    const synced = all.filter((a) => a.status === "Synced").length;
+    return { pending, failed, conflict, synced, total: all.length };
+  } catch {
+    return { pending: 0, failed: 0, conflict: 0, synced: 0, total: 0 };
+  }
+};
+
 // Automatic listener when internet returns
 if (typeof window !== "undefined") {
   window.addEventListener("online", () => {

@@ -30,4 +30,4 @@ const correctionRequestSchema = new mongoose.Schema(
 
 correctionRequestSchema.index({ companyId: 1, employeeId: 1, status: 1 });
 
-export default mongoose.models.CorrectionRequest || mongoose.model("CorrectionRequest", correctionRequestSchema, "correctionrequests");
+export default (mongoose.models.CorrectionRequest || mongoose.model("CorrectionRequest", correctionRequestSchema, "correctionrequests")) as mongoose.Model<any>;
