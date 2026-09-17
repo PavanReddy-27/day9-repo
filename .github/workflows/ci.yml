@@ -53,7 +53,7 @@ jobs:
 
       # 4. Mandatory Playwright End-to-End Tests
       - name: Run Playwright E2E Tests
-        run: MONGODB_URI=mongodb://127.0.0.1:27017/playwright_ci npm run test:e2e
+        run: NODE_ENV=e2e MONGODB_URI=mongodb://127.0.0.1:27017/playwright_ci npm run test:e2e
 
       # 5. Mandatory Production Build Verification
       - name: Run Vite & TS Production Build
