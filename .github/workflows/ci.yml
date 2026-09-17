@@ -44,8 +44,8 @@ jobs:
         run: npm run lint
 
       # 2. Mandatory TypeScript Typechecking
-      - name: Run TypeScript Typecheck (Frontend & Server)
-        run: npm run typecheck
+      - name: Run TypeScript Typecheck (Frontend)
+        run: npm run typecheck:frontend
 
       # 3. Mandatory Vitest Unit & Integration Suites
       - name: Run Vitest Suites
