@@ -23,10 +23,19 @@ const refreshTokenSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  deviceId: {
+    type: String,
+  },
+  userAgent: {
+    type: String,
+  },
   deviceInfo: {
     type: String,
   },
   ipAddress: {
+    type: String,
+  },
+  replacedByToken: {
     type: String,
   },
   lastActiveAt: {

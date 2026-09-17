@@ -11,6 +11,7 @@ const attendanceEventSchema = new mongoose.Schema(
       enum: ["CHECK_IN", "BREAK_START", "BREAK_END", "CHECK_OUT"],
     },
     timestamp: { type: Date, required: true },
+    clientTimestamp: { type: Date },
     locationCoordinates: {
       lat: { type: Number },
       lng: { type: Number },
