@@ -4,6 +4,8 @@ export type Role =
   | "manager"
   | "analyst";
 
+export type UserRole = Role;
+
 export type Permission =
   | "dashboard:view"
   | "workforce:view"
