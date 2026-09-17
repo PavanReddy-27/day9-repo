@@ -30,4 +30,4 @@ const taskSchema = new mongoose.Schema(
 
 taskSchema.index({ companyId: 1, assignedTo: 1, status: 1 });
 
-export default mongoose.models.Task || mongoose.model("Task", taskSchema, "tasks");
+export default (mongoose.models.Task || mongoose.model("Task", taskSchema, "tasks")) as mongoose.Model<any>;

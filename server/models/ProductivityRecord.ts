@@ -23,4 +23,4 @@ productivityRecordSchema.post('save', function(doc) {
   });
 });
 
-export default mongoose.models.ProductivityRecord || mongoose.model("ProductivityRecord", productivityRecordSchema, "productivityrecords");
+export default (mongoose.models.ProductivityRecord || mongoose.model("ProductivityRecord", productivityRecordSchema, "productivityrecords")) as mongoose.Model<any>;

@@ -21,4 +21,4 @@ employeeSkillSchema.post('save', function(doc) {
   });
 });
 
-export default mongoose.models.EmployeeSkill || mongoose.model("EmployeeSkill", employeeSkillSchema, "employeeskills");
+export default (mongoose.models.EmployeeSkill || mongoose.model("EmployeeSkill", employeeSkillSchema, "employeeskills")) as mongoose.Model<any>;

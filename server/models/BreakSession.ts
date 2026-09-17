@@ -15,4 +15,4 @@ const breakSessionSchema = new mongoose.Schema(
 
 breakSessionSchema.index({ companyId: 1, attendanceRecordId: 1 });
 
-export default mongoose.models.BreakSession || mongoose.model("BreakSession", breakSessionSchema, "breaksessions");
+export default (mongoose.models.BreakSession || mongoose.model("BreakSession", breakSessionSchema, "breaksessions")) as mongoose.Model<any>;

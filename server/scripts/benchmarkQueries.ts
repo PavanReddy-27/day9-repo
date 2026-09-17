@@ -35,7 +35,7 @@ export async function runQueryBenchmarks(shouldClose = true): Promise<BenchmarkR
   // Ensure indexes are active first
   await optimizeAllIndexes(false);
 
-  const sampleEmployee = await Employee.findOne().lean();
+  const sampleEmployee: any = await Employee.findOne().lean();
   const sampleEmpId = sampleEmployee?._id || new mongoose.Types.ObjectId();
   const sampleCompanyId = sampleEmployee?.companyId || new mongoose.Types.ObjectId();
 

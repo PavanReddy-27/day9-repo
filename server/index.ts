@@ -135,6 +135,10 @@ async function startServer() {
       console.log("[Server] Database is empty. Seeding initial accounts...");
       const { runSeed } = await import("./seed/seed.js");
       await runSeed(false, false);
+    } else if (userCount !== 250 && process.env.NODE_ENV !== "production") {
+      console.log(`[Server] Detected ${userCount} users (expected 250). Running automated cleanup and deduplication...`);
+      const { cleanAndDeduplicateUsers } = await import("./scripts/cleanUsers.js");
+      await cleanAndDeduplicateUsers(false);
     }
   } catch (seedErr: any) {
     console.error("[Server] Auto-seed check error:", seedErr.message);

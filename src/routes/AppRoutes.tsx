@@ -2,6 +2,7 @@
 // File: src/routes/AppRoutes.tsx
 // ====================================
 
+import React, { Suspense } from "react";
 import {
   Routes,
   Route,
@@ -16,42 +17,79 @@ import DashboardLayout from "../layouts/DashboardLayout";
 
 import Login from "../pages/Login/Login";
 
-import AdminDashboard from "../pages/admin/Dashboard";
-import AdminUsers from "../pages/admin/Users";
-import AdminRoles from "../pages/admin/Roles";
-import AdminDepartments from "../pages/admin/Departments";
-import AdminReports from "../pages/admin/Reports";
-import AdminAuditLogs from "../pages/admin/AuditLogs";
-import AdminMonitoring from "../pages/admin/MonitoringDashboard";
-import Settings from "../pages/Settings";
+// Route-Based Code Splitting (Task 16 - Pavan Kumar)
+// Heavy role-based views are lazy-loaded dynamically on demand
+const AdminDashboard = React.lazy(() => import("../pages/admin/Dashboard"));
+const AdminUsers = React.lazy(() => import("../pages/admin/Users"));
+const AdminRoles = React.lazy(() => import("../pages/admin/Roles"));
+const AdminDepartments = React.lazy(() => import("../pages/admin/Departments"));
+const AdminReports = React.lazy(() => import("../pages/admin/Reports"));
+const AdminAuditLogs = React.lazy(() => import("../pages/admin/AuditLogs"));
+const AdminMonitoring = React.lazy(() => import("../pages/admin/MonitoringDashboard"));
+const AdminSystemHealth = React.lazy(() => import("../pages/admin/SystemHealth/SystemHealth"));
+const Settings = React.lazy(() => import("../pages/Settings"));
 
 // HR Pages
-import HRDashboard from "../pages/HR/Dashboard";
-import HREmployees from "../pages/HR/Employees";
-import HRRecruitment from "../pages/HR/Recruitment";
-import HRAttendance from "../pages/HR/Attendance";
-import HRPerformance from "../pages/HR/Performance";
-import HRAnalytics from "../pages/HR/Analytics";
+const HRDashboard = React.lazy(() => import("../pages/HR/Dashboard"));
+const HREmployees = React.lazy(() => import("../pages/HR/Employees"));
+const HRRecruitment = React.lazy(() => import("../pages/HR/Recruitment"));
+const HRAttendance = React.lazy(() => import("../pages/HR/Attendance"));
+const HRPerformance = React.lazy(() => import("../pages/HR/Performance"));
+const HRAnalytics = React.lazy(() => import("../pages/HR/Analytics"));
 
-import ManagerDashboard from "../manager/pages/ManagerDashboard";
-import ManagerTeam from "../manager/pages/Team";
-import ManagerPerformance from "../manager/pages/Performance";
-import ManagerAnalytics from "../manager/pages/Analytics";
+// Manager Pages
+const ManagerDashboard = React.lazy(() => import("../manager/pages/ManagerDashboard"));
+const ManagerTeam = React.lazy(() => import("../manager/pages/Team"));
+const ManagerPerformance = React.lazy(() => import("../manager/pages/Performance"));
+const ManagerAnalytics = React.lazy(() => import("../manager/pages/Analytics"));
 
-
-import SharedLeaveRequests from "../pages/shared/LeaveRequests/LeaveRequests";
-import SharedPayroll from "../pages/shared/Payroll/Payroll";
+// Shared Pages
+const SharedLeaveRequests = React.lazy(() => import("../pages/shared/LeaveRequests/LeaveRequests"));
+const SharedPayroll = React.lazy(() => import("../pages/shared/Payroll/Payroll"));
 
 // Employee Pages
-import EmployeeDashboard from "../pages/Employee/Dashboard";
-import EmployeeAttendance from "../pages/Employee/Attendance";
-import EmployeeLeaveRequests from "../pages/Employee/LeaveRequests";
-import EmployeeMyPay from "../pages/Employee/MyPay";
+const EmployeeDashboard = React.lazy(() => import("../pages/Employee/Dashboard"));
+const EmployeeAttendance = React.lazy(() => import("../pages/Employee/Attendance"));
+const EmployeeLeaveRequests = React.lazy(() => import("../pages/Employee/LeaveRequests"));
+const EmployeeMyPay = React.lazy(() => import("../pages/Employee/MyPay"));
 
+// Error Pages
+const Unauthorized = React.lazy(() => import("../pages/Unauthorized/Unauthorized"));
+const SessionExpired = React.lazy(() => import("../pages/SessionExpired/SessionExpired"));
+const NotFound = React.lazy(() => import("../pages/NotFound"));
 
-import Unauthorized from "../pages/Unauthorized/Unauthorized";
-import SessionExpired from "../pages/SessionExpired/SessionExpired";
-import NotFound from "../pages/NotFound";
+/**
+ * Accessible route loading fallback compliant with WCAG 2.1 AA
+ */
+const RouteLoadingFallback = () => (
+  <div
+    role="status"
+    aria-live="polite"
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "60vh",
+      gap: "1rem",
+      color: "var(--text-light, #64748b)",
+    }}
+  >
+    <div
+      style={{
+        width: "38px",
+        height: "38px",
+        border: "3px solid rgba(59, 130, 246, 0.2)",
+        borderTopColor: "var(--primary, #3b82f6)",
+        borderRadius: "50%",
+        animation: "spin 0.75s linear infinite",
+      }}
+    />
+    <span style={{ fontSize: "0.875rem", fontWeight: 500, letterSpacing: "0.02em" }}>
+      Loading workspace view...
+    </span>
+  </div>
+);
 
 const AppRoutes = () => {
   const {
@@ -86,7 +124,8 @@ const AppRoutes = () => {
   };
 
   return (
-    <Routes>
+    <Suspense fallback={<RouteLoadingFallback />}>
+      <Routes>
       {/* Root */}
 
       <Route
@@ -184,6 +223,11 @@ const AppRoutes = () => {
           <Route
             path="/admin/monitoring"
             element={<AdminMonitoring />}
+          />
+
+          <Route
+            path="/admin/system-health"
+            element={<AdminSystemHealth />}
           />
 
           <Route
@@ -436,7 +480,8 @@ const AppRoutes = () => {
         path="*"
         element={<NotFound />}
       />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 };
 

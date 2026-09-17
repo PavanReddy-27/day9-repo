@@ -13,7 +13,7 @@
  *   npm run reset:passwords -- --password=Custom@123
  */
 import "dotenv/config";
-import * as argon2 from "argon2";
+import bcrypt from "bcryptjs";
 import connectDB, { closeDB } from "../config/db.js";
 import { AdminAuth, HRAuth, ManagerAuth, EmployeeAuth, User } from "../models/User.js";
 
@@ -26,7 +26,7 @@ async function main() {
   const password = getArg("password", "Password123!");
   await connectDB();
 
-  const hash = await argon2.hash(password, { type: argon2.argon2id });
+  const hash = await bcrypt.hash(password, 10);
 
   const collections = [
     ["Admin", AdminAuth],

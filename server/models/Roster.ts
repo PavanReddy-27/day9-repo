@@ -14,4 +14,4 @@ const rosterSchema = new mongoose.Schema(
 
 rosterSchema.index({ companyId: 1, employeeId: 1, startDate: 1 });
 
-export default mongoose.models.Roster || mongoose.model("Roster", rosterSchema, "rosters");
+export default (mongoose.models.Roster || mongoose.model("Roster", rosterSchema, "rosters")) as mongoose.Model<any>;

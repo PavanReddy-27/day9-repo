@@ -17,6 +17,7 @@ jobs:
       CI: "true"
       JWT_SECRET: ci_test_super_secret_jwt_access_key_32char
       MONGODB_URI: mongodb://127.0.0.1:27017/workforce_analytics_ci
+      VITE_COMPANY_NAME: Stackly
 
     steps:
       - name: Checkout Repository

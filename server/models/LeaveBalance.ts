@@ -50,5 +50,4 @@ const leaveBalanceSchema = new mongoose.Schema(
 // Prevent duplicate balances for same user/type/year
 leaveBalanceSchema.index({ companyId: 1, employeeId: 1, leaveType: 1, year: 1 }, { unique: true });
 
-const LeaveBalance = mongoose.models.LeaveBalance || mongoose.model("LeaveBalance", leaveBalanceSchema, "leavebalances");
-export default LeaveBalance as typeof mongoose.Model;
+export default (mongoose.models.LeaveBalance || mongoose.model("LeaveBalance", leaveBalanceSchema, "leavebalances")) as mongoose.Model<any>;

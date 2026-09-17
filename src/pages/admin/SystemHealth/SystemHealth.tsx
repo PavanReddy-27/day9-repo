@@ -142,8 +142,9 @@ const SystemHealth = () => {
         apiClient<{ success: boolean; data: DeadLetterItem[] }>("/jobs/dead-letter"),
       ]);
 
-      if (mRes.status === "fulfilled" && mRes.value?.data) {
-        setMetrics(mRes.value.data);
+      const mData = mRes.status === "fulfilled" ? ((mRes.value as any)?.data || mRes.value) : null;
+      if (mData && mData.server) {
+        setMetrics(mData);
       } else {
         // Fallback: probe public /ready endpoint if /system/metrics is unreachable (e.g. MongoDB disconnected)
         try {
@@ -197,12 +198,15 @@ const SystemHealth = () => {
         }
       }
 
-      if (jRes.status === "fulfilled" && jRes.value?.data) {
-        setJobStats(jRes.value.data);
-      } else if (mRes.status === "fulfilled" && mRes.value?.data?.backgroundJobs?.stats) {
-        setJobStats(mRes.value.data.backgroundJobs.stats);
+      const jData = jRes.status === "fulfilled" ? ((jRes.value as any)?.data || jRes.value) : null;
+      if (jData && typeof jData === "object" && "total" in jData) {
+        setJobStats(jData);
+      } else if (mData?.backgroundJobs?.stats) {
+        setJobStats(mData.backgroundJobs.stats);
       }
-      if (dlqRes.status === "fulfilled" && dlqRes.value?.data) setDlqItems(dlqRes.value.data);
+
+      const dlqData = dlqRes.status === "fulfilled" ? ((dlqRes.value as any)?.data || dlqRes.value) : null;
+      if (Array.isArray(dlqData)) setDlqItems(dlqData);
 
       // Fetch local browser offline queue status
       try {

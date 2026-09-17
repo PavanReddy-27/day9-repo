@@ -7,4 +7,4 @@ const departmentSchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true },
 }, { timestamps: true });
 
-export default mongoose.model('Department', departmentSchema);
+export default (mongoose.models.Department || mongoose.model('Department', departmentSchema)) as mongoose.Model<any>;

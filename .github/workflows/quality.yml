@@ -21,6 +21,7 @@ jobs:
     env:
       JWT_SECRET: ci-test-jwt-secret
       JWT_REFRESH_SECRET: ci-test-refresh-secret
+      VITE_COMPANY_NAME: Stackly
 
     steps:
       - name: Check out repository

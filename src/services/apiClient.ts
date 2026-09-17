@@ -1,4 +1,5 @@
 import { getSession, clearSession } from "../utils/authStorage";
+import { clientCache } from "../utils/clientCache";
 
 const getApiUrl = (endpoint: string): string => {
   const envUrl = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL;
@@ -24,16 +25,33 @@ export class ApiError extends Error {
   }
 }
 
+export interface ApiClientOptions extends RequestInit {
+  useCache?: boolean;
+  cacheTtl?: number;
+  cacheKey?: string;
+}
+
 /**
  * A wrapper around native fetch that:
+ * - Supports safe client-side TTL caching for non-sensitive reads.
  * - Uses credentials: "include" so HTTP-only session cookies are always transmitted.
  * - Injects in-memory access token as Authorization Bearer header if available.
  * - Handles 401 Unauthorized and standard API errors.
  */
 export const apiClient = async <T = any>(
   endpoint: string,
-  options: RequestInit = {}
+  options: ApiClientOptions = {}
 ): Promise<T> => {
+  const isGet = !options.method || options.method.toUpperCase() === "GET";
+  const cacheKey = options.cacheKey || endpoint;
+
+  if (options.useCache && isGet) {
+    const cached = clientCache.get<T>(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+  }
+
   const session = getSession();
   const token = session?.accessToken;
 
@@ -82,11 +100,15 @@ export const apiClient = async <T = any>(
     }
 
     // Return the .data property if it's wrapped in a standard JSend format { success, data }
-    if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
-       return data.data;
+    const result = (data && typeof data === 'object' && 'success' in data && 'data' in data)
+      ? data.data
+      : (data as T);
+
+    if (options.useCache && isGet) {
+      clientCache.set(cacheKey, result, options.cacheTtl);
     }
 
-    return data as T;
+    return result;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
