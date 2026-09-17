@@ -11,6 +11,8 @@ const jobPostSchema = new mongoose.Schema(
     applicants: { type: Number, default: 0 },
     posted: { type: String, required: true },
     status: { type: String, enum: ["Open", "Closed", "On Hold"], default: "Open" },
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

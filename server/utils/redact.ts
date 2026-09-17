@@ -21,6 +21,12 @@ const SENSITIVE_KEYS = new Set([
   'ssn',
   'bankaccount',
   'routingnumber',
+  'accountnumber',
+  'salary',
+  'pan',
+  'aadhar',
+  'personalemail',
+  'phonenumber',
   'apikey',
   'privatekey',
 ]);
