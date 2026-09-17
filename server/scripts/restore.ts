@@ -11,6 +11,7 @@ import crypto from 'crypto';
 import connectDB, { closeDB } from '../config/db.js';
 import { BackupManifest } from './backup.js';
 import { logger } from '../utils/logger.js';
+import { writeAuditLog } from '../utils/audit.js';
 
 export interface RestoreResult {
   backupId: string;
@@ -99,7 +100,7 @@ export async function runRestore(
     if (collectionsFilter && collectionsFilter.length > 0 && !collectionsFilter.includes(collInfo.name)) {
       continue;
     }
-    const filePath = path.join(backupPath, `${collInfo.name}.json`);
+    const filePath = path.join(backupPath, `${collInfo.name}.json.enc`);
     if (!fs.existsSync(filePath)) {
       throw new Error(`Collection file missing: ${filePath}`);
     }
@@ -133,8 +134,19 @@ export async function runRestore(
     if (collectionsFilter && collectionsFilter.length > 0 && !collectionsFilter.includes(collName)) {
       continue;
     }
-    const filePath = path.join(backupPath, `${collName}.json`);
-    const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const filePath = path.join(backupPath, `${collName}.json.enc`);
+    const encryptedContent = fs.readFileSync(filePath, 'utf8');
+    
+    const algorithm = 'aes-256-cbc';
+    const password = process.env.BACKUP_ENCRYPTION_PASS || 'default_secure_pass_123!';
+    const key = crypto.scryptSync(password, 'salt', 32);
+    const iv = Buffer.from((collInfo as any).iv, 'hex');
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    
+    let decrypted = decipher.update(encryptedContent, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    const rawData = JSON.parse(decrypted);
     const documents = rawData.map(reviveMongoTypes);
 
     const coll = db.collection(collName);
@@ -168,6 +180,13 @@ export async function runRestore(
     durationMs,
     targetDb: targetDbName || 'default',
   });
+
+  const mockReq = {
+    companyId: 'SYSTEM',
+    user: { email: 'system@workforce.local', role: 'System' },
+    ip: '127.0.0.1'
+  };
+  await writeAuditLog(mockReq, 'DATABASE_RESTORE', `Database restored from snapshot: ${manifest.backupId}`, 'System', manifest.backupId);
 
   if (shouldClose) {
     await closeDB();

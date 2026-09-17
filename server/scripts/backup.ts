@@ -10,6 +10,7 @@ import path from 'path';
 import crypto from 'crypto';
 import connectDB, { closeDB } from '../config/db.js';
 import { logger } from '../utils/logger.js';
+import { writeAuditLog } from '../utils/audit.js';
 
 export interface BackupCollectionSummary {
   name: string;
@@ -68,10 +69,21 @@ export async function runBackup(shouldClose = true, collectionsFilter?: string[]
     const docs = await coll.find({}).toArray();
 
     const serialized = JSON.stringify(docs, null, 2);
-    const filePath = path.join(targetDir, `${collName}.json`);
-    fs.writeFileSync(filePath, serialized, 'utf8');
+    const filePath = path.join(targetDir, `${collName}.json.enc`);
+    
+    // Encrypt the backup using aes-256-cbc
+    const algorithm = 'aes-256-cbc';
+    const password = process.env.BACKUP_ENCRYPTION_PASS || 'default_secure_pass_123!';
+    const key = crypto.scryptSync(password, 'salt', 32);
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    
+    let encrypted = cipher.update(serialized, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    
+    const fileBuffer = Buffer.from(encrypted, 'utf8');
+    fs.writeFileSync(filePath, fileBuffer);
 
-    const fileBuffer = Buffer.from(serialized, 'utf8');
     const sha256 = crypto.createHash('sha256').update(fileBuffer).digest('hex');
     const sizeBytes = fileBuffer.length;
 
@@ -83,7 +95,8 @@ export async function runBackup(shouldClose = true, collectionsFilter?: string[]
       count: docs.length,
       sizeBytes,
       sha256,
-    });
+      iv: iv.toString('hex') // Save IV to manifest for decryption
+    } as any);
 
     console.log(`✓ Backed up collection: ${collName.padEnd(25)} (${docs.length} docs, ${Math.round(sizeBytes / 1024)} KB)`);
   }
@@ -109,9 +122,32 @@ export async function runBackup(shouldClose = true, collectionsFilter?: string[]
   console.log('====================================================');
 
   logger.info(`Database backup created: ${backupId}`, { manifest });
+  
+  const mockReq = {
+    companyId: 'SYSTEM',
+    user: { email: 'system@workforce.local', role: 'System' },
+    ip: '127.0.0.1'
+  };
+  await writeAuditLog(mockReq, 'DATABASE_BACKUP', `Database backup created: ${backupId}`, 'System', backupId);
 
   if (shouldClose) {
     await closeDB();
+  }
+
+  // Apply retention policy
+  const retentionDays = process.env.RETENTION_DAYS ? parseInt(process.env.RETENTION_DAYS) : 30;
+  const now = Date.now();
+  const dirs = fs.readdirSync(backupsDir, { withFileTypes: true });
+  for (const dir of dirs) {
+    if (dir.isDirectory() && dir.name.startsWith('backup-')) {
+      const dirPath = path.join(backupsDir, dir.name);
+      const stats = fs.statSync(dirPath);
+      const diffDays = Math.floor((now - stats.mtimeMs) / (1000 * 60 * 60 * 24));
+      if (diffDays > retentionDays) {
+        console.log(`[Retention Policy] Deleting old backup: ${dir.name}`);
+        fs.rmSync(dirPath, { recursive: true, force: true });
+      }
+    }
   }
 
   return manifest;

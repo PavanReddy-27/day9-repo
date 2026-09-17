@@ -47,5 +47,9 @@ const PayrollRecordSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+PayrollRecordSchema.index({ companyId: 1, periodId: 1, employeeId: 1 }, { unique: true });
+PayrollRecordSchema.index({ employeeId: 1, companyId: 1 });
+PayrollRecordSchema.index({ companyId: 1, status: 1 });
+
 export default (mongoose.models.PayrollRecord || mongoose.model<IPayrollRecord>('PayrollRecord', PayrollRecordSchema)) as mongoose.Model<IPayrollRecord>;
 
