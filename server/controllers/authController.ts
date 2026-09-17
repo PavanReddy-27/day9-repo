@@ -317,6 +317,19 @@ export const refresh = async (req: any, res: any) => {
     const user = await findUserById(existingToken.user.toString());
     if (!user) return res.status(401).json({ success: false, message: 'User not found' });
 
+    if (user.isActive === false || user.isDeleted) {
+      res.clearCookie('accessToken', { path: '/' });
+      res.clearCookie('refreshToken', { path: '/' });
+      return res.status(403).json({ success: false, message: 'Account is deactivated or deleted' });
+    }
+
+    const employee: any = await Employee.findOne({ email: user.email } as any);
+    if (employee && (employee.isActive === false || employee.isDeleted === true || employee.employmentStatus === 'Inactive')) {
+      res.clearCookie('accessToken', { path: '/' });
+      res.clearCookie('refreshToken', { path: '/' });
+      return res.status(403).json({ success: false, message: 'Employee record is deactivated or deleted' });
+    }
+
     // Revoke the current token
     existingToken.revoked = true;
     await existingToken.save();
@@ -415,12 +428,20 @@ export const verifyLoginMfa = async (req: any, res: any, next: any) => {
       return res.status(400).json({ success: false, message: 'MFA is not enabled for this user' });
     }
 
+    if (user.isActive === false || user.isDeleted) {
+      return res.status(403).json({ success: false, message: 'Account is deactivated or deleted' });
+    }
+
+    const employee: any = await Employee.findOne({ email: user.email } as any);
+    if (employee && (employee.isActive === false || employee.isDeleted === true || employee.employmentStatus === 'Inactive')) {
+      return res.status(403).json({ success: false, message: 'Employee record is deactivated or deleted' });
+    }
+
     const isValid = authenticator.verify({ token: mfaToken, secret: user.mfaSecret });
     if (!isValid) {
       return res.status(401).json({ success: false, message: 'Invalid MFA code' });
     }
 
-    const employee: any = await Employee.findOne({ email: user.email } as any);
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = await createRefreshToken(user._id);
 

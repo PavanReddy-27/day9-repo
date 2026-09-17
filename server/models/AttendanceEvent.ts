@@ -11,6 +11,7 @@ const attendanceEventSchema = new mongoose.Schema(
       enum: ["CHECK_IN", "BREAK_START", "BREAK_END", "CHECK_OUT"],
     },
     timestamp: { type: Date, required: true },
+    clientTimestamp: { type: Date },
     locationCoordinates: {
       lat: { type: Number },
       lng: { type: Number },
@@ -25,6 +26,7 @@ const attendanceEventSchema = new mongoose.Schema(
 );
 
 attendanceEventSchema.index({ companyId: 1, attendanceRecordId: 1, timestamp: 1 });
+attendanceEventSchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
 // Idempotency keys must be unique ONLY when present. Many events legitimately
 // have no key (idempotencyKey: null); a plain unique index would reject every
 // keyless event after the first. A partial index scopes uniqueness to real
