@@ -1,13 +1,9 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load environment variables relative to current working directory
+dotenv.config({ path: path.join(process.cwd(), 'server', '.env') });
 
 // Import models to ensure they are registered
 import AttendanceRecord from '../models/AttendanceRecord.js';
@@ -28,7 +24,7 @@ async function runAnalysis() {
     // Mongoose set profiling level to track slow queries natively
     // We can also run an explain plan manually.
     console.log('\n--- Analyzing AttendanceRecord ---');
-    const attendanceExplain = await AttendanceRecord.find({ 
+    const attendanceExplain: any = await AttendanceRecord.find({ 
       companyId: new mongoose.Types.ObjectId(), 
       date: '2023-10-01' 
     }).explain('executionStats');
@@ -36,7 +32,7 @@ async function runAnalysis() {
     console.log(`Execution time: ${attendanceExplain[0]?.executionStats?.executionTimeMillis}ms`);
 
     console.log('\n--- Analyzing PayrollRecord ---');
-    const payrollExplain = await PayrollRecord.find({ 
+    const payrollExplain: any = await PayrollRecord.find({ 
       companyId: new mongoose.Types.ObjectId(),
       periodId: new mongoose.Types.ObjectId(),
       employeeId: new mongoose.Types.ObjectId()
@@ -45,7 +41,7 @@ async function runAnalysis() {
     console.log(`Execution time: ${payrollExplain[0]?.executionStats?.executionTimeMillis}ms`);
 
     console.log('\n--- Analyzing LeaveRequest ---');
-    const leaveExplain = await LeaveRequest.find({ 
+    const leaveExplain: any = await LeaveRequest.find({ 
       companyId: new mongoose.Types.ObjectId(),
       status: 'Pending'
     }).sort({ startDate: -1 }).explain('executionStats');
@@ -53,9 +49,9 @@ async function runAnalysis() {
     console.log(`Execution time: ${leaveExplain[0]?.executionStats?.executionTimeMillis}ms`);
 
     console.log('\n--- Analyzing AuditLog ---');
-    const auditExplain = await AuditLog.find({
+    const auditExplain: any = await AuditLog.find({
       companyId: new mongoose.Types.ObjectId()
-    }).sort({ timestamp: -1 }).explain('executionStats');
+    } as any).sort({ timestamp: -1 }).explain('executionStats');
     console.log(`Index used: ${auditExplain[0]?.queryPlanner?.winningPlan?.inputStage?.indexName || 'COLLSCAN'}`);
     console.log(`Execution time: ${auditExplain[0]?.executionStats?.executionTimeMillis}ms`);
 
