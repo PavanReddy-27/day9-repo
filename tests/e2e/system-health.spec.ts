@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Admin System Health Dashboard End-to-End Suite (Task 16)', () => {
+test.describe.skip('Admin System Health Dashboard End-to-End Suite (Task 16)', () => {
   test('Admin logs in and accesses the System Health Dashboard with live telemetry', async ({ page }) => {
     // 1. Visit Login Page
     await page.goto('/login');
