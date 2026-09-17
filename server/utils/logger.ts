@@ -1,51 +1,9 @@
 import winston from "winston";
 import { AsyncLocalStorage } from "async_hooks";
+import { redactSensitiveData } from "./redact.js";
 
 // Async context for request tracing
 export const requestContext = new AsyncLocalStorage<Map<string, any>>();
-
-// Sensitive fields that should be redacted from logs
-const SENSITIVE_KEYS = new Set([
-  "password",
-  "token",
-  "accesstoken",
-  "refreshtoken",
-  "mfasecret",
-  "authorization",
-  "cookie",
-  // Additional PII and Payroll Redaction
-  "salary",
-  "ssn",
-  "bankaccount",
-  "accountnumber",
-  "pan",
-  "aadhar",
-  "personalemail",
-  "phonenumber",
-]);
-
-// Recursive redaction function
-const redact = (obj: any): any => {
-  if (obj == null || typeof obj !== "object") return obj;
-
-  // Handle arrays
-  if (Array.isArray(obj)) {
-    return obj.map(redact);
-  }
-
-  // Handle objects
-  const redactedObj: Record<string, any> = {};
-  for (const key of Object.keys(obj)) {
-    if (SENSITIVE_KEYS.has(key.toLowerCase())) {
-      redactedObj[key] = "[REDACTED]";
-    } else if (typeof obj[key] === "object") {
-      redactedObj[key] = redact(obj[key]);
-    } else {
-      redactedObj[key] = obj[key];
-    }
-  }
-  return redactedObj;
-};
 
 // Custom Winston formatter to inject async context and redact fields
 const customFormat = winston.format.printf((info) => {
@@ -63,7 +21,7 @@ const customFormat = winston.format.printf((info) => {
     orgId,
   };
 
-  const redactedInfo = redact(baseInfo);
+  const redactedInfo = redactSensitiveData(baseInfo);
   return JSON.stringify(redactedInfo);
 });
 
