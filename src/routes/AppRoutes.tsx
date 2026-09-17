@@ -23,6 +23,7 @@ import AdminDepartments from "../pages/admin/Departments";
 import AdminReports from "../pages/admin/Reports";
 import AdminAuditLogs from "../pages/admin/AuditLogs";
 import AdminMonitoring from "../pages/admin/MonitoringDashboard";
+import AdminSystemHealth from "../pages/admin/SystemHealth/SystemHealth";
 import Settings from "../pages/Settings";
 
 // HR Pages
@@ -184,6 +185,11 @@ const AppRoutes = () => {
           <Route
             path="/admin/monitoring"
             element={<AdminMonitoring />}
+          />
+
+          <Route
+            path="/admin/system-health"
+            element={<AdminSystemHealth />}
           />
 
           <Route
