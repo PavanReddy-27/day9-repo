@@ -165,4 +165,7 @@ router.use("/payroll", authenticateJWT, payrollRoutes);
 import monitoringRoutes from "./admin/monitoring.js";
 router.use("/admin/monitoring", monitoringRoutes);
 
+import exportRoutes from "./exportRoutes.js";
+router.use("/exports", exportRoutes);
+
 export default router;

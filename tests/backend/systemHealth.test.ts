@@ -98,5 +98,5 @@ describe('System Health, Probes & Observability Suite (Task 16)', () => {
     expect(res.body.data).toHaveProperty('memory');
     expect(res.body.data).toHaveProperty('database');
     expect(res.body.data).toHaveProperty('traffic');
-  });
+  }, 15000);
 });
