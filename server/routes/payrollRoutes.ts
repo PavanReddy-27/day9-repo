@@ -10,8 +10,12 @@ import {
   getPayrollRecordsForPeriod
 } from '../controllers/payrollController.js';
 import { requireRole } from '../middleware/authMiddleware.js';
+import { validateDataScope } from '../middleware/dataScopeMiddleware.js';
 
 const router = Router();
+
+// Apply strict data scoping and cross-org validation to all payroll routes
+router.use(validateDataScope);
 
 // Calculate payroll for a period (Admin / HR only)
 router.post('/calculate', requireRole(['Admin', 'HR']), calculatePayroll);

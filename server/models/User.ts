@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import * as argon2 from 'argon2';
 
 const userSchema = new mongoose.Schema({
   companyId: {
@@ -43,6 +42,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  deletedAt: {
+    type: Date,
+  },
   failedLoginAttempts: {
     type: Number,
     default: 0,
@@ -53,6 +60,9 @@ const userSchema = new mongoose.Schema({
   tokenVersion: {
     type: Number,
     default: 0,
+  },
+  lockUntil: {
+    type: Date,
   }
 }, {
   timestamps: true,
@@ -71,10 +81,6 @@ userSchema.pre('save', async function () {
 
 // Compare password method
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  if (this.password && this.password.startsWith('$argon2')) {
-    const isArgonMatch = await argon2.verify(this.password, enteredPassword);
-    if (isArgonMatch) return true;
-  }
   return bcrypt.compare(enteredPassword, this.password);
 };
 

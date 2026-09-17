@@ -55,7 +55,7 @@ const ManagerAnalytics = () => {
     { id: "totalEmployees" as const, title: "Department Size", value: workforceData.totalEmployees.toLocaleString(), trend: 0 },
     { id: "activeEmployees" as const, title: "Active Today", value: workforceData.activeEmployees.toLocaleString(), trend: 0 },
     { id: "inactiveEmployees" as const, title: "On Leave", value: (workforceData.statusDistribution.find(s => s.name === "On Leave")?.value || 0).toLocaleString(), trend: 0 },
-    { id: "attendanceRate" as const, title: "Attendance Rate", value: `${Math.round(((workforceData.activeEmployees || 0) / (workforceData.totalEmployees || 1)) * 100)}%`, trend: 2, subtitle: "Present today" },
+    { id: "attendanceRate" as const, title: "Attendance Rate", value: `${Math.round(((workforceData.activeEmployees || 0) / (workforceData.totalEmployees || 1)) * 100)}%`, trend: 0, subtitle: "Present today" },
   ];
 
   // Map risk distribution to RiskChartData
@@ -75,8 +75,8 @@ const ManagerAnalytics = () => {
     id: String(idx),
     role: item.name,
     employees: item.value,
-    averageSalary: 75000,
-    averageExperience: 4,
+    averageSalary: 0,
+    averageExperience: 0,
   }));
 
   // Map real attendance trends

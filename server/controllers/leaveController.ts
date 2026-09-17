@@ -1,12 +1,16 @@
 import type { Request, Response, NextFunction } from "express";
 import LeaveRequest from "../models/LeaveRequest.js";
 import Employee from "../models/Employee.js";
+import { User } from "../models/User.js";
 import Notification from "../models/Notification.js";
 import ApprovalHistory from "../models/ApprovalHistory.js";
 import { writeAuditLog } from "../utils/audit.js";
 import { broadcastSSE } from "../utils/sse.js";
 import mongoose from "mongoose";
 import { calculateLeaveDuration, checkLeaveOverlap, deductLeaveBalance, restoreLeaveBalance, publishToPayroll } from "../services/leaveService.js";
+import { logComplianceViolation } from "../utils/compliance.js";
+import { checkEmployeeScope, isTeamInManagerDepartment } from "../middleware/dataScopeMiddleware.js";
+import { NotificationService } from "../services/notificationService.js";
 
 // @desc    Get all leave requests
 // @route   GET /api/v1/leaves
@@ -23,31 +27,73 @@ export const getLeaveRequests = async (req: Request, res: Response, next: NextFu
       return;
     }
 
+    // Reject cross-organization query attempts
+    if (req.query.companyId && String(req.query.companyId) !== String(companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", `Cross-organization leaves query attempt: ${req.query.companyId}`, "Critical", { requestedCompanyId: req.query.companyId, callerCompanyId: companyId }, req);
+      res.status(403).json({ error: "Forbidden: Cross-organization access denied" });
+      return;
+    }
+
+    // Role-based department / team tampering rejection
+    if (req.query.departmentId && ["Manager", "Team Lead", "Employee"].includes(role)) {
+      const myDeptId = ((req as any).employee?.departmentId?._id || (req as any).employee?.departmentId)?.toString();
+      if (myDeptId && String(req.query.departmentId) !== myDeptId) {
+        res.status(403).json({ error: "Forbidden: Cannot access leaves outside your assigned department" });
+        return;
+      }
+    }
+
+    if (req.query.teamId) {
+      if (role === "Manager") {
+        const myDeptId = (req as any).employee?.departmentId?._id || (req as any).employee?.departmentId;
+        const validTeam = await isTeamInManagerDepartment(String(req.query.teamId), myDeptId, companyId);
+        if (!validTeam) {
+          res.status(403).json({ error: "Forbidden: Cannot access unrelated team" });
+          return;
+        }
+      } else if (["Team Lead", "Employee"].includes(role)) {
+        const myTeamId = ((req as any).employee?.teamId?._id || (req as any).employee?.teamId)?.toString();
+        if (myTeamId && String(req.query.teamId) !== myTeamId) {
+          res.status(403).json({ error: "Forbidden: Cannot access team outside your assigned team" });
+          return;
+        }
+      }
+    }
+
     const query: any = { companyId };
 
-    if (role === "Employee") {
-      query.employeeId = reqEmpId;
-    } else if (role === "Manager") {
-      // Find all employees in manager's department OR employees who report directly to this manager
-      const reqEmp = await Employee.findById(reqEmpId).lean();
-      if (reqEmp) {
-        const managedEmployees = await Employee.find({
-          companyId,
-          $or: [
-            { departmentId: reqEmp.departmentId },
-            { managerId: reqEmpId }
-          ]
-        }).select('_id');
-        query.employeeId = { $in: managedEmployees.map(e => e._id) };
+    if (req.query.employeeId && req.query.employeeId !== "undefined" && req.query.employeeId !== "null") {
+      const scopeCheck = await checkEmployeeScope(String(req.query.employeeId), role, (req as any).employee, companyId, req);
+      if (!scopeCheck.allowed) {
+        res.status(scopeCheck.status).json({ error: scopeCheck.message, message: scopeCheck.message });
+        return;
       }
-    } else if (role === "Team Lead") {
-      // Only see own team members
-      const reqEmp = await Employee.findById(reqEmpId).lean();
-      if (reqEmp && reqEmp.teamId) {
-        const teamEmployees = await Employee.find({ companyId, teamId: reqEmp.teamId }).select('_id');
-        query.employeeId = { $in: teamEmployees.map(e => e._id) };
-      } else {
-        query.employeeId = reqEmpId; // fallback to self if no team assigned
+      query.employeeId = scopeCheck.targetDoc._id;
+    } else {
+      if (role === "Employee") {
+        query.employeeId = reqEmpId;
+      } else if (role === "Manager") {
+        // Find all employees in manager's department OR employees who report directly to this manager
+        const reqEmp = await Employee.findById(reqEmpId).lean();
+        if (reqEmp) {
+          const managedEmployees = await Employee.find({
+            companyId,
+            $or: [
+              { departmentId: reqEmp.departmentId },
+              { managerId: reqEmpId }
+            ]
+          }).select('_id');
+          query.employeeId = { $in: managedEmployees.map(e => e._id) };
+        }
+      } else if (role === "Team Lead") {
+        // Only see own team members
+        const reqEmp = await Employee.findById(reqEmpId).lean();
+        if (reqEmp && reqEmp.teamId) {
+          const teamEmployees = await Employee.find({ companyId, teamId: reqEmp.teamId }).select('_id');
+          query.employeeId = { $in: teamEmployees.map(e => e._id) };
+        } else {
+          query.employeeId = reqEmpId; // fallback to self if no team assigned
+        }
       }
     }
     // HR / Admin: see all
@@ -77,6 +123,26 @@ export const createLeaveRequest = async (req: Request, res: Response, next: Next
     session.startTransaction();
     const companyId = (req as any).companyId;
     const { type, startDate, endDate, reason } = req.body;
+
+    if (req.body?.companyId && String(req.body.companyId) !== String(companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization leave request attempt", "Critical", { bodyCompanyId: req.body.companyId, callerCompanyId: companyId }, req);
+      await session.abortTransaction();
+      session.endSession();
+      res.status(403).json({ error: "Forbidden: Cross-organization access denied" });
+      return;
+    }
+
+    if (req.body?.employeeId) {
+      const myId = String((req as any).employee?._id);
+      const myCode = (req as any).employee?.employeeId ? String((req as any).employee.employeeId) : "";
+      const target = String(req.body.employeeId);
+      if (target !== myId && target !== myCode) {
+        await session.abortTransaction();
+        session.endSession();
+        res.status(403).json({ error: "Forbidden: Cannot submit leave request for another employee" });
+        return;
+      }
+    }
 
     if (!type || !startDate || !endDate || !reason) {
       await session.abortTransaction();
@@ -148,6 +214,58 @@ export const createLeaveRequest = async (req: Request, res: Response, next: Next
     
     // Fetch populated version after commit
     const populatedLeave = await LeaveRequest.findById(newLeave._id).populate("employeeId", "firstName lastName employeeId");
+    
+    // Notify Manager
+    const employee = await Employee.findById(empId).lean();
+    if (employee) {
+      let managerUserId: any = null;
+
+      // 1. Direct manager
+      if (employee.managerId) {
+        const directManager = await Employee.findById(employee.managerId).lean();
+        if (directManager && directManager.userId) {
+          const directUser = await User.findById(directManager.userId).lean();
+          if (directUser && directUser.role === "Manager") {
+            managerUserId = directManager.userId;
+          }
+        }
+      }
+
+      // 2. Department manager
+      if (!managerUserId && employee.departmentId) {
+        const deptManager = await Employee.findOne({
+          companyId,
+          departmentId: employee.departmentId,
+          role: "Manager"
+        }).lean();
+        if (deptManager && deptManager.userId) {
+          managerUserId = deptManager.userId;
+        }
+      }
+
+      // 3. Fallback to primary company manager (e.g. manager@thestackly.com)
+      if (!managerUserId) {
+        const primaryManager = await Employee.findOne({
+          companyId,
+          role: "Manager"
+        }).lean();
+        if (primaryManager && primaryManager.userId) {
+          managerUserId = primaryManager.userId;
+        }
+      }
+
+      if (managerUserId) {
+        await NotificationService.sendNotification(
+          managerUserId,
+          companyId,
+          "New Leave Request",
+          `${employee.firstName} ${employee.lastName} requested ${type} leave from ${startDate} to ${endDate}.`,
+          "ALERT",
+          "/manager/leave-requests"
+        );
+      }
+    }
+
     res.status(201).json(populatedLeave);
   } catch (error) {
     if (session && session.inTransaction()) await session.abortTransaction();
@@ -184,8 +302,11 @@ export const updateLeaveStatus = async (req: Request, res: Response, next: NextF
     if (!leave) {
       const crossCompanyLeak = await (LeaveRequest as any).findById(id).session(session);
       if (crossCompanyLeak) {
-        const { logComplianceViolation } = await import('../utils/compliance.js');
         await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company leave access: ${id}`, 'Critical', { id }, req);
+        await session.abortTransaction();
+        session.endSession();
+        res.status(403).json({ error: "Forbidden: Cross-organization access denied" });
+        return;
       }
       await session.abortTransaction();
       session.endSession();
@@ -294,17 +415,17 @@ export const updateLeaveStatus = async (req: Request, res: Response, next: NextF
       const message = `Your ${typeStr} request from ${leave.startDate} to ${leave.endDate} has been ${status.toLowerCase()} by ${reviewedByName}.`;
       const notifType = status === "Approved" ? "SUCCESS" : "WARNING";
 
-      const notifArr = await Notification.create([{
+      await NotificationService.sendNotification(
+        leave.employeeId.userId,
         companyId,
-        userId: leave.employeeId.userId,
-        title: `Leave Request ${status}`,
+        `Leave Request ${status}`,
         message,
-        type: notifType,
-        linkUrl: "/employee/leaves"
-      }], { session });
-
-      broadcastSSE("NOTIFICATION_UPDATE", { userId: leave.employeeId.userId.toString(), notificationId: notifArr[0]._id }, companyId);
+        notifType,
+        "/employee/leave-requests"
+      );
     }
+    // We can also trigger a generic LEAVE_UPDATE for frontend refresh if needed, but the requirements just ask for Notifications.
+    // We'll keep the broadcast for any dashboards that might be listening:
     broadcastSSE("LEAVE_UPDATE", { employeeId: targetEmpId.toString(), status, leaveId: leave._id }, companyId);
 
     await session.commitTransaction();

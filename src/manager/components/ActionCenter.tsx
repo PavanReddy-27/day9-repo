@@ -19,39 +19,45 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./ActionCenter.css";
 
-const actions = [
-  {
-    title: "Approve Leave Requests",
-    description: "5 leave requests are waiting for approval.",
-    icon: <AssignmentTurnedIn color="warning" />,
-    chip: "High Priority",
-    chipColor: "warning" as const,
-  },
-  {
-    title: "Schedule Team Meeting",
-    description: "Sprint planning meeting is scheduled this week.",
-    icon: <Event color="primary" />,
-    chip: "Upcoming",
-    chipColor: "primary" as const,
-  },
-  {
-    title: "Review Performance",
-    description: "3 employee performance reviews are pending.",
-    icon: <Assessment color="success" />,
-    chip: "Pending",
-    chipColor: "success" as const,
-  },
-  {
-    title: "Recognize Top Performer",
-    description: "Reward outstanding team members this month.",
-    icon: <EmojiEvents sx={{ color: "var(--warning)" }} />,
-    chip: "Monthly",
-    chipColor: "secondary" as const,
-  },
-];
+interface ActionCenterProps {
+  pendingLeavesCount?: number;
+}
 
-const ActionCenter = () => {
+const ActionCenter = ({ pendingLeavesCount = 0 }: ActionCenterProps) => {
   const navigate = useNavigate();
+
+  const actions = [
+    {
+      title: "Approve Leave Requests",
+      description: pendingLeavesCount > 0
+        ? `${pendingLeavesCount} leave request${pendingLeavesCount > 1 ? "s" : ""} waiting for approval.`
+        : "All leave requests are reviewed.",
+      icon: <AssignmentTurnedIn color={pendingLeavesCount > 0 ? "warning" : "success"} />,
+      chip: pendingLeavesCount > 0 ? "Pending Review" : "Up to Date",
+      chipColor: (pendingLeavesCount > 0 ? "warning" : "success") as "warning" | "success",
+    },
+    {
+      title: "Manage Team Members",
+      description: "View department roster, attendance, and shift assignments.",
+      icon: <Event color="primary" />,
+      chip: "Active Roster",
+      chipColor: "primary" as const,
+    },
+    {
+      title: "Review Performance",
+      description: "Inspect live performance ratings and monthly KPI progress.",
+      icon: <Assessment color="info" />,
+      chip: "Live Tracking",
+      chipColor: "primary" as const,
+    },
+    {
+      title: "Recognize Top Performer",
+      description: "View top performers ranked by productivity and score.",
+      icon: <EmojiEvents sx={{ color: "var(--warning)" }} />,
+      chip: "Top Rank",
+      chipColor: "secondary" as const,
+    },
+  ];
 
   const handleActionClick = (title: string) => {
     switch (title) {

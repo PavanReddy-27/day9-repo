@@ -39,7 +39,7 @@ export default function DonutChart({
   data,
   loading,
   error,
-  height = 360,
+  height = 290,
   emptyMessage = "No data available.",
   badgeText,
   onRefresh,
@@ -74,7 +74,7 @@ export default function DonutChart({
           <Box
             sx={{
               position: "absolute",
-              top: "45%", // adjusted for legend
+              top: "42%",
               left: "50%",
               transform: "translate(-50%, -50%)",
               textAlign: "center",
@@ -93,16 +93,16 @@ export default function DonutChart({
             )}
           </Box>
         )}
-        <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 60 : 320}>
-          <RechartsPieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+        <ResponsiveContainer width="100%" height={typeof height === "number" ? height - 30 : 260}>
+          <RechartsPieChart margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
             <Pie
               data={data}
               dataKey="value"
               nameKey="name"
               cx="50%"
-              cy="50%"
-              innerRadius={70}
-              outerRadius={100}
+              cy="45%"
+              innerRadius={55}
+              outerRadius={85}
               fill="var(--primary)"
               stroke="none"
               paddingAngle={2}
@@ -122,7 +122,7 @@ export default function DonutChart({
               }}
               itemStyle={{ color: isDark ? "var(--surface-solid)" : "var(--text-h)", fontWeight: 600 }}
             />
-            <Legend wrapperStyle={{ paddingTop: "20px", fontSize: "14px", fontFamily: 'Inter' }} />
+            <Legend wrapperStyle={{ paddingTop: "6px", fontSize: "13px", fontFamily: 'Inter' }} />
           </RechartsPieChart>
         </ResponsiveContainer>
       </Box>

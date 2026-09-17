@@ -12,7 +12,11 @@ import mongoose from "mongoose";
 import IdempotencyRecord from "../models/IdempotencyRecord.js";
 import { broadcastSSE } from "../utils/sse.js";
 import { writeAuditLog } from "../utils/audit.js";
-
+import { logComplianceViolation } from "../utils/compliance.js";
+import { checkEmployeeScope, isTeamInManagerDepartment } from "../middleware/dataScopeMiddleware.js";
+import { NotificationService } from "../services/notificationService.js";
+import { logger } from "../utils/logger.js";
+import SystemLog from "../models/SystemLog.js";
 // Haversine formula for geofence validation
 export function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371000; // Radius of Earth in meters
@@ -104,6 +108,24 @@ export const checkIn = async (req, res) => {
     session.startTransaction();
     const { location: coordinates, source = "Web", shiftType = "Regular", idempotencyKey, isWFH } = req.body;
 
+    // Reject cross-organization or tampered employee submission
+    if (req.body?.companyId && String(req.body.companyId) !== String(req.companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization check-in attempt", "Critical", { bodyCompanyId: req.body.companyId, callerCompanyId: req.companyId }, req);
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+    if (req.body?.employeeId) {
+      const myId = String(req.employee?._id);
+      const myCode = req.employee?.employeeId ? String(req.employee.employeeId) : "";
+      const target = String(req.body.employeeId);
+      if (target !== myId && target !== myCode) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ success: false, message: "Forbidden: Cannot record attendance for another employee" });
+      }
+    }
+
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
       await session.abortTransaction();
@@ -167,6 +189,16 @@ export const checkIn = async (req, res) => {
               message: `OUTSIDE_GEOFENCE`,
               distance: Math.round(distanceMeters)
             };
+            
+            logger.warn(`Check-in failed: Outside geofence by ${distanceMeters}m`, { context: 'Attendance', userId: req.employee._id, source: req.body.source });
+            await SystemLog.create({
+              level: 'warn',
+              category: 'Attendance',
+              message: `Check-in failed: Outside geofence by ${Math.round(distanceMeters)}m`,
+              userId: req.employee._id,
+              metadata: { source: req.body.source, location: coordinates },
+            }).catch(() => {});
+
             await session.abortTransaction();
             session.endSession();
             return res.status(403).json(resp);
@@ -246,6 +278,17 @@ export const checkIn = async (req, res) => {
   } catch (error: any) {
     if (session && session.inTransaction()) await session.abortTransaction();
     if (session) session.endSession();
+    
+    if (req.body?.source === 'Offline') {
+      await SystemLog.create({
+        level: 'error',
+        category: 'Attendance',
+        message: 'Offline queue processing failure (Check-in)',
+        userId: req.employee?._id,
+        metadata: { error: error.message }
+      }).catch(() => {});
+    }
+
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -257,6 +300,23 @@ export const startBreak = async (req, res) => {
     session = await mongoose.startSession();
     session.startTransaction();
     const { idempotencyKey } = req.body;
+
+    if (req.body?.companyId && String(req.body.companyId) !== String(req.companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization startBreak attempt", "Critical", { bodyCompanyId: req.body.companyId, callerCompanyId: req.companyId }, req);
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+    if (req.body?.employeeId) {
+      const myId = String(req.employee?._id);
+      const myCode = req.employee?.employeeId ? String(req.employee.employeeId) : "";
+      const target = String(req.body.employeeId);
+      if (target !== myId && target !== myCode) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ success: false, message: "Forbidden: Cannot record attendance for another employee" });
+      }
+    }
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
       await session.abortTransaction();
@@ -322,6 +382,23 @@ export const resumeWork = async (req, res) => {
     session = await mongoose.startSession();
     session.startTransaction();
     const { idempotencyKey } = req.body;
+
+    if (req.body?.companyId && String(req.body.companyId) !== String(req.companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization resumeWork attempt", "Critical", { bodyCompanyId: req.body.companyId, callerCompanyId: req.companyId }, req);
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+    if (req.body?.employeeId) {
+      const myId = String(req.employee?._id);
+      const myCode = req.employee?.employeeId ? String(req.employee.employeeId) : "";
+      const target = String(req.body.employeeId);
+      if (target !== myId && target !== myCode) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ success: false, message: "Forbidden: Cannot record attendance for another employee" });
+      }
+    }
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
       await session.abortTransaction();
@@ -382,6 +459,23 @@ export const checkOut = async (req: any, res: any) => {
     session = await mongoose.startSession();
     session.startTransaction();
     const { location: coordinates, idempotencyKey } = req.body;
+
+    if (req.body?.companyId && String(req.body.companyId) !== String(req.companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization checkOut attempt", "Critical", { bodyCompanyId: req.body.companyId, callerCompanyId: req.companyId }, req);
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+    if (req.body?.employeeId) {
+      const myId = String(req.employee?._id);
+      const myCode = req.employee?.employeeId ? String(req.employee.employeeId) : "";
+      const target = String(req.body.employeeId);
+      if (target !== myId && target !== myCode) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ success: false, message: "Forbidden: Cannot record attendance for another employee" });
+      }
+    }
 
     const handled = await checkIdempotency(req, res, idempotencyKey, session);
     if (handled) {
@@ -496,6 +590,16 @@ export const checkOut = async (req: any, res: any) => {
       }
     }
     
+    if (req.body?.source === 'Offline') {
+      await SystemLog.create({
+        level: 'error',
+        category: 'Attendance',
+        message: 'Offline queue processing failure (Check-out)',
+        userId: req.employee?._id,
+        metadata: { error: error.message }
+      }).catch(() => {});
+    }
+
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -514,14 +618,43 @@ import { buildEmployeeScopeFilter } from "../middleware/authMiddleware.js";
  */
 export const getGlobalAttendance = async (req, res) => {
   try {
+    // Reject cross-organization query attempts
+    if (req.query.companyId && String(req.query.companyId) !== String(req.companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization query attempt in getGlobalAttendance", "Critical", { requestedCompanyId: req.query.companyId, callerCompanyId: req.companyId }, req);
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+
+    // Role-based department/team validation
+    if (req.query.departmentId && ["Manager", "Team Lead", "Employee"].includes(req.role)) {
+      const myDeptId = (req.employee?.departmentId?._id || req.employee?.departmentId)?.toString();
+      if (myDeptId && String(req.query.departmentId) !== myDeptId) {
+        return res.status(403).json({ success: false, message: "Forbidden: Cannot access department outside your assigned department" });
+      }
+    }
+
+    if (req.query.teamId) {
+      if (req.role === "Manager") {
+        const myDeptId = req.employee?.departmentId?._id || req.employee?.departmentId;
+        const validTeam = await isTeamInManagerDepartment(req.query.teamId, myDeptId, req.companyId);
+        if (!validTeam) {
+          return res.status(403).json({ success: false, message: "Forbidden: Cannot access unrelated team" });
+        }
+      } else if (["Team Lead", "Employee"].includes(req.role)) {
+        const myTeamId = (req.employee?.teamId?._id || req.employee?.teamId)?.toString();
+        if (myTeamId && String(req.query.teamId) !== myTeamId) {
+          return res.status(403).json({ success: false, message: "Forbidden: Cannot access team outside your assigned team" });
+        }
+      }
+    }
+
     const dateStr = req.query.date ? String(req.query.date) : getTodayDateStr();
 
     // Properly scope the query based on the authenticated user's role
     const empMatch = buildEmployeeScopeFilter(req.role, req.employee || {}, req.companyId);
     empMatch.role = 'Employee';
-    // Remove the department constraint so managers can see all 206 employees
-    if (req.role === 'Manager') {
-      delete empMatch.departmentId;
+
+    if (req.query.teamId) {
+      empMatch.teamId = new mongoose.Types.ObjectId(String(req.query.teamId));
     }
 
     // Return the authorized employees dataset
@@ -602,6 +735,41 @@ export const getGlobalAttendance = async (req, res) => {
 
 export const getAttendanceHistory = async (req, res) => {
   try {
+    // Cross-organization rejection
+    if (req.query.companyId && String(req.query.companyId) !== String(req.companyId)) {
+      await logComplianceViolation(
+        "CROSS_COMPANY_ACCESS",
+        `Cross-organization query in getAttendanceHistory: ${req.query.companyId}`,
+        "Critical",
+        { requestedCompanyId: req.query.companyId, callerCompanyId: req.companyId },
+        req
+      );
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+
+    // Role-based department / team tampering rejection
+    if (req.query.departmentId && ["Manager", "Team Lead", "Employee"].includes(req.role)) {
+      const myDeptId = (req.employee?.departmentId?._id || req.employee?.departmentId)?.toString();
+      if (myDeptId && String(req.query.departmentId) !== myDeptId) {
+        return res.status(403).json({ success: false, message: "Forbidden: Cannot view attendance outside your assigned department" });
+      }
+    }
+
+    if (req.query.teamId) {
+      if (req.role === "Manager") {
+        const myDeptId = req.employee?.departmentId?._id || req.employee?.departmentId;
+        const validTeam = await isTeamInManagerDepartment(req.query.teamId, myDeptId, req.companyId);
+        if (!validTeam) {
+          return res.status(403).json({ success: false, message: "Forbidden: Cannot access unrelated team" });
+        }
+      } else if (["Team Lead", "Employee"].includes(req.role)) {
+        const myTeamId = (req.employee?.teamId?._id || req.employee?.teamId)?.toString();
+        if (myTeamId && String(req.query.teamId) !== myTeamId) {
+          return res.status(403).json({ success: false, message: "Forbidden: Cannot access team outside your assigned team" });
+        }
+      }
+    }
+
     const filter: any = {};
     if (req.companyId) {
       filter.companyId = req.companyId;
@@ -614,51 +782,16 @@ export const getAttendanceHistory = async (req, res) => {
     }
 
     if (req.query.employeeId && req.query.employeeId !== "undefined" && req.query.employeeId !== "null") {
-      const qEmpId = String(req.query.employeeId);
-      let empDoc: any = null;
-
-      // Try finding Employee doc by MongoDB _id, string employeeId (e.g. "EMP-001"), or userId
-      if (mongoose.Types.ObjectId.isValid(qEmpId)) {
-        empDoc = await Employee.findOne({ _id: qEmpId, companyId: req.companyId });
-        if (!empDoc) {
-          empDoc = await Employee.findOne({
-            $or: [
-              { employeeId: qEmpId },
-              { userId: qEmpId }
-            ]
-          });
-        }
-      } else {
-        empDoc = await Employee.findOne({ employeeId: qEmpId, companyId: req.companyId });
+      const scopeCheck = await checkEmployeeScope(req.query.employeeId, req.role, req.employee, req.companyId, req);
+      if (!scopeCheck.allowed) {
+        return res.status(scopeCheck.status).json({ success: false, message: scopeCheck.message, error: scopeCheck.message });
       }
-
-      if (empDoc) {
-        // Enforce RBAC data-level authorization:
-        // 1. Employee cannot view another employee's records
-        if (req.role === 'Employee' && empDoc._id.toString() !== req.employee?._id?.toString()) {
-          return res.status(403).json({ success: false, message: "Forbidden: Cannot view another employee's attendance records" });
-        }
-        // 2. Manager cannot view employee outside their assigned department
-        const empDeptId = (empDoc.departmentId?._id || empDoc.departmentId)?.toString();
-        const mgrDeptId = (req.employee?.departmentId?._id || req.employee?.departmentId)?.toString();
-        if (req.role === 'Manager' && empDeptId && mgrDeptId && empDeptId !== mgrDeptId) {
-          return res.status(403).json({ success: false, message: "Forbidden: Cannot view attendance for employee outside your department" });
-        }
-        // 3. Team Lead cannot view employee outside their assigned team
-        const empTeamId = (empDoc.teamId?._id || empDoc.teamId)?.toString();
-        const leadTeamId = (req.employee?.teamId?._id || req.employee?.teamId)?.toString();
-        if (req.role === 'Team Lead' && empTeamId && leadTeamId && empTeamId !== leadTeamId) {
-          return res.status(403).json({ success: false, message: "Forbidden: Cannot view attendance for employee outside your team" });
-        }
-        filter.employeeId = empDoc._id;
-      } else {
-        // If an explicit employeeId was queried but not found in Employees, 
-        // return no records instead of searching by raw User._id.
-        filter.employeeId = new mongoose.Types.ObjectId("000000000000000000000000");
-      }
+      filter.employeeId = scopeCheck.targetDoc._id;
     } else {
       // When no explicit employeeId is passed:
-      if (req.role === 'Manager') {
+      if (req.role === 'Employee') {
+        filter.employeeId = req.employee?._id;
+      } else if (req.role === 'Manager') {
         const mgrDeptId = req.employee?.departmentId?._id || req.employee?.departmentId;
         if (mgrDeptId) {
           const deptEmployees = await Employee.find({ companyId: req.companyId, departmentId: mgrDeptId }).select('_id');
@@ -766,6 +899,23 @@ export const createCorrection = async (req, res) => {
     session.startTransaction();
     const { attendanceRecordId, date, requestedCheckIn, requestedCheckOut, reason } = req.body;
 
+    if (req.body?.companyId && String(req.body.companyId) !== String(req.companyId)) {
+      await logComplianceViolation("CROSS_COMPANY_ACCESS", "Cross-organization correction creation attempt", "Critical", { bodyCompanyId: req.body.companyId, callerCompanyId: req.companyId }, req);
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+    if (req.body?.employeeId) {
+      const myId = String(req.employee?._id);
+      const myCode = req.employee?.employeeId ? String(req.employee.employeeId) : "";
+      const target = String(req.body.employeeId);
+      if (target !== myId && target !== myCode) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ success: false, message: "Forbidden: Cannot submit correction for another employee" });
+      }
+    }
+
     const checkInDate = requestedCheckIn ? new Date(`${date}T${requestedCheckIn}:00Z`) : null;
     const checkOutDate = requestedCheckOut ? new Date(`${date}T${requestedCheckOut}:00Z`) : null;
 
@@ -793,6 +943,21 @@ export const createCorrection = async (req, res) => {
 
     void writeAuditLog(req, "ATTENDANCE_CORRECTION_REQUESTED", "Employee submitted an attendance correction request", "CorrectionRequest", correction._id.toString(), { session });
 
+    // Notify Manager
+    if (req.employee.managerId) {
+      const manager = await Employee.findById(req.employee.managerId).lean();
+      if (manager && manager.userId) {
+        await NotificationService.sendNotification(
+          manager.userId,
+          req.companyId,
+          "New Attendance Correction",
+          `${req.employee.firstName} ${req.employee.lastName} requested an attendance correction for ${date}.`,
+          "INFO",
+          "/manager/attendance"
+        );
+      }
+    }
+
     await session.commitTransaction();
     session.endSession();
     return res.status(201).json({ success: true, data: correction });
@@ -805,9 +970,41 @@ export const createCorrection = async (req, res) => {
 
 export const getCorrections = async (req, res) => {
   try {
+    if (req.query.companyId && String(req.query.companyId) !== String(req.companyId)) {
+      await logComplianceViolation(
+        "CROSS_COMPANY_ACCESS",
+        `Cross-organization query in getCorrections: ${req.query.companyId}`,
+        "Critical",
+        { requestedCompanyId: req.query.companyId, callerCompanyId: req.companyId },
+        req
+      );
+      return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
+    }
+
     const filter: any = { companyId: req.companyId };
-    if (req.role === "Employee") {
-      filter.employeeId = req.employee._id;
+
+    if (req.query.employeeId && req.query.employeeId !== "undefined" && req.query.employeeId !== "null") {
+      const scopeCheck = await checkEmployeeScope(req.query.employeeId, req.role, req.employee, req.companyId, req);
+      if (!scopeCheck.allowed) {
+        return res.status(scopeCheck.status).json({ success: false, message: scopeCheck.message, error: scopeCheck.message });
+      }
+      filter.employeeId = scopeCheck.targetDoc._id;
+    } else {
+      if (req.role === "Employee") {
+        filter.employeeId = req.employee._id;
+      } else if (req.role === "Team Lead") {
+        const teamEmployees = await Employee.find({ companyId: req.companyId, teamId: req.employee?.teamId }).select('_id');
+        filter.employeeId = { $in: teamEmployees.map(e => e._id) };
+      } else if (req.role === "Manager") {
+        const deptEmployees = await Employee.find({
+          companyId: req.companyId,
+          $or: [
+            { departmentId: req.employee?.departmentId },
+            { managerId: req.employee?._id }
+          ]
+        }).select('_id');
+        filter.employeeId = { $in: deptEmployees.map(e => e._id) };
+      }
     }
 
     const corrections = await CorrectionRequest.find(filter as any)
@@ -841,22 +1038,36 @@ export const approveCorrection = async (req, res) => {
     session = await mongoose.startSession();
     session.startTransaction();
     const { id } = req.params;
-    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
+    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).populate("employeeId").session(session);
 
     if (!correction) {
       const crossCompanyLeak = await (CorrectionRequest as any).findById(id).session(session);
       if (crossCompanyLeak) {
         const { logComplianceViolation } = await import('../utils/compliance.js');
         await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company correction access: ${id}`, 'Critical', { id }, req);
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
       }
       await session.abortTransaction();
       session.endSession();
-      return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
+      return res.status(404).json({ success: false, message: "Correction request not found or already processed." });
     }
     if (correction.status !== "Pending") {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
+    }
+
+    // Role-based authorization for approving corrections
+    const targetEmp = correction.employeeId;
+    if (targetEmp) {
+      const scopeCheck = await checkEmployeeScope(targetEmp._id, req.role, req.employee, req.companyId, req);
+      if (!scopeCheck.allowed) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(scopeCheck.status).json({ success: false, message: scopeCheck.message, error: scopeCheck.message });
+      }
     }
 
     correction.status = "Approved";
@@ -889,16 +1100,14 @@ export const approveCorrection = async (req, res) => {
     if (correction.employeeId?.userId) {
       const reviewedByName = req.employee?.firstName || "your manager";
       const message = `Your attendance correction request for ${correction.date} has been approved by ${reviewedByName}.`;
-      const notifArr: any = await Notification.create([{
-        companyId: req.companyId,
-        userId: correction.employeeId.userId,
-        title: "Correction Request Approved",
+      await NotificationService.sendNotification(
+        correction.employeeId.userId,
+        req.companyId,
+        "Correction Request Approved",
         message,
-        type: "SUCCESS",
-        linkUrl: "/employee/attendance"
-      }], { session });
-
-      broadcastSSE("NOTIFICATION_UPDATE", { userId: correction.employeeId.userId.toString(), notificationId: notifArr[0]._id }, req.companyId);
+        "SUCCESS",
+        "/employee/attendance"
+      );
     }
 
     await session.commitTransaction();
@@ -917,22 +1126,36 @@ export const rejectCorrection = async (req, res) => {
     session = await mongoose.startSession();
     session.startTransaction();
     const { id } = req.params;
-    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).session(session);
+    const correction: any = await CorrectionRequest.findOne({ _id: id, companyId: req.companyId } as any).populate("employeeId").session(session);
 
     if (!correction) {
       const crossCompanyLeak = await (CorrectionRequest as any).findById(id).session(session);
       if (crossCompanyLeak) {
         const { logComplianceViolation } = await import('../utils/compliance.js');
         await logComplianceViolation('CROSS_COMPANY_ACCESS', `Attempted cross-company correction access: ${id}`, 'Critical', { id }, req);
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ success: false, message: "Forbidden: Cross-organization access denied" });
       }
       await session.abortTransaction();
       session.endSession();
-      return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
+      return res.status(404).json({ success: false, message: "Correction request not found or already processed." });
     }
     if (correction.status !== "Pending") {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({ success: false, message: "Correction request not found or already processed." });
+    }
+
+    // Role-based authorization for rejecting corrections
+    const targetEmp = correction.employeeId;
+    if (targetEmp) {
+      const scopeCheck = await checkEmployeeScope(targetEmp._id, req.role, req.employee, req.companyId, req);
+      if (!scopeCheck.allowed) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(scopeCheck.status).json({ success: false, message: scopeCheck.message, error: scopeCheck.message });
+      }
     }
 
     correction.status = "Rejected";
@@ -956,16 +1179,14 @@ export const rejectCorrection = async (req, res) => {
     if (correction.employeeId?.userId) {
       const reviewedByName = req.employee?.firstName || "your manager";
       const message = `Your attendance correction request for ${correction.date} has been rejected by ${reviewedByName}.`;
-      const notifArr: any = await Notification.create([{
-        companyId: req.companyId,
-        userId: correction.employeeId.userId,
-        title: "Correction Request Rejected",
+      await NotificationService.sendNotification(
+        correction.employeeId.userId,
+        req.companyId,
+        "Correction Request Rejected",
         message,
-        type: "WARNING",
-        linkUrl: "/employee/attendance"
-      }], { session });
-
-      broadcastSSE("NOTIFICATION_UPDATE", { userId: correction.employeeId.userId.toString(), notificationId: notifArr[0]._id }, req.companyId);
+        "WARNING",
+        "/employee/attendance"
+      );
     }
 
     await session.commitTransaction();

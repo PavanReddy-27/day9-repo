@@ -160,6 +160,12 @@ export const getDepartmentAnalytics = async (req, res) => {
             $arrayElemAt: [{ $split: ["$department.name", " - "] }, 0]
           },
           employeeCount: { $sum: 1 },
+          activeEmployees: {
+            $sum: { $cond: [{ $eq: ["$employmentStatus", "Active"] }, 1, 0] }
+          },
+          inactiveEmployees: {
+            $sum: { $cond: [{ $in: ["$employmentStatus", ["Inactive", "On Leave"]] }, 1, 0] }
+          }
         },
       },
       { $sort: { employeeCount: -1 } }
@@ -187,7 +193,12 @@ export const getDepartmentAnalytics = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        departments: deptStats.map((d) => ({ name: d._id, count: d.employeeCount })),
+        departments: deptStats.map((d) => ({
+          name: d._id,
+          count: d.employeeCount,
+          activeEmployees: d.activeEmployees || 0,
+          inactiveEmployees: d.inactiveEmployees || 0,
+        })),
         locations: locationStats.map((l) => ({ code: l._id, count: l.employeeCount })),
       },
     });

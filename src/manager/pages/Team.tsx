@@ -51,12 +51,12 @@ const Team = () => {
           designation: emp.designation || emp.role || "Team Member",
           department: emp.departmentName || (typeof emp.departmentId === "object" ? emp.departmentId?.name : emp.department) || "General",
           email: emp.email || "",
-          phone: emp.phone || "+91 9876543210",
+          phone: emp.phone || "",
           attendance: attStatus,
           performance: emp.performance || (emp.performanceScore >= 85 ? "Excellent" : emp.performanceScore >= 70 ? "Good" : "Average"),
           risk: emp.riskLevel || "Low",
-          experience: emp.experience || 3,
-          productivity: emp.productivity ?? Math.round(emp.performanceScore || 80),
+          experience: emp.experience || 0,
+          productivity: emp.productivity ?? Math.round(emp.performanceScore || 0),
           avatar: emp.avatar || initials,
         };
       });

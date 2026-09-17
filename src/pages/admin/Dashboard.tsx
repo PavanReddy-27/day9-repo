@@ -45,10 +45,10 @@ const Dashboard = () => {
         }
 
         setKpiData([
-          { id: "totalEmployees", title: "Total Users", value: wf.totalEmployees || 0, trend: 5 },
-          { id: "activeEmployees", title: "Active Roles", value: wf.activeEmployees || 0, trend: 2 },
+          { id: "totalEmployees", title: "Total Users", value: wf.totalEmployees || 0, trend: 0 },
+          { id: "activeEmployees", title: "Active Roles", value: wf.activeEmployees || 0, trend: 0 },
           { id: "departments", title: "Departments", value: dept?.departments?.length || 0, trend: 0 },
-          { id: "attendanceRate", title: "Attendance Rate", value: `${Math.round(((wf.activeEmployees || 0) / (wf.totalEmployees || 1)) * 100)}%`, trend: 3 },
+          { id: "attendanceRate", title: "Attendance Rate", value: `${wf.totalEmployees ? Math.round(((wf.activeEmployees || 0) / wf.totalEmployees) * 100) : 0}%`, trend: 0 },
         ]);
 
         if (wf.statusDistribution) {
@@ -69,20 +69,21 @@ const Dashboard = () => {
               id: `d${idx}`,
               name: d.name,
               value: d.count,
-              activeEmployees: d.count,
-              inactiveEmployees: 0,
-              averageSalary: 75000,
-              averageExperience: 5,
-              performanceScore: 85,
-              trainingCompletion: 90,
+              activeEmployees: d.activeEmployees ?? d.count,
+              inactiveEmployees: d.inactiveEmployees ?? 0,
+              averageSalary: 0,
+              averageExperience: 0,
+              performanceScore: 0,
+              trainingCompletion: 0,
             }))
           );
         }
 
         if (hiring && Array.isArray(hiring) && hiring.length > 0) {
-          const totalBase = wf.totalEmployees || 250;
+          const totalBase = wf.totalEmployees || 0;
           const totalHires = hiring.reduce((sum, h) => sum + (h.hires || 0), 0);
-          let runningCount = Math.max(10, totalBase - totalHires);
+          const activeRatio = wf.totalEmployees ? (wf.activeEmployees || 0) / wf.totalEmployees : 1;
+          let runningCount = Math.max(0, totalBase - totalHires);
 
           setTrendData(
             hiring.map((h) => {
@@ -90,9 +91,9 @@ const Dashboard = () => {
               return {
                 month: h.month,
                 totalEmployees: runningCount,
-                activeEmployees: Math.round(runningCount * 0.94),
+                activeEmployees: Math.round(runningCount * activeRatio),
                 newHires: h.hires || 0,
-                attrition: Math.max(0, Math.floor((h.hires || 1) * 0.1)),
+                attrition: 0,
               };
             })
           );
@@ -104,8 +105,8 @@ const Dashboard = () => {
               id: `r${idx}`,
               role: r.name,
               employees: r.value,
-              averageSalary: 70000 + idx * 10000,
-              averageExperience: 3 + idx * 2,
+              averageSalary: 0,
+              averageExperience: 0,
             }))
           );
         } else if (wf.workModeDistribution) {
@@ -114,8 +115,8 @@ const Dashboard = () => {
               id: `r${idx}`,
               role: w.name,
               employees: w.value,
-              averageSalary: 70000 + idx * 5000,
-              averageExperience: 4 + idx,
+              averageSalary: 0,
+              averageExperience: 0,
             }))
           );
         }
@@ -170,7 +171,32 @@ const Dashboard = () => {
             <h1>Admin Overview</h1>
             <p>Live workforce analytics and department statistics from MongoDB.</p>
           </div>
-          <Button variant="outlined" startIcon={<Download />} onClick={handleExportCSV} sx={{ borderRadius: 2 }}>
+          <Button
+            variant="outlined"
+            className="apple-glitter-btn"
+            startIcon={<Download />}
+            onClick={handleExportCSV}
+            sx={{
+              borderRadius: "10px",
+              borderColor: "var(--border)",
+              color: "var(--text-h)",
+              fontSize: "13px",
+              fontWeight: 600,
+              backgroundColor: "var(--surface)",
+              backdropFilter: "blur(12px)",
+              textTransform: "none",
+              px: 2,
+              py: 0.8,
+              transition: "all 0.25s var(--ease-apple)",
+              "&:hover": {
+                borderColor: "var(--primary)",
+                backgroundColor: "var(--hover)",
+                color: "var(--primary)",
+                transform: "translateY(-1px)",
+                boxShadow: "0 4px 14px rgba(0, 0, 0, 0.06)",
+              },
+            }}
+          >
             Export CSV
           </Button>
         </div>
@@ -181,7 +207,7 @@ const Dashboard = () => {
           <PageState type="error" message={error} onRetry={() => window.location.reload()} />
         ) : (
           <>
-            <div style={{ marginBottom: "20px" }}>
+            <div style={{ marginBottom: "14px" }}>
               <KPICards data={kpiData} />
             </div>
 

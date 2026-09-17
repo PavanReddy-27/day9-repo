@@ -152,12 +152,12 @@ const MyPay = () => {
 
   if (isAdminView) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 0 }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
           <Box>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>Payroll Management</Typography>
-            <Typography variant="body1" color="text.secondary">Manage and process company payroll.</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>Payroll Management</Typography>
+            <Typography variant="body2" color="text.secondary">Manage and process company payroll.</Typography>
           </Box>
           <Button
             variant="contained"
@@ -350,11 +350,11 @@ const MyPay = () => {
 
   // ── Employee view ──
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
+    <Box sx={{ p: 0 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
         My Pay
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
         View your payroll history and download payslips.
       </Typography>
 

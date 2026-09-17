@@ -2,30 +2,49 @@
 
 .kpi-card {
   height: 100%;
-  border-radius: 28px !important;
+  border-radius: 16px !important;
   border: 1px solid var(--border) !important;
-  /* background is handled globally by .MuiCard-root in theme.css to enable the glossy gradient */
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 1) !important;
+  background: var(--surface) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight) !important;
   overflow: hidden;
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.35s var(--ease-apple), box-shadow 0.35s var(--ease-apple), border-color 0.25s ease !important;
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  pointer-events: none;
+  transition: left 0.7s var(--ease-apple);
+  z-index: 2;
+}
+
+.kpi-card:hover::before {
+  left: 150%;
+}
+
 [data-theme="dark"] .kpi-card {
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
 }
 
 .kpi-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--border) !important;
-  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+  border-color: var(--primary-light) !important;
+  box-shadow: var(--shadow-lift), inset 0 1px 1px var(--glass-highlight) !important;
 }
 
 .kpi-card__action {
   height: 100%;
-  padding: 24px 24px 0 24px !important;
+  padding: 16px 18px 0 18px !important;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -35,36 +54,41 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .kpi-card__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .kpi-card__icon svg {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .kpi-card__title {
   color: var(--text-h) !important;
   font-weight: 600 !important;
+  font-size: 0.88rem !important;
   line-height: 1.2 !important;
+  letter-spacing: -0.01em;
 }
 
 .kpi-card__subtitle {
   color: var(--text-light) !important;
-  font-size: 0.75rem !important;
+  font-size: 0.72rem !important;
 }
 
 .kpi-card__more {
   color: var(--text-light) !important;
-  padding: 4px !important;
+  padding: 2px !important;
+  display: flex;
+  align-items: center;
 }
 
 .kpi-card__body {
@@ -73,28 +97,28 @@
   flex-direction: row;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .kpi-card__value {
   font-weight: 700 !important;
   color: var(--text-h);
-  font-size: 2.5rem !important;
-  line-height: 1 !important;
-  letter-spacing: -1px;
+  font-size: 1.75rem !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.03em;
 }
 
 .kpi-card__trend-box {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .kpi-card__trend-text {
   display: flex;
   align-items: center;
-  font-size: 0.875rem !important;
+  font-size: 0.8rem !important;
   font-weight: 700 !important;
 }
 
@@ -115,16 +139,16 @@
 }
 
 .kpi-card__trend-label {
-  font-size: 0.65rem !important;
+  font-size: 0.62rem !important;
   color: var(--text-light) !important;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .kpi-card__chart {
-  width: calc(100% + 48px);
-  margin-left: -24px;
-  margin-right: -24px;
-  height: 80px;
+  width: calc(100% + 36px);
+  margin-left: -18px;
+  margin-right: -18px;
+  height: 48px;
   margin-top: auto;
 }
 

@@ -1,44 +1,55 @@
 :root {
-  /* Glossy White Apple Theme (Oceanic Slate Accents) */
-  --bg: #fbfbfd; /* Apple Hardware Pearl White */
-  --manager-bg: #fbfbfd; 
-  --surface: rgba(255, 255, 255, 0.85); /* Semi-transparent for gloss */
+  /* Apple Glass Liquid Light Theme */
+  --bg: #f5f5f7;
+  --manager-bg: #f5f5f7;
+  --surface: rgba(255, 255, 255, 0.78);
   --surface-solid: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-highlight: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
   
-  /* Oceanic Slate (Restored for Sidebar aesthetic) */
-  --primary: #3b6978;
-  --primary-light: #5b8a9b;
-  --primary-dark: #244652;
-  --primary-bg: rgba(59, 105, 120, 0.12);
+  /* Oceanic Teal/Slate Signature Accent */
+  --primary: #2d6a79;
+  --primary-light: #44899a;
+  --primary-dark: #1b4b57;
+  --primary-bg: rgba(45, 106, 121, 0.1);
 
-  /* Muted Coral */
-  --secondary: #d37c76;
-  --secondary-bg: rgba(211, 124, 118, 0.12);
+  /* Luminous Coral / Amber Accent */
+  --secondary: #e07a5f;
+  --secondary-bg: rgba(224, 122, 95, 0.1);
 
-  /* Semantic Colors */
-  --success: #5b9279;
-  --success-bg: rgba(91, 146, 121, 0.15);
-  --warning: #c99b5b;
-  --warning-bg: rgba(201, 155, 91, 0.15);
-  --error: #b35c5c;
-  --error-bg: rgba(179, 92, 92, 0.15);
-  --info: #537f96;
-  --info-bg: rgba(83, 127, 150, 0.15);
+  /* Semantic State Colors */
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --error: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.12);
+  --info: #0ea5e9;
+  --info-bg: rgba(14, 165, 233, 0.12);
 
-  /* Text Colors (High Contrast Apple Style) */
+  /* Text & Hierarchy */
   --text: #1d1d1f; 
-  --text-light: #86868b;
-  --text-h: #000000;
+  --text-light: #6e6e73;
+  --text-h: #111827;
 
-  /* Glossy Elements */
-  --border: rgba(0, 0, 0, 0.05); /* Ultra-subtle border */
-  --shadow: 0 16px 36px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02); /* Deep diffuse Apple shadow */
-  --hover: rgba(0, 0, 0, 0.04);
+  /* Specular & Ambient Shadows */
+  --border: rgba(0, 0, 0, 0.07);
+  --border-subtle: rgba(0, 0, 0, 0.04);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-ambient: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --shadow-lift: 0 16px 36px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --hover: rgba(0, 0, 0, 0.035);
 
   /* Apple Typography */
-  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-  --heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
+  --heading: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Motion Curves */
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -47,54 +58,140 @@ body {
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.4s ease;
+  transition: background-color 0.3s var(--ease-apple), color 0.3s ease;
   min-height: 100vh;
   color-scheme: light;
 }
 
 body[data-theme="dark"] {
-  /* Glossy Dark Theme */
-  --bg: #000000;
-  --manager-bg: #000000; 
-  --surface: rgba(28, 28, 30, 0.85);
-  --surface-solid: #1c1c1e;
+  /* Apple Glass Obsidian Dark Theme */
+  --bg: #09090b;
+  --manager-bg: #09090b; 
+  --surface: rgba(24, 24, 28, 0.78);
+  --surface-solid: #18181b;
+  --glass-bg: rgba(24, 24, 28, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
   color-scheme: dark;
 
-  /* Luminous Slate */
-  --primary: #6398a8;
-  --primary-light: #8cbccb;
-  --primary-dark: #3f6875;
-  --primary-bg: rgba(99, 152, 168, 0.15);
+  /* Luminous Teal/Cyan */
+  --primary: #469cb0;
+  --primary-light: #6eb7c8;
+  --primary-dark: #266b7a;
+  --primary-bg: rgba(70, 156, 176, 0.18);
 
   /* Luminous Coral */
-  --secondary: #df9691;
-  --secondary-bg: rgba(223, 150, 145, 0.15);
+  --secondary: #f08a70;
+  --secondary-bg: rgba(240, 138, 112, 0.18);
 
   /* Semantic Colors */
-  --success: #70ac91;
-  --success-bg: rgba(112, 172, 145, 0.15);
-  --warning: #dbb37c;
-  --warning-bg: rgba(219, 179, 124, 0.15);
-  --error: #c97171;
-  --error-bg: rgba(201, 113, 113, 0.15);
-  --info: #6e9eb7;
-  --info-bg: rgba(110, 158, 183, 0.15);
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.18);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.18);
+  --error: #f87171;
+  --error-bg: rgba(248, 113, 113, 0.18);
+  --info: #38bdf8;
+  --info-bg: rgba(56, 189, 248, 0.18);
 
   /* Text Colors */
-  --text: #f5f5f7;
-  --text-light: #86868b;
+  --text: #f4f4f5;
+  --text-light: #a1a1aa;
   --text-h: #ffffff;
 
-  /* Glossy Dark Elements */
-  --border: rgba(255, 255, 255, 0.1);
-  --shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
-  --hover: rgba(255, 255, 255, 0.08);
+  /* Glass Dark Elements */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --shadow-ambient: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 16px 40px rgba(0, 0, 0, 0.7);
+  --shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.8);
+  --hover: rgba(255, 255, 255, 0.06);
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* =========================================================
+   APPLE GLITTER & MOTION KEYFRAMES
+========================================================= */
+@keyframes appleShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes liveDotPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.live-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--success);
+  display: inline-block;
+  animation: liveDotPulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes cardFloatIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glitter sheen utility class */
+.apple-glitter-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.apple-glitter-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.apple-glitter-btn:hover::after {
+  opacity: 1;
+  animation: appleShimmer 1.4s infinite;
 }
 
 /* Force Native Date Picker to match theme color-scheme */
@@ -119,32 +216,73 @@ button {
   font-family: inherit;
 }
 
-/* MUI Global Overrides - Luxurious Glossy Squircles */
+/* MUI Global Overrides - Frosted Glass Squircles */
 .MuiPaper-root, 
 .MuiCard-root {
-  background-color: var(--surface-solid) !important;
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.6) 100%) !important;
+  background-color: var(--surface) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow), inset 0 1px 1px rgba(255, 255, 255, 1) !important; /* Glossy inner highlight */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), inset 0 1px 1px var(--glass-highlight) !important;
   color: var(--text-h) !important;
-  border-radius: 28px !important; /* Extreme squircle radius */
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  border-radius: 16px !important;
+  transition: transform 0.3s var(--ease-apple), box-shadow 0.3s var(--ease-apple), border-color 0.25s ease !important;
 }
 
 [data-theme="dark"] .MuiPaper-root, 
 [data-theme="dark"] .MuiCard-root {
-  background-image: linear-gradient(180deg, rgba(35, 35, 37, 1) 0%, rgba(28, 28, 30, 1) 100%) !important;
-  box-shadow: var(--shadow), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
 }
 
 .MuiPaper-root:hover, 
 .MuiCard-root:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 1) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover), inset 0 1px 1px var(--glass-highlight) !important;
 }
+
 [data-theme="dark"] .MuiPaper-root:hover,
 [data-theme="dark"] .MuiCard-root:hover {
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+  box-shadow: var(--shadow-hover), inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Refined Apple Buttons */
+.MuiButton-root {
+  border-radius: 10px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  font-family: var(--heading) !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.25s var(--ease-apple) !important;
+}
+
+.MuiButton-root:active {
+  transform: scale(0.97) !important;
+}
+
+/* Modern Pill Chips */
+.MuiChip-root {
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.01em !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Modern Input Outlines */
+.MuiOutlinedInput-root {
+  border-radius: 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary-light) !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-bg) !important;
 }
 
 .MuiTypography-root.MuiTypography-colorTextSecondary {

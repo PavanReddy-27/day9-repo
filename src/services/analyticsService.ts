@@ -34,7 +34,12 @@ export interface AttendanceAnalyticsResponse {
 }
 
 export interface DepartmentAnalyticsResponse {
-  departments: { name: string; count: number }[];
+  departments: {
+    name: string;
+    count: number;
+    activeEmployees?: number;
+    inactiveEmployees?: number;
+  }[];
   locations: { code: string; count: number }[];
 }
 
@@ -76,6 +81,8 @@ export const getDepartmentAnalytics = async (): Promise<DepartmentAnalyticsRespo
 export const getSkillsAnalytics = async (): Promise<SkillsAnalyticsResponse> => {
   return await apiClient("/analytics/skills", { method: "GET" });
 };
+
+export const getSkillAnalytics = getSkillsAnalytics;
 
 export const getPerformanceAnalytics = async (): Promise<PerformanceAnalyticsResponse[]> => {
   return await apiClient("/analytics/performance", { method: "GET" });

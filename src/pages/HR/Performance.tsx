@@ -125,12 +125,12 @@ const Performance = () => {
     : "0.0";
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-          <TrendingUp fontSize="large" sx={{ color: "var(--primary)" }} /> Performance & Risk Monitoring
+    <Box sx={{ p: 0 }}>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="h5" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+          <TrendingUp fontSize="medium" sx={{ color: "var(--primary)" }} /> Performance & Risk Monitoring
         </Typography>
-        <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+        <Typography variant="body2" sx={{ color: "var(--text-light)", mt: 0.5 }}>
           Live workforce performance metrics, aggregated productivity, and risk indicators from MongoDB.
         </Typography>
       </Box>

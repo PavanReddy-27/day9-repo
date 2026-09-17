@@ -20,5 +20,19 @@ export const notificationApi = {
   markAllAsRead: async () => {
     const res = await apiClient<{ success: boolean; message: string }>("/notifications/read-all", { method: "PATCH" });
     return res.success;
+  },
+  generateNotification: async (data?: { title?: string; message?: string; type?: "INFO" | "WARNING" | "SUCCESS" | "ALERT"; linkUrl?: string }) => {
+    return await apiClient<{ success: boolean; data: Notification }>("/notifications/generate", {
+      method: "POST",
+      body: JSON.stringify(data || {}),
+    });
+  },
+  deleteNotification: async (id: string) => {
+    const res = await apiClient<{ success: boolean; message: string }>(`/notifications/${id}`, { method: "DELETE" });
+    return res.success;
+  },
+  clearAll: async () => {
+    const res = await apiClient<{ success: boolean; message: string }>("/notifications/clear-all", { method: "DELETE" });
+    return res.success;
   }
 };

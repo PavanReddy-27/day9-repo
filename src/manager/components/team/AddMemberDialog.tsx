@@ -35,14 +35,14 @@ const AddMemberDialog = ({ open, onClose, onAdd }: AddMemberDialogProps) => {
   };
 
   const handleSubmit = () => {
-    // Generate mock avatar from initials
+    // Generate avatar initials from name
     const initials = formData.name.split(" ").map(n => n[0]).join("").toUpperCase();
 
     const newMember: TeamMember = {
-      id: Math.floor(Math.random() * 10000), // Random ID
+      id: Math.floor(Math.random() * 10000),
       ...formData,
-      experience: 1, // Default mock value
-      productivity: 80, // Default mock value
+      experience: 0,
+      productivity: 0,
       avatar: initials || "U",
     } as TeamMember;
 

@@ -4,10 +4,10 @@ import { EventAvailable, CalendarMonth, ChevronLeft, ChevronRight } from "@mui/i
 import { attendanceApi } from "../../services/attendanceApi";
 import type { AttendanceRecord } from "../../types/attendance";
 import { useAppSelector } from "../../hooks/redux";
-import AttendanceTracker from "../../components/Attendance/AttendanceTracker";
-import AttendanceChart from "../../components/Attendance/AttendanceChart";
-import { AttendanceCalendar } from "../../components/Attendance/AttendanceCalendar";
-import { SmartAttendanceTable } from "../../components/Attendance/SmartAttendanceTable";
+import AttendanceTracker from "../../components/attendance/AttendanceTracker";
+import AttendanceChart from "../../components/attendance/AttendanceChart";
+import { AttendanceCalendar } from "../../components/attendance/AttendanceCalendar";
+import { SmartAttendanceTable } from "../../components/attendance/SmartAttendanceTable";
 import CorrectionRequests from "../../components/attendance/CorrectionRequests";
 
 const EmployeeAttendance = () => {
@@ -72,7 +72,7 @@ const EmployeeAttendance = () => {
 
       const isWeekend = new Date(dateStr).getDay() === 0 || new Date(dateStr).getDay() === 6;
       return match ? {
-        id: `dummy-${dateStr}`,
+        id: `unrecorded-${dateStr}`,
         employeeId: user?.id || "",
         employeeName: user?.fullName || "",
         date: dateStr,
@@ -92,13 +92,13 @@ const EmployeeAttendance = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
+    <Box sx={{ p: 0, display: "flex", flexDirection: "column" }}>
+      <Box sx={{ mb: 2.5, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-            <EventAvailable fontSize="large" sx={{ color: "var(--primary)" }} /> My Attendance & Shifts
+          <Typography variant="h5" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+            <EventAvailable fontSize="medium" sx={{ color: "var(--primary)" }} /> My Attendance & Shifts
           </Typography>
-          <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+          <Typography variant="body2" sx={{ color: "var(--text-light)", mt: 0.5 }}>
             Track your daily check-ins, manage your shifts, and submit correction requests.
           </Typography>
         </Box>

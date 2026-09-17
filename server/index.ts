@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'url';
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -9,6 +10,7 @@ import connectDB, { closeDB } from "./config/db.js";
 import apiRoutes from "./routes/api.js";
 import mongoose from "mongoose";
 import { AdminAuth } from "./models/User.js";
+import path from "path";
 
 dotenv.config();
 
@@ -16,16 +18,31 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Security & Middleware
+import requestIdMiddleware from "./middleware/requestId.js";
+import { healthHandler, readyHandler, versionHandler } from "./routes/systemRoutes.js";
+import { validateEnvironment } from "./config/envValidator.js";
+
+// Validate required environment variables at startup
+validateEnvironment();
+
+// Security & Observability Middleware
 app.use(helmet());
+app.use(requestIdMiddleware);
 app.use(cookieParser());
-app.use(morgan("dev"));
+import { requestLogger } from "./middleware/requestLogger.js";
+app.use(requestLogger);
 
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:3000',
   process.env.CLIENT_URL,
 ].filter(Boolean) as string[];
+
+const isDev = process.env.NODE_ENV !== 'production';
 
 app.use(
   cors({
@@ -33,7 +50,10 @@ app.use(
       // Allow requests with no origin (mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
       if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-      return callback(new Error('Not allowed by CORS'));
+      if (isDev && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
     },
     credentials: true,
   })
@@ -62,20 +82,31 @@ const authLimiter = rateLimit({
 app.use("/api/v1/auth/login", authLimiter);
 app.use("/api/v1/auth/refresh", authLimiter);
 
-import path from "path";
+import { logger } from "./utils/logger.js";
+import SystemLog from "./models/SystemLog.js";
 
-
-// Ensure DB Connection Middleware
+// __dirname is natively available in CommonJS
 app.use(async (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
     try {
       await connectDB();
     } catch (dbErr: any) {
-      console.error("[DB Connection Error]", dbErr.message);
+      logger.error("[DB Connection Error] " + dbErr.message, { context: 'Database' });
+      await SystemLog.create({
+        level: 'error',
+        category: 'Database',
+        message: 'Database connection failed during request',
+        stack: dbErr.stack,
+      }).catch(() => {});
     }
   }
   next();
 });
+
+// Production Liveness, Readiness and Version Probes (Root level)
+app.get("/health", healthHandler);
+app.get("/ready", readyHandler);
+app.get("/version", versionHandler);
 
 // API Routes
 app.use("/api/v1", apiRoutes);
@@ -132,6 +163,12 @@ async function startServer() {
   // Graceful Shutdown
   const gracefulShutdown = async (signal) => {
     console.log(`[Server] Received ${signal}. Shutting down gracefully...`);
+    try {
+      const { JobQueueService } = await import("./services/jobQueueService.js");
+      JobQueueService.stopWorker();
+    } catch {
+      // Ignore
+    }
     if (server) {
       server.close(async () => {
         await closeDB();
@@ -148,8 +185,8 @@ async function startServer() {
   process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 }
 
-if (process.argv[1]?.includes("index.ts")) {
-  startServer();
+if (process.env.NODE_ENV !== "test") {
+  startServer().catch(console.error);
 }
 
 export default app;

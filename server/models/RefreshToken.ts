@@ -29,11 +29,18 @@ const refreshTokenSchema = new mongoose.Schema({
   userAgent: {
     type: String,
   },
+  deviceInfo: {
+    type: String,
+  },
   ipAddress: {
     type: String,
   },
   replacedByToken: {
     type: String,
+  },
+  lastActiveAt: {
+    type: Date,
+    default: Date.now,
   }
 }, { timestamps: true });
 

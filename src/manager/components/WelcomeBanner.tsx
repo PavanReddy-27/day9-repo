@@ -9,16 +9,32 @@ import {
 } from "@mui/material";
 
 import {
-  Download,
   Groups,
   AssignmentTurnedIn,
+  Assessment,
 } from "@mui/icons-material";
 
 import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "../../redux/hooks";
 import "./WelcomeBanner.css";
 
-const WelcomeBanner = () => {
+interface WelcomeBannerProps {
+  teamCount?: number;
+  pendingLeavesCount?: number;
+  healthScore?: number;
+}
+
+const WelcomeBanner = ({
+  teamCount = 0,
+  pendingLeavesCount = 0,
+  healthScore = 0,
+}: WelcomeBannerProps) => {
   const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.auth);
+
+  const managerName = user?.fullName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Manager";
+  const initials = managerName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "M";
+  const deptName = user?.department || "Department";
 
   return (
     <Paper elevation={3} className="welcome-banner">
@@ -32,24 +48,28 @@ const WelcomeBanner = () => {
       >
         <Box className="welcome-content">
           <Typography variant="h4" className="welcome-title">
-            Good Morning 👋
+            Welcome back, {user?.firstName || managerName} 👋
           </Typography>
 
           <Typography className="welcome-subtitle">
-            Welcome back, Engineering Manager
+            {deptName} • Manager Overview
           </Typography>
 
           <Typography className="welcome-description">
-            Your team's productivity increased by
-            <strong> 8%</strong> this week. Five leave requests are waiting
-            for your approval, and overall team health remains excellent.
+            Monitor real-time team headcount, review pending leave requests, and track departmental performance directly from MongoDB.
           </Typography>
 
           <Box className="welcome-chip-group">
-            <Chip color="success" label="Team Health 91%" className="welcome-chip" />
-            <Chip color="info" label="48 Team Members" className="welcome-chip" />
-            <Chip color="warning" label="5 Pending Leaves" className="welcome-chip" />
-            <Chip label="2 Meetings Today" className="welcome-chip" />
+            {healthScore > 0 && (
+              <Chip color="success" label={`Team Health ${healthScore}%`} className="welcome-chip" />
+            )}
+            <Chip color="info" label={`${teamCount} Team Members`} className="welcome-chip" />
+            <Chip
+              color={pendingLeavesCount > 0 ? "warning" : "default"}
+              label={`${pendingLeavesCount} Pending Leave${pendingLeavesCount !== 1 ? "s" : ""}`}
+              className="welcome-chip"
+            />
+            <Chip label={`Role: ${user?.role || "Manager"}`} className="welcome-chip" />
           </Box>
 
           <Stack
@@ -77,37 +97,37 @@ const WelcomeBanner = () => {
 
             <Button
               variant="outlined"
-              startIcon={<Download />}
+              startIcon={<Assessment />}
               className="btn-outline"
-              onClick={() => alert("Exporting report...")}
+              onClick={() => navigate("/manager/performance")}
             >
-              Export Report
+              Performance
             </Button>
           </Stack>
         </Box>
 
         <Box className="welcome-profile">
           <Avatar className="manager-avatar">
-            SK
+            {initials}
           </Avatar>
 
           <Typography variant="h6" sx={{ fontWeight: 700, color: "var(--text-h)" }}>
-            Sridhika kodupuganti
+            {managerName}
           </Typography>
 
           <Typography className="manager-role">
-              Manager
+            {user?.role || "Manager"}
           </Typography>
 
           <Typography
             variant="body2"
             className="login-title"
           >
-            Last Login
+            Active Session
           </Typography>
 
           <Typography sx={{ fontWeight: 600, color: "var(--text-h)" }}>
-            Today • 09:15 AM
+            {user?.email || "Authenticated"}
           </Typography>
         </Box>
       </Stack>

@@ -41,8 +41,8 @@ export default function EmployeeMyPay() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, color: 'text.primary', mb: 3 }}>
+    <Box sx={{ p: 0 }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, color: 'text.primary', mb: 2.5 }}>
         My Pay
       </Typography>
 

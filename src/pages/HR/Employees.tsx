@@ -76,22 +76,22 @@ const Employees = () => {
 
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
+    <Box sx={{ p: 0 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2.5, flexWrap: "wrap", gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-            <People fontSize="large" sx={{ color: "var(--primary)" }} /> Employee Directory
+          <Typography variant="h5" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+            <People fontSize="medium" sx={{ color: "var(--primary)" }} /> Employee Directory
           </Typography>
-          <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+          <Typography variant="body2" sx={{ color: "var(--text-light)", mt: 0.5 }}>
             Manage, filter, and export organization workforce records.
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<DownloadForOffline />} onClick={() => exportCSV(filtered)} sx={{ borderRadius: 2 }}>
+        <Button variant="outlined" size="small" startIcon={<DownloadForOffline />} onClick={() => exportCSV(filtered)} sx={{ borderRadius: 2 }}>
           Export {filtered.length} Records
         </Button>
       </Box>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 2, mb: 4 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 2, mb: 2.5 }}>
         {[
           { label: "Total Employees", value: employees.length, color: "#2563EB" },
           { label: "Active", value: employees.filter((e) => e.status === "Active").length, color: "#16A34A" },

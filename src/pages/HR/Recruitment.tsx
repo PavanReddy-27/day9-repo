@@ -124,21 +124,21 @@ const Recruitment = () => {
   const totalApplicants = jobs.reduce((s, j) => s + (j.applicants || 0), 0);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, bgcolor: "var(--bg)", minHeight: "100vh" }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 2 }}>
+    <Box sx={{ p: 0 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2.5, flexWrap: "wrap", gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
-            <WorkOutlined fontSize="large" sx={{ color: "var(--primary)" }} /> Recruitment & Open Positions
+          <Typography variant="h5" sx={{ color: "var(--text-h)", fontWeight: 700, display: "flex", alignItems: "center", gap: 1 }}>
+            <WorkOutlined fontSize="medium" sx={{ color: "var(--primary)" }} /> Recruitment & Open Positions
           </Typography>
-          <Typography sx={{ color: "var(--text-light)", mt: 1 }}>
+          <Typography variant="body2" sx={{ color: "var(--text-light)", mt: 0.5 }}>
             Track hiring pipelines, applicants, and job requisitions across all departments.
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Button variant="outlined" startIcon={<Download />} onClick={handleExportCSV} sx={{ borderRadius: 2 }}>
+        <Box sx={{ display: "flex", gap: 1.5 }}>
+          <Button variant="outlined" size="small" startIcon={<Download />} onClick={handleExportCSV} sx={{ borderRadius: 2 }}>
             Export CSV
           </Button>
-          <Button variant="contained" startIcon={<Add />} onClick={() => setOpen(true)} sx={{ borderRadius: 2 }}>
+          <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setOpen(true)} sx={{ borderRadius: 2 }}>
             Post Job
           </Button>
         </Box>
@@ -150,7 +150,7 @@ const Recruitment = () => {
         <PageState type="error" message={error} onRetry={() => window.location.reload()} />
       ) : (
         <>
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 2, mb: 4 }}>
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 2, mb: 2.5 }}>
             {[
               { label: "Total Openings", value: jobs.length, color: "#2563EB" },
               { label: "Open Positions", value: openCount, color: "#16A34A" },
