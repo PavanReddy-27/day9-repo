@@ -22,4 +22,4 @@ const shiftSchema = new mongoose.Schema(
 
 shiftSchema.index({ companyId: 1, code: 1 }, { unique: true });
 
-export default mongoose.models.Shift || mongoose.model("Shift", shiftSchema, "shifts");
+export default (mongoose.models.Shift || mongoose.model("Shift", shiftSchema, "shifts")) as mongoose.Model<any>;

@@ -74,23 +74,23 @@ export const getLeaveRequests = async (req: Request, res: Response, next: NextFu
         query.employeeId = reqEmpId;
       } else if (role === "Manager") {
         // Find all employees in manager's department OR employees who report directly to this manager
-        const reqEmp = await Employee.findById(reqEmpId).lean();
+        const reqEmp: any = await Employee.findById(reqEmpId).lean();
         if (reqEmp) {
-          const managedEmployees = await Employee.find({
+          const managedEmployees: any[] = await Employee.find({
             companyId,
             $or: [
               { departmentId: reqEmp.departmentId },
               { managerId: reqEmpId }
             ]
           }).select('_id');
-          query.employeeId = { $in: managedEmployees.map(e => e._id) };
+          query.employeeId = { $in: managedEmployees.map((e: any) => e._id) };
         }
       } else if (role === "Team Lead") {
         // Only see own team members
-        const reqEmp = await Employee.findById(reqEmpId).lean();
+        const reqEmp: any = await Employee.findById(reqEmpId).lean();
         if (reqEmp && reqEmp.teamId) {
-          const teamEmployees = await Employee.find({ companyId, teamId: reqEmp.teamId }).select('_id');
-          query.employeeId = { $in: teamEmployees.map(e => e._id) };
+          const teamEmployees: any[] = await Employee.find({ companyId, teamId: reqEmp.teamId }).select('_id');
+          query.employeeId = { $in: teamEmployees.map((e: any) => e._id) };
         } else {
           query.employeeId = reqEmpId; // fallback to self if no team assigned
         }
@@ -216,15 +216,15 @@ export const createLeaveRequest = async (req: Request, res: Response, next: Next
     const populatedLeave = await LeaveRequest.findById(newLeave._id).populate("employeeId", "firstName lastName employeeId");
     
     // Notify Manager
-    const employee = await Employee.findById(empId).lean();
+    const employee: any = await Employee.findById(empId).lean();
     if (employee) {
       let managerUserId: any = null;
 
       // 1. Direct manager
       if (employee.managerId) {
-        const directManager = await Employee.findById(employee.managerId).lean();
+        const directManager: any = await Employee.findById(employee.managerId).lean();
         if (directManager && directManager.userId) {
-          const directUser = await User.findById(directManager.userId).lean();
+          const directUser: any = await User.findById(directManager.userId).lean();
           if (directUser && directUser.role === "Manager") {
             managerUserId = directManager.userId;
           }
@@ -233,7 +233,7 @@ export const createLeaveRequest = async (req: Request, res: Response, next: Next
 
       // 2. Department manager
       if (!managerUserId && employee.departmentId) {
-        const deptManager = await Employee.findOne({
+        const deptManager: any = await Employee.findOne({
           companyId,
           departmentId: employee.departmentId,
           role: "Manager"
@@ -245,7 +245,7 @@ export const createLeaveRequest = async (req: Request, res: Response, next: Next
 
       // 3. Fallback to primary company manager (e.g. manager@thestackly.com)
       if (!managerUserId) {
-        const primaryManager = await Employee.findOne({
+        const primaryManager: any = await Employee.findOne({
           companyId,
           role: "Manager"
         }).lean();
@@ -329,7 +329,7 @@ export const updateLeaveStatus = async (req: Request, res: Response, next: NextF
     } else {
       // Approved or Rejected
       if (['Manager', 'Team Lead'].includes(role)) {
-        const reviewerEmp = await Employee.findById(reviewerId).lean().session(session);
+        const reviewerEmp: any = await Employee.findById(reviewerId).lean().session(session);
         if (!reviewerEmp) {
           await session.abortTransaction();
           session.endSession();
@@ -411,7 +411,7 @@ export const updateLeaveStatus = async (req: Request, res: Response, next: NextF
     // Notifications and SSE
     if (leave.employeeId?.userId && targetEmpId.toString() !== reviewerId?.toString()) {
       const typeStr = leave.type || "Leave";
-      const reviewedByName = (await Employee.findById(reviewerId).select("firstName").lean().session(session))?.firstName || "your manager";
+      const reviewedByName = ((await Employee.findById(reviewerId).select("firstName").lean().session(session)) as any)?.firstName || "your manager";
       const message = `Your ${typeStr} request from ${leave.startDate} to ${leave.endDate} has been ${status.toLowerCase()} by ${reviewedByName}.`;
       const notifType = status === "Approved" ? "SUCCESS" : "WARNING";
 

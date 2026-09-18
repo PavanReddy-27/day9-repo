@@ -15,4 +15,4 @@ const shiftSwapSchema = new mongoose.Schema(
 
 shiftSwapSchema.index({ companyId: 1, date: 1 });
 
-export default mongoose.models.ShiftSwap || mongoose.model("ShiftSwap", shiftSwapSchema, "shiftswaps");
+export default (mongoose.models.ShiftSwap || mongoose.model("ShiftSwap", shiftSwapSchema, "shiftswaps")) as mongoose.Model<any>;

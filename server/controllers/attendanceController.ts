@@ -945,7 +945,7 @@ export const createCorrection = async (req, res) => {
 
     // Notify Manager
     if (req.employee.managerId) {
-      const manager = await Employee.findById(req.employee.managerId).lean();
+      const manager: any = await Employee.findById(req.employee.managerId).lean();
       if (manager && manager.userId) {
         await NotificationService.sendNotification(
           manager.userId,

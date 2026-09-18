@@ -15,4 +15,4 @@ const idempotencyRecordSchema = new mongoose.Schema(
 
 idempotencyRecordSchema.index({ companyId: 1, idempotencyKey: 1 }, { unique: true });
 
-export default mongoose.models.IdempotencyRecord || mongoose.model("IdempotencyRecord", idempotencyRecordSchema, "idempotencyrecords");
+export default (mongoose.models.IdempotencyRecord || mongoose.model("IdempotencyRecord", idempotencyRecordSchema, "idempotencyrecords")) as mongoose.Model<any>;

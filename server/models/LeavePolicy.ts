@@ -42,4 +42,4 @@ const leavePolicySchema = new mongoose.Schema(
 leavePolicySchema.index({ companyId: 1, leaveType: 1 }, { unique: true });
 
 const LeavePolicy = mongoose.models.LeavePolicy || mongoose.model("LeavePolicy", leavePolicySchema, "leavepolicies");
-export default LeavePolicy as typeof mongoose.Model;
+export default LeavePolicy as mongoose.Model<any>;

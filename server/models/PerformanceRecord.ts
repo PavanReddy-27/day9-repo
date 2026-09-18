@@ -24,4 +24,4 @@ performanceRecordSchema.post('save', function(doc) {
   });
 });
 
-export default mongoose.models.PerformanceRecord || mongoose.model("PerformanceRecord", performanceRecordSchema, "performancerecords");
+export default (mongoose.models.PerformanceRecord || mongoose.model("PerformanceRecord", performanceRecordSchema, "performancerecords")) as mongoose.Model<any>;

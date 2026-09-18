@@ -19,8 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      JWT_SECRET: ci-test-jwt-secret
+      NODE_ENV: test
+      CI: "true"
+      JWT_SECRET: ci_test_super_secret_jwt_access_key_32char
       JWT_REFRESH_SECRET: ci-test-refresh-secret
+      MONGODB_URI: mongodb://127.0.0.1:27017/workforce_analytics_ci
 
     steps:
       - name: Check out repository
@@ -35,6 +38,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Start In-Memory MongoDB Service
+        uses: supercharge/mongodb-github-action@1.11.0
+        with:
+          mongodb-version: '7.0'
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
@@ -42,7 +50,7 @@ jobs:
         run: npm run lint
 
       - name: Type-check
-        run: npm run typecheck:frontend
+        run: npm run typecheck
 
       - name: Unit and integration tests
         run: npm test -- --run --pool=threads --no-file-parallelism --maxWorkers=1

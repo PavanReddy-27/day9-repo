@@ -14,7 +14,7 @@ export default defineConfig({
   // Start both the API and Vite so the E2E suite is self-contained.
   webServer: [
     {
-      command: "npm run server",
+      command: "npm run start",
       url: "http://localhost:5000/api/v1/health",
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

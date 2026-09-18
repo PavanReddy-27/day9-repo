@@ -44,4 +44,4 @@ employeeSchema.post('save', function(doc) {
 });
 
 const Employee = mongoose.models.Employee || mongoose.model('Employee', employeeSchema);
-export default Employee as typeof mongoose.Model;
+export default Employee as mongoose.Model<any>;
