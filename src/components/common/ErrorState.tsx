@@ -26,6 +26,7 @@ const ErrorState = ({
 }: ErrorStateProps) => {
   return (
     <Paper
+      role="alert"
       elevation={1}
       sx={{
         p: 5,
