@@ -185,7 +185,12 @@ async function startServer() {
   process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 }
 
-if (process.env.NODE_ENV !== "test") {
+const isMainModule = Boolean(
+  process.env.RUN_SERVER === "true" ||
+  (process.argv[1] && (process.argv[1].endsWith("index.ts") || process.argv[1].endsWith("index.js")))
+);
+
+if (isMainModule || (process.env.NODE_ENV !== "test" && !process.env.VITEST)) {
   startServer().catch(console.error);
 }
 
