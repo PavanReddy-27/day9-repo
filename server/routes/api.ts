@@ -62,7 +62,7 @@ const router = express.Router();
 router.get("/events/stream", authenticateJWT, sseMiddleware);
 
 
-// Health Check
+// Health Check & Readiness
 router.get("/health", (req, res) => {
   const dbHealth = getDBHealth();
   const statusCode = dbHealth.status === "healthy" ? 200 : 503;
@@ -87,6 +87,29 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+router.get("/health/readiness", (req, res) => {
+  const dbHealth = getDBHealth();
+  const isReady = dbHealth.status === "healthy";
+  const statusCode = isReady ? 200 : 503;
+  return res.status(statusCode).json({
+    status: isReady ? "UP" : "DOWN",
+    database: dbHealth,
+    ready: isReady,
+  });
+});
+
+router.get("/readiness", (req, res) => {
+  const dbHealth = getDBHealth();
+  const isReady = dbHealth.status === "healthy";
+  const statusCode = isReady ? 200 : 503;
+  return res.status(statusCode).json({
+    status: isReady ? "UP" : "DOWN",
+    database: dbHealth,
+    ready: isReady,
+  });
+});
+
 
 // Authentication Routes
 router.post("/auth/login", loginLimiter, validateRequest(loginSchema), login);
