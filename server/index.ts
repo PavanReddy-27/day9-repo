@@ -130,9 +130,9 @@ async function startServer() {
   await connectDB();
 
   try {
-    const userCount = await AdminAuth.countDocuments();
-    if (userCount === 0) {
-      console.log("[Server] Database is empty. Seeding initial accounts...");
+    const seedAdmin = await AdminAuth.findOne({ email: "admin@thestackly.com" });
+    if (!seedAdmin) {
+      console.log("[Server] Seed admin missing. Seeding initial accounts...");
       const { runSeed } = await import("./seed/seed.js");
       await runSeed(false, false);
     }

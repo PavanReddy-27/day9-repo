@@ -17,13 +17,14 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
       NODE_ENV: test
       CI: "true"
       JWT_SECRET: ci_test_super_secret_jwt_access_key_32char
       JWT_REFRESH_SECRET: ci-test-refresh-secret
       MONGODB_URI: mongodb://127.0.0.1:27017/workforce_analytics_ci
+      VITE_COMPANY_NAME: Stackly
 
     steps:
       - name: Check out repository
@@ -54,6 +55,9 @@ jobs:
 
       - name: Unit and integration tests
         run: npm test -- --run --pool=threads --no-file-parallelism --maxWorkers=1
+
+      - name: Seed Database
+        run: npm run seed -- --reset
 
       - name: Production build
         run: npm run build

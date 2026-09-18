@@ -106,15 +106,19 @@ export async function runSeed(reset = false, shouldCloseDB = false) {
     await PerformanceRecord.collection.dropIndexes().catch(() => { });
   }
 
-  // Check if company already exists to prevent duplicate runs without reset
+  // Check if company and admin account already exist to prevent duplicate runs without reset
   const existingCompany = await Company.findOne({ code: "STACKLY" });
-  if (existingCompany && !reset) {
+  const existingAdmin = await AdminAuth.findOne({ email: "admin@thestackly.com" });
+  if (existingCompany && existingAdmin && !reset) {
     console.log("[Seed Engine] Database already populated. Use --reset to re-seed.");
     await printCollectionCounts();
     if (process.argv[1]?.includes('seed.ts') || process.argv[1]?.includes('seedRoles.ts')) {
       await closeDB();
     }
     return;
+  }
+  if (existingCompany && !existingAdmin) {
+    await Company.deleteOne({ code: "STACKLY" });
   }
 
   // 1. Create Company (Stackly — the code doubles as the human-readable id)
